@@ -1,0 +1,2851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS | Infrastructure Strategy & Onboarding</title>
+
+<!-- Leaflet Config -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Font Awesome & Tailwind -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Google Fonts -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css">
+
+<!-- DHTMLX Gantt (Standard Open Source) -->
+<script src="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.js"></script>
+<link href="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.css" rel="stylesheet">
+
+<!-- html2pdf.js for Client Proposal Generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+/* Global Resets & Typography */
+*{font-family:'Inter',system-ui,sans-serif}
+body{background:#020617;color:#e2e8f0;min-height:100vh;overflow-x:hidden;}
+
+/* Hide Number Input Spinners Globally */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type="number"] {
+  -moz-appearance: textfield; 
+}
+
+/* Shared UI Components */
+.glass{background:rgba(15,23,42,0.8);backdrop-filter:blur(12px);border:1px solid rgba(51,65,85,0.6)}
+.accent{color:#10b981}
+.accent-glow{box-shadow:0 0 20px rgba(16,185,129,0.3)}
+.btn-primary{background:#10b981;color:#020617;font-weight:600;transition:all .2s}
+.btn-primary:hover{background:#34d399;transform:translateY(-1px);box-shadow:0 4px 15px rgba(16,185,129,0.4)}
+.btn-secondary{background:rgba(30,41,59,0.8);border:1px solid rgba(71,85,105,0.6);color:#cbd5e1;transition:all .2s}
+.btn-secondary:hover{background:rgba(51,65,85,0.8);border-color:rgba(100,116,139,0.8)}
+.btn-ghost{background:transparent;color:#94a3b8;transition:all .2s}
+.btn-ghost:hover{background:rgba(30,41,59,0.6);color:#e2e8f0}
+
+/* Step Wizard Elements */
+.step-line{height:2px;background:rgba(51,65,85,0.6);flex:1}
+.step-line.active{background:#10b981}
+.step-dot{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;transition:all .3s;border:2px solid rgba(51,65,85,0.6);background:rgba(15,23,42,0.8)}
+.step-dot.active{border-color:#10b981;background:rgba(16,185,129,0.15);color:#10b981}
+.step-dot.completed{border-color:#10b981;background:#10b981;color:#020617}
+.step-indicator.clickable { cursor: pointer; }
+.step-indicator.clickable:hover .step-dot:not(.active):not(.completed) { border-color: rgba(16,185,129,0.6); color: #10b981; background: rgba(16,185,129,0.08); }
+.step-indicator.clickable:hover .step-text:not(.accent) { color: #34d399; }
+
+/* Grid & Cards (Optimizer) */
+.region-card{background:rgba(30,41,59,0.5);border:1px solid rgba(51,65,85,0.5);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+.region-card:hover{border-color:rgba(100,116,139,0.8);background:rgba(30,41,59,0.8)}
+.region-card.selected{border-color:#10b981;background:rgba(16,185,129,0.1)}
+.region-card .checkbox{width:20px;height:20px;border-radius:4px;border:2px solid rgba(71,85,105,0.8);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.region-card.selected .checkbox{background:#10b981;border-color:#10b981}
+.pill{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#10b981;padding:4px 12px;border-radius:20px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.pill .remove{cursor:pointer;opacity:.7;transition:opacity .2s}
+.pill .remove:hover{opacity:1}
+.mode-card{background:rgba(30,41,59,0.5);border:2px solid rgba(51,65,85,0.5);border-radius:12px;padding:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px}
+.mode-card:hover{border-color:rgba(100,116,139,0.8)}
+.mode-card.selected{border-color:#10b981;background:rgba(16,185,129,0.08)}
+.mode-card .mode-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.mode-card.selected .mode-icon{background:#10b981;color:#020617}
+.mode-card:not(.selected) .mode-icon{background:rgba(51,65,85,0.6);color:#94a3b8}
+
+/* Optimizer specific lists */
+.customer-row{background:rgba(30,41,59,0.4);border:1px solid rgba(51,65,85,0.4);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all .2s}
+.customer-row:hover{border-color:rgba(71,85,105,0.6)}
+.customer-num{width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.2);color:#ef4444;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.view-toggle{background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;padding:4px;display:inline-flex;gap:2px}
+.view-toggle button{padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;transition:all .2s;color:#94a3b8}
+.view-toggle button.active{background:rgba(30,41,59,0.9);color:#e2e8f0}
+.tab-toggle{background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;padding:4px;display:flex;gap:2px}
+.tab-toggle button{flex:1;padding:10px;border-radius:6px;font-size:13px;font-weight:500;transition:all .2s;color:#94a3b8}
+.tab-toggle button.active{background:#10b981;color:#020617}
+
+/* Maps & Visuals */
+.map-container{border-radius:12px;overflow:hidden;border:1px solid rgba(51,65,85,0.5);box-shadow:0 0 30px rgba(0,0,0,0.5)}
+.leaflet-container{background:#0a0e17!important}
+.search-input{background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;padding:10px 14px 10px 38px;color:#e2e8f0;width:100%;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:#10b981}
+.search-input::placeholder{color:#64748b}
+.result-card{background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.5);border-radius:12px;padding:20px;transition:all .2s}
+.result-card:hover{border-color:rgba(71,85,105,0.8)}
+.stat-card{background:rgba(30,41,59,0.5);border:1px solid rgba(51,65,85,0.5);border-radius:12px;padding:20px;text-align:center}
+.stat-value{font-size:32px;font-weight:700;color:#10b981}
+.stat-label{font-size:13px;color:#94a3b8;margin-top:4px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.legend-diamond{width:10px;height:10px;transform:rotate(45deg);flex-shrink:0}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease-out}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:1}100%{transform:scale(2.5);opacity:0}}
+.pulse-ring{animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring-diamond{0%{transform:rotate(45deg) scale(1);opacity:0.8}100%{transform:rotate(45deg) scale(2.5);opacity:0}}
+.pulse-ring-diamond{animation:pulse-ring-diamond 2s ease-out infinite}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:rgba(15,23,42,0.5)}
+::-webkit-scrollbar-thumb{background:rgba(71,85,105,0.6);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(100,116,139,0.8)}
+
+/* Forms */
+input[type=number].ob-global-input{background:transparent;color:#fff;outline:none;font-family:monospace;font-size:15px;width:80px;text-align:right;}
+input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-family:monospace;outline:none;text-align:center;width:100%;font-weight:700;}
+.ob-input-wrapper { display:flex;align-items:center;background:rgba(30,41,59,0.8);border:1px solid rgba(71,85,105,0.6);border-radius:8px;padding:6px 12px;transition:all 0.2s;}
+.ob-input-wrapper:focus-within { border-color:#10b981; background:rgba(15,23,42,0.9); }
+
+/* Step 3 Inputs */
+#step-3 input[type="number"] { background: rgba(15,23,42,0.8); border: 1px solid rgba(51,65,85,0.6); border-radius: 8px; color: #e2e8f0; outline: none; padding: 6px 10px; transition: border-color 0.2s; text-align: center; }
+#step-3 input[type="number"]:focus { border-color: #10b981; }
+
+/* Accordions & Cost Lists */
+.cost-accordion{background:rgba(15,23,42,0.5);border:1px solid rgba(51,65,85,0.5);border-radius:12px;margin-top:16px;overflow:hidden;transition:all .2s}
+.cost-accordion:hover{border-color:rgba(71,85,105,0.8)}
+.cost-accordion-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.cost-accordion-header:hover{background:rgba(30,41,59,0.4)}
+.cost-accordion-title{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#fff}
+.cost-accordion-icon{color:#94a3b8;transition:transform .2s}
+.cost-accordion.open .cost-accordion-icon{transform:rotate(180deg)}
+.cost-accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.cost-accordion.open .cost-accordion-body{max-height:2000px}
+.cost-accordion-content{padding:0 18px 18px;border-top:1px solid rgba(51,65,85,0.4)}
+.cost-default-banner{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 14px;margin-top:14px;font-size:13px;color:#cbd5e1;line-height:1.5}
+.cost-cell-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(30,41,59,0.4);border:1px solid rgba(51,65,85,0.4);border-radius:8px;margin-top:10px}
+.cost-cell-row .cell-name{flex:1;min-width:0}
+.cost-cell-row .cell-name .name{font-size:13px;font-weight:500;color:#fff}
+.cost-cell-row .cell-name .code{font-size:11px;color:#94a3b8}
+.cost-cell-row .cell-cost{display:flex;align-items:center;gap:6px}
+.cost-cell-row input{width:110px;padding:6px 10px;font-size:13px;background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;color:#e2e8f0;outline:none;}
+.cost-cell-row input:focus{border-color:#10b981;}
+.cost-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(251,191,36,0.15);color:#fbbf24;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:ui-monospace,monospace}
+.cost-tag.premium{background:rgba(239,68,68,0.15);color:#f87171}
+.cost-tag.discount{background:rgba(16,185,129,0.15);color:#10b981}
+
+/* Baseline Cost UI & Latency Explorer */
+.baseline-toggle{display:flex;gap:4px;background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;padding:4px;margin-top:16px}
+.baseline-toggle button{flex:1;padding:10px 12px;border-radius:6px;font-size:13px;font-weight:500;color:#94a3b8;transition:all .2s}
+.baseline-toggle button:hover:not(:disabled){background:rgba(30,41,59,0.6);color:#e2e8f0}
+.baseline-toggle button.active{background:rgba(59,130,246,0.2);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+.baseline-toggle button:disabled{opacity:0.5;cursor:not-allowed}
+.disabled-reason{display:block;font-size:10px;font-weight:400;opacity:0.8;margin-top:4px}
+.baseline-dropdown{width:100%;background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;color:#e2e8f0;padding:10px 14px;outline:none;font-size:13px;cursor:pointer;margin-top:4px}
+.baseline-dropdown:focus{border-color:#3b82f6}
+.baseline-dropdown option{background:#0f172a;color:#e2e8f0}
+.baseline-summary{display:flex;align-items:center;justify-content:space-between;padding:16px;background:rgba(15,23,42,0.6);border:1px dashed rgba(51,65,85,0.8);border-radius:12px;margin-top:16px}
+.baseline-summary .label{font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.baseline-summary .value{font-size:24px;font-weight:700;color:#60a5fa}
+.sm-text-right{text-align:right}
+.candidate-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(30,41,59,0.4);border:1px solid rgba(51,65,85,0.4);border-radius:8px;transition:all .2s}
+.candidate-row:hover{border-color:rgba(71,85,105,0.6);background:rgba(30,41,59,0.6)}
+.candidate-row.winner{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.05)}
+.candidate-rank{width:24px;height:24px;border-radius:50%;background:rgba(51,65,85,0.6);color:#cbd5e1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.candidate-row.winner .candidate-rank{background:rgba(16,185,129,0.2);color:#10b981}
+
+/* Badges & Elements */
+.tier-badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.tier-1{background:rgba(16,185,129,0.2);color:#10b981}
+.tier-2{background:rgba(59,130,246,0.2);color:#60a5fa}
+.tier-3{background:rgba(251,191,36,0.2);color:#fbbf24}
+.tier-4{background:rgba(239,68,68,0.2);color:#ef4444}
+.breakdown-bar{display:flex;align-items:center;gap:4px;font-size:11px;font-family:monospace;margin-top:4px;color:#94a3b8;flex-wrap:wrap}
+.breakdown-seg{padding:2px 6px;border-radius:4px;background:rgba(51,65,85,0.6);white-space:nowrap; cursor:help}
+.breakdown-seg.base{background:rgba(59,130,246,0.2);color:#93c5fd}
+.breakdown-seg.dist{background:rgba(251,191,36,0.15);color:#fbbf24}
+.breakdown-seg.infra{background:rgba(168,85,247,0.15);color:#c084fc}
+.breakdown-seg.proc{background:rgba(236,72,153,0.15);color:#f472b6}
+.breakdown-seg.total{background:rgba(16,185,129,0.2);color:#34d399;font-weight:600; cursor:default}
+.latency-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,0.15);color:#c4b5fd;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:ui-monospace,monospace}
+
+/* Custom Checkbox */
+.cb-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.cb-box { width: 18px; height: 18px; border: 2px solid rgba(100,116,139,0.8); border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; background: rgba(15,23,42,0.5); }
+.cb-wrapper input:checked ~ .cb-box { background: #3b82f6; border-color: #3b82f6; }
+.cb-wrapper input:checked ~ .cb-box::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: #fff; font-size: 10px; }
+
+/* Help Drawer */
+.help-fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#020617;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;cursor:pointer;box-shadow:0 8px 25px rgba(16,185,129,0.4);z-index:9999;transition:all .25s ease;border:none;animation:help-pulse 3s ease-in-out infinite}
+.help-fab:hover{transform:scale(1.08) rotate(8deg);box-shadow:0 12px 35px rgba(16,185,129,0.6)}
+.help-fab:active{transform:scale(0.95)}
+.help-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.75);backdrop-filter:blur(4px);z-index:10000;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.help-backdrop.open{opacity:1;pointer-events:auto}
+.help-drawer{position:fixed;top:0;right:0;width:100%;max-width:520px;height:100vh;background:#0a1220;border-left:1px solid rgba(51,65,85,0.6);z-index:10001;transform:translateX(100%);transition:transform .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,0.5)}
+.help-drawer.open{transform:translateX(0)}
+.help-header{padding:20px 24px;border-bottom:1px solid rgba(51,65,85,0.6);display:flex;align-items:center;justify-content:space-between;background:rgba(15,23,42,0.8);flex-shrink:0}
+.help-toc{padding:16px 24px;border-bottom:1px solid rgba(51,65,85,0.6);background:rgba(15,23,42,0.5);flex-shrink:0}
+.help-toc-list{display:flex;flex-wrap:wrap;gap:6px}
+.help-toc-link{font-size:12px;padding:5px 10px;border-radius:6px;background:rgba(30,41,59,0.6);color:#cbd5e1;border:1px solid rgba(51,65,85,0.5);cursor:pointer;transition:all .2s;}
+.help-toc-link:hover{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#10b981}
+.help-body{flex:1;overflow-y:auto;padding:24px;}
+.help-section{margin-bottom:36px;}
+.help-section h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:1px solid rgba(51,65,85,0.4)}
+.help-section p{font-size:14px;line-height:1.65;color:#cbd5e1;margin-bottom:10px}
+.help-formula{background:rgba(15,23,42,0.8);border:1px solid rgba(51,65,85,0.6);border-radius:8px;padding:14px;margin:12px 0;font-family:ui-monospace,monospace;font-size:13px;color:#fbbf24;text-align:center}
+
+/* Toasts & Dropdowns */
+.toast { position: fixed; top: 24px; right: 24px; background: rgba(15,23,42,0.95); border: 1px solid rgba(51,65,85,0.6); color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 10002; display: flex; align-items: center; gap: 10px; transform: translateX(150%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 10px 25px rgba(0,0,0,0.5); font-size: 14px; font-weight: 500;}
+.toast.show { transform: translateX(0); }
+.toast-icon.success { color: #10b981; }
+.toast-icon.error { color: #ef4444; }
+.export-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: rgba(15,23,42,0.98); border: 1px solid rgba(51,65,85,0.8); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); width: 280px; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: all 0.2s ease; backdrop-filter: blur(12px); overflow: hidden; }
+.export-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.export-option { display: block; width: 100%; text-align: left; padding: 10px 14px; border-bottom: 1px solid rgba(51,65,85,0.4); background: transparent; transition: all 0.2s; cursor: pointer; }
+.export-option:hover { background: rgba(30,41,59,0.8); }
+.export-option-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+.export-option-title i { font-size: 14px; }
+.export-option-desc { font-size: 11px; color: #94a3b8; line-height: 1.3; }
+
+/* Proposal Modal */
+.proposal-modal-backdrop { position:fixed; inset:0; background:rgba(2,6,23,0.85); backdrop-filter:blur(6px); z-index:11000; opacity:0; pointer-events:none; transition:opacity .3s ease; display:flex; align-items:center; justify-content:center; }
+.proposal-modal-backdrop.open { opacity:1; pointer-events:auto; }
+.proposal-modal { background:rgba(15,23,42,0.95); border:1px solid rgba(51,65,85,0.8); border-radius:16px; width:100%; max-width:500px; padding:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); transform:scale(0.95); transition:transform .3s cubic-bezier(0.4,0,0.2,1); }
+.proposal-modal-backdrop.open .proposal-modal { transform:scale(1); }
+.proposal-input { width:100%; background:rgba(30,41,59,0.8); border:1px solid rgba(71,85,105,0.6); border-radius:8px; padding:10px 14px; color:#fff; font-size:14px; outline:none; transition:border-color 0.2s; }
+.proposal-input:focus { border-color:#3b82f6; }
+
+/* ATLAS Gateway Styles */
+.gateway-card { background: rgba(15,23,42,0.6); border: 1px solid rgba(51,65,85,0.6); border-radius: 16px; padding: 32px; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; text-align: center; height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.gateway-card:hover { transform: translateY(-5px); border-color: rgba(16,185,129,0.6); background: rgba(30,41,59,0.8); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+.gateway-icon { width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 24px; transition: transform 0.3s ease; }
+.gateway-card:hover .gateway-icon { transform: scale(1.1); }
+.gateway-icon.opt { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.gateway-icon.onb { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+
+/* DHTMLX Gantt Aggressive Dark Theme Overrides */
+.gantt_container { font-family: 'Inter', sans-serif !important; background: #0f172a !important; border: none !important; border-radius: 12px !important; overflow: hidden !important; }
+.gantt_task_row, .gantt_row { background: transparent !important; border-bottom: 1px solid rgba(51,65,85,0.4) !important; }
+.gantt_task_row.odd, .gantt_row.odd { background: rgba(30,41,59,0.3) !important; }
+.gantt_grid_scale, .gantt_task_scale { background: rgba(15,23,42,0.95) !important; color: #94a3b8 !important; border-bottom: 1px solid rgba(51,65,85,0.6) !important; font-weight: 600 !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.5px; }
+.gantt_grid_head_cell { color: #94a3b8 !important; border-right: 1px solid rgba(51,65,85,0.6) !important; }
+.gantt_cell { border-right: 1px solid rgba(51,65,85,0.6) !important; color: #cbd5e1 !important; font-size: 13px !important; }
+.gantt_task_cell { border-right: 1px solid rgba(51,65,85,0.3) !important; }
+.gantt_task_line { background: linear-gradient(90deg, #3b82f6, #2563eb) !important; border: 1px solid #1d4ed8 !important; border-radius: 6px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important; }
+.gantt_task_line.gantt_selected { box-shadow: 0 0 0 2px rgba(59,130,246,0.5) !important; }
+.gantt_task_content { color: #fff !important; font-weight: 600 !important; font-size: 11px !important; text-shadow: 0 1px 2px rgba(0,0,0,0.5); padding: 0 8px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gantt_task_link .gantt_line_wrapper div { background-color: #10b981 !important; }
+.gantt_task_link .gantt_link_arrow { border-left-color: #10b981 !important; }
+.gantt_task_link:hover .gantt_line_wrapper div { background-color: #34d399 !important; box-shadow: 0 0 5px #34d399; }
+.gantt_task_link:hover .gantt_link_arrow { border-left-color: #34d399 !important; }
+.gantt_link_point { width: 14px !important; height: 14px !important; border-radius: 50% !important; background: #3b82f6 !important; border: 2px solid #fff !important; box-shadow: 0 0 10px rgba(59,130,246,0.8) !important; margin-top: -7px !important; transition: transform 0.2s !important; } 
+.gantt_link_point:hover { transform: scale(1.3) !important; background: #60a5fa !important; }
+.gantt_grid_data .gantt_row.gantt_selected, .gantt_task_bg .gantt_task_row.gantt_selected { background: rgba(59,130,246,0.1) !important; }
+.gantt_tooltip { background: rgba(15,23,42,0.95) !important; backdrop-filter: blur(12px) !important; border: 1px solid rgba(51,65,85,0.6) !important; color: #e2e8f0 !important; border-radius: 8px !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; padding: 12px !important; font-family: 'Inter', sans-serif !important; z-index: 10005 !important;}
+.gantt_add { display: none !important; }
+.gantt_grid_data .gantt_cell.gantt_last_cell { border-right: none !important; }
+.gantt_tree_icon { filter: invert(1) opacity(0.5); }
+
+/* DHTMLX Popup (Delete Dependency Arrow Modal) Dark Theme */
+.gantt_modal_box, .gantt_popup_box, .gantt_confirm, .gantt_popup_wrap, .dhtmlx_modal_box { background: rgba(15,23,42,0.98) !important; border: 1px solid rgba(51,65,85,0.8) !important; border-radius: 12px !important; box-shadow: 0 15px 40px rgba(0,0,0,0.7) !important; backdrop-filter: blur(12px) !important; color: #e2e8f0 !important; font-family: 'Inter', sans-serif !important; overflow: hidden; }
+.gantt_popup_title, .dhtmlx_popup_title { background: rgba(30,41,59,0.5) !important; border-bottom: 1px solid rgba(51,65,85,0.6) !important; color: #fff !important; font-weight: 600 !important; font-size: 14px !important; padding: 14px 20px !important; height: auto !important; line-height: normal !important; text-align: left !important; }
+.gantt_popup_text, .dhtmlx_popup_text { color: #cbd5e1 !important; padding: 24px 20px !important; font-size: 14px !important; text-align: left !important; background: transparent !important; text-shadow: none !important; }
+.gantt_popup_controls, .gantt_popup_bottom, .dhtmlx_popup_controls { background: rgba(15,23,42,0.5) !important; border-top: 1px solid rgba(51,65,85,0.4) !important; padding: 14px 20px !important; text-align: right !important; margin: 0 !important; }
+.gantt_popup_button, .dhtmlx_popup_button { background: rgba(30,41,59,0.8) !important; border: 1px solid rgba(71,85,105,0.6) !important; color: #e2e8f0 !important; border-radius: 8px !important; text-shadow: none !important; font-weight: 500 !important; font-size: 13px !important; transition: all 0.2s !important; padding: 6px 16px !important; height: auto !important; line-height: normal !important; margin-left: 10px !important; cursor: pointer !important; box-shadow: none !important; }
+.gantt_popup_button:hover, .dhtmlx_popup_button:hover { background: rgba(51,65,85,0.8) !important; border-color: #94a3b8 !important; color: #fff !important; }
+.gantt_popup_button.gantt_ok_button, .dhtmlx_popup_button.dhtmlx_ok_button { background: #ef4444 !important; color: #fff !important; border-color: #dc2626 !important; }
+.gantt_popup_button.gantt_ok_button:hover, .dhtmlx_popup_button.dhtmlx_ok_button:hover { background: #dc2626 !important; box-shadow: 0 0 10px rgba(239,68,68,0.4) !important; }
+.gantt_popup_button.gantt_cancel_button, .dhtmlx_popup_button.dhtmlx_cancel_button { background: rgba(51,65,85,0.4) !important; }
+
+/* Fix ugly white/gray drag markers and layout backgrounds in DHTMLX */
+.gantt_layout_cell, .gantt_layout_content, .gantt_grid_data, .gantt_task_data { background-color: #0f172a !important; }
+.gantt_drag_marker { background: rgba(59, 130, 246, 0.2) !important; border: 1px dashed rgba(59, 130, 246, 0.8) !important; }
+.gantt_task_line.gantt_drag_marker { opacity: 0.6; }
+.gantt_drag_line { background-color: #3b82f6 !important; }
+
+/* Gantt Grid Vertical Centering Fix */
+.gantt_custom_flex_cell { display: flex; align-items: center; justify-content: center; height: 100%; width: 100%; line-height: normal; }
+
+/* Help Drawer Standardized Typography */
+.help-section h4 { font-size: 15px; font-weight: 600; color: #f8fafc; margin-top: 24px; margin-bottom: 10px; }
+.help-section ul { font-size: 14px; line-height: 1.65; color: #cbd5e1; list-style-type: disc; margin-left: 20px; margin-bottom: 12px; }
+.help-section li { margin-bottom: 6px; }
+.help-callout { font-size: 14px; line-height: 1.6; background: rgba(15,23,42,0.8); border: 1px solid rgba(51,65,85,0.6); border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #3b82f6; color: #cbd5e1; }
+.help-callout.success { border-left-color: #10b981; }
+.callout-title { font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+
+</style>
+</head>
+<body>
+
+<!-- MODULE: GATEWAY (ATLAS) -->
+<div id="module-gateway" class="flex flex-col items-center justify-center min-h-screen px-6 py-12 relative overflow-hidden">
+  <!-- Decorative background elements -->
+  <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+  <div class="text-center mb-12 z-10">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-blue-500 mb-6 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+      <i class="fas fa-globe text-white text-3xl"></i>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400 mb-4 tracking-tight">ATLAS</h1>
+    <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-medium">Cell Placement & Onboarding Cost Assessment Suite</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full z-10">
+    <div class="gateway-card" onclick="showModule('optimizer')">
+      <div class="gateway-icon opt">
+        <i class="fas fa-network-wired"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-3">Cell Placement Optimizer</h2>
+      <p class="text-slate-400 text-sm leading-relaxed mb-6">
+        Determine optimal infrastructure placement, run realistic latency models, map your global endpoints, and forecast baseline monthly OPEX.
+      </p>
+      <div class="mt-auto pt-4 border-t border-slate-700/50 w-full text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 group">
+        Launch Optimizer <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+      </div>
+    </div>
+
+    <div class="gateway-card" onclick="showModule('onboarding')">
+      <div class="gateway-icon onb">
+        <i class="fas fa-file-invoice-dollar"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-3">Onboarding Calculator</h2>
+      <p class="text-slate-400 text-sm leading-relaxed mb-6">
+        Estimate customer onboarding costs, build interactive Gantt timelines with automated smart-snapping, and calculate final project pricing.
+      </p>
+      <div class="mt-auto pt-4 border-t border-slate-700/50 w-full text-blue-400 font-semibold text-sm flex items-center justify-center gap-2 group">
+        Launch Calculator <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+      </div>
+    </div>
+  </div>
+  
+  <div class="absolute bottom-8 w-full text-center text-xs text-slate-600 z-10 px-4">
+    ATLAS Internal Planning Tool<br>
+    <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
+  </div>
+</div>
+
+<!-- MODULE: OPTIMIZER -->
+<div id="module-optimizer" style="display: none;">
+  <header class="border-b border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-[2000] bg-[#020617]/85 backdrop-blur-lg">
+    <div class="flex items-center gap-3">
+      <button class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center mr-2 bg-slate-800/50 hover:bg-slate-700/80" onclick="showModule('gateway')" title="Back to ATLAS Home">
+        <i class="fas fa-home text-slate-300"></i>
+      </button>
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-network-wired text-emerald-400 text-lg"></i></div>
+      <div><h1 class="text-base sm:text-lg font-bold text-white">Cell Placement Optimizer</h1><p class="text-xs text-slate-400">AWS Global Infrastructure Planner</p></div>
+    </div>
+    <div class="flex items-center gap-1 sm:gap-2 relative" id="header-actions">
+      <input type="file" id="import-file" accept=".json" class="hidden" onchange="handleImport(event)">
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="document.getElementById('import-file').click()" title="Import Session"><i class="fas fa-file-import text-blue-400"></i><span class="hidden sm:inline">Import</span></button>
+      
+      <div class="relative inline-block">
+        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="toggleExportMenu('export-menu')" id="export-btn" title="Export Data"><i class="fas fa-file-export text-purple-400"></i><span class="hidden sm:inline">Export</span><i class="fas fa-chevron-down text-[10px] ml-1 opacity-70"></i></button>
+        <div class="export-dropdown" id="export-menu">
+          <button class="export-option" onclick="openProposalModal()">
+            <div class="export-option-title"><i class="fas fa-file-pdf text-red-400"></i> Client Proposal (PDF) <span class="bg-amber-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded ml-2 uppercase">BETA</span></div>
+            <div class="export-option-desc">Generates a branded, external-facing proposal masking internal margins.</div>
+          </button>
+          <button class="export-option" onclick="exportSessionJSON()">
+            <div class="export-option-title"><i class="fas fa-code text-purple-400"></i> JSON File</div>
+            <div class="export-option-desc">Saves full app state. <strong>Highly recommended if you intend to import this data back for a future session.</strong></div>
+          </button>
+          <button class="export-option" onclick="exportSessionCSV()">
+            <div class="export-option-title"><i class="fas fa-table text-emerald-400"></i> CSV File</div>
+            <div class="export-option-desc">Exports a spreadsheet-friendly report of your current endpoints, SLA, and footprint. Cannot be imported back.</div>
+          </button>
+        </div>
+      </div>
+  
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('optimizer')"><i class="fas fa-book-open text-emerald-400"></i><span class="hidden sm:inline">Guide</span></button>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex items-center justify-center mb-10 px-4 overflow-x-auto pb-2">
+      <div class="flex items-center gap-0 w-full min-w-[300px] sm:min-w-0 sm:max-w-2xl">
+        <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(1)" id="step-ind-1"><div class="step-dot active"><i class="fas fa-server text-sm"></i></div><span class="text-xs font-medium accent step-text">Current Footprint</span></div>
+        <div class="step-line" id="line-1"></div>
+        <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(2)" id="step-ind-2"><div class="step-dot"><i class="fas fa-network-wired text-sm"></i></div><span class="text-xs font-medium text-slate-500 step-text">Endpoints</span></div>
+        <div class="step-line" id="line-2"></div>
+        <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(3)" id="step-ind-3"><div class="step-dot"><i class="fas fa-sliders text-sm"></i></div><span class="text-xs font-medium text-slate-500 step-text">SLA Config</span></div>
+        <div class="step-line" id="line-3"></div>
+        <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(4)" id="step-ind-4"><div class="step-dot"><i class="fas fa-chart-bar text-sm"></i></div><span class="text-xs font-medium text-slate-500 step-text">Dashboard</span></div>
+      </div>
+    </div>
+    
+    <div id="step-1" class="step-content fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Current Footprint</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Select the AWS regions where you already have cells deployed</p>
+      </div>
+      <div class="flex justify-center mb-6">
+        <div class="view-toggle"><button class="active" onclick="setFootprintView('list')" id="fp-list-btn">List View</button><button onclick="setFootprintView('map')" id="fp-map-btn">Map View</button></div>
+      </div>
+      <div class="flex flex-wrap justify-center gap-2 mb-6" id="fp-pills"></div>
+      <div id="fp-list-view" class="glass rounded-2xl p-4 sm:p-6">
+        <div class="relative mb-5"><i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i><input type="text" class="search-input" placeholder="Search regions..." id="fp-search" oninput="filterFootprintList()"></div>
+        <div id="fp-region-list" class="space-y-6 max-h-[500px] overflow-y-auto pr-2"></div>
+      </div>
+      <div id="fp-map-view" class="hidden">
+        <div class="map-container h-[300px] sm:h-[450px] relative">
+          <div id="fp-map" class="w-full h-full"></div>
+          <div class="absolute top-4 right-4 glass rounded-lg p-3 z-[1000] space-y-2">
+            <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing Cell</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Endpoint</div>
+            <div class="legend-item"><div class="legend-diamond" style="background:#3b82f6"></div>Recommended</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Restored Cost Accordion -->
+      <div class="cost-accordion" id="cost-accordion">
+        <div class="cost-accordion-header" onclick="toggleCostAccordion()">
+          <div class="cost-accordion-title">
+            <i class="fas fa-dollar-sign text-emerald-400"></i>
+            Infrastructure Cost Profile
+            <span class="pill ml-2" id="cost-info-pill" style="font-size:10px; padding:2px 8px;">Optional</span>
+          </div>
+          <i class="fas fa-chevron-down cost-accordion-icon"></i>
+        </div>
+        <div class="cost-accordion-body">
+          <div class="cost-accordion-content">
+            <div id="cost-default-banner" class="cost-default-banner">
+              <strong>Cost calculation is optional.</strong><br>
+              If you leave these blank, the optimizer will still find the most cost-effective region based on global AWS pricing tiers. Enter a known monthly cost for any cell below to see actual estimated OPEX in the final report.
+            </div>
+            <div id="cost-cells-section" style="display:none">
+              <div id="cost-cells-list"></div>
+              <div class="text-xs text-slate-400 mt-4 mb-2 uppercase tracking-wider font-semibold">Cost Baseline Method</div>
+              <div class="baseline-toggle">
+                <button class="active" id="baseline-blended-btn" onclick="setBaselineMode('blended')">Blended Average</button>
+                <button id="baseline-specific-btn" onclick="setBaselineMode('specific')" disabled>
+                  Specific Cell
+                  <span id="specific-disabled-reason" class="disabled-reason">Enter a cost first</span>
+                </button>
+              </div>
+              <div id="baseline-specific-dropdown-wrap" style="display:none">
+                <label class="text-xs text-slate-400 mt-3 block mb-1">Choose which cell to use as the 1.0x baseline:</label>
+                <select class="baseline-dropdown" id="baseline-specific-dropdown" onchange="updateCostBaseline()"></select>
+              </div>
+              <div class="baseline-summary" id="baseline-summary">
+                <div><div class="label">Normalized Global Base Cost (1.0x)</div><div class="value" id="baseline-value">$2,430</div></div>
+                <div class="text-xs text-slate-400 sm-text-right" id="baseline-mode-label">Reverse-engineered from Paris default<br>(Paris = 1.10x regional index)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-8"><button class="btn-primary px-6 py-3 rounded-xl" onclick="goToStep(2)">Next: Add Endpoints <i class="fas fa-arrow-right ml-2"></i></button></div>
+    </div>
+  
+    <div id="step-2" class="step-content hidden fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Endpoint Locations</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Add the locations of your target endpoints</p>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-2"><h3 class="font-semibold text-white">Endpoint Map</h3><div class="flex gap-3 text-xs flex-wrap"><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Endpoint</div></div></div>
+          <div class="h-[300px] sm:h-[420px] relative">
+            <div id="cust-map" class="w-full h-full"></div>
+            <!-- FIXED: Added full-width wrapper to prevent jumping on hover -->
+            <div class="absolute bottom-4 w-full flex justify-center z-[1000] pointer-events-none">
+              <button class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2 pointer-events-auto shadow-lg" id="click-place-btn" onclick="toggleClickPlace()">
+                <i class="fas fa-map-marker-alt"></i> <span id="click-place-text">Click to Place on Map</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="glass rounded-2xl p-5">
+            <div class="tab-toggle mb-4"><button class="active" onclick="setCustSource('aws')" id="src-aws-btn">AWS Regions</button><button onclick="setCustSource('cities')" id="src-cities-btn">World Cities</button></div>
+            <div class="relative mb-3"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i><input type="text" class="search-input text-sm" placeholder="Search cities or countries..." id="cust-search" oninput="filterCustList()"></div>
+            <div id="cust-source-list" class="max-h-[200px] overflow-y-auto space-y-1 pr-1"></div>
+          </div>
+          <div class="glass rounded-2xl p-5"><h3 class="font-semibold text-white mb-3">Endpoints (<span id="cust-count">0</span>)</h3><div id="cust-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1"></div></div>
+        </div>
+      </div>
+      <div class="flex justify-between mt-8"><button class="btn-ghost px-6 py-3" onclick="goToStep(1)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-primary px-6 py-3 rounded-xl" onclick="goToStep(3)">Next: Configure SLA <i class="fas fa-arrow-right ml-2"></i></button></div>
+    </div>
+  
+    <div id="step-3" class="step-content hidden fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">SLA Configuration</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Define your latency requirements</p>
+      </div>
+      <div class="max-w-2xl mx-auto space-y-6">
+        <div class="glass rounded-2xl p-6">
+          <div class="flex items-center gap-2 mb-4"><h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Latency Estimation Model</h3></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="mode-card" onclick="setRealisticMode(false)" id="mode-naive-card"><div class="mode-icon"><i class="fas fa-bolt"></i></div><div><div class="font-semibold text-white">Naive Mode</div><div class="text-xs text-slate-400">AWS region proxy only</div></div></div>
+            <div class="mode-card selected" onclick="setRealisticMode(true)" id="mode-realistic-card"><div class="mode-icon"><i class="fas fa-globe-africa"></i></div><div><div class="font-semibold text-white">Realistic Mode</div><div class="text-xs text-slate-400">Direct distance + infra tax</div></div></div>
+          </div>
+          <div id="realistic-info" class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><b>Realistic Mode</b> adds:</p>
+            <ul class="text-xs text-blue-200/80 space-y-1 ml-4 list-disc"><li><b>Direct Distance Model:</b> Bypasses the AWS matrix for non-AWS cities and calculates exact distance penalty (0.012 ms/km).</li><li><b>Infrastructure tax:</b> Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms</li></ul>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">SLA Mode</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="mode-card selected" onclick="setSLAMode('global')" id="sla-global-card"><div class="mode-icon"><i class="fas fa-globe"></i></div><div><div class="font-semibold text-white">Global SLA</div><div class="text-xs text-slate-400">One threshold for all</div></div></div>
+            <div class="mode-card" onclick="setSLAMode('per-customer')" id="sla-per-card"><div class="mode-icon"><i class="fas fa-cogs"></i></div><div><div class="font-semibold text-white">Per-Endpoint SLA</div><div class="text-xs text-slate-400">Different per endpoint</div></div></div>
+          </div>
+        </div>
+        <div id="sla-global-section" class="glass rounded-2xl p-6"><h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Global Latency Threshold</h3><div class="flex items-center gap-3"><input type="number" id="global-sla-input" value="150" min="1" class="text-lg font-mono"><span class="text-slate-400 font-medium">ms</span></div></div>
+        <div id="sla-per-section" class="glass rounded-2xl p-6 hidden"><h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Custom SLA per Endpoint</h3><div id="sla-per-list" class="space-y-3"></div></div>
+  
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Internal Processing Time</h3>
+          <p class="text-xs text-slate-400 mb-4">Estimated time required for the application to process the payload and generate a response.</p>
+          <div class="flex items-center gap-3"><input type="number" id="processing-time-input" value="10" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
+        </div>
+      </div>
+      <div class="flex justify-between mt-8 max-w-2xl mx-auto"><button class="btn-ghost px-6 py-3" onclick="goToStep(2)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-primary px-6 py-3 rounded-xl" onclick="analyzeCoverage()">Analyze Coverage <i class="fas fa-chart-line ml-2"></i></button></div>
+    </div>
+  
+    <div id="step-4" class="step-content hidden fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Coverage Analysis</h2>
+        <p class="text-xs sm:text-sm text-slate-400" id="dash-subtitle">Optimal cell placement recommendations</p>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
+        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Endpoints</div></div>
+        <div class="stat-card"><div class="stat-value text-emerald-400" id="stat-covered">0</div><div class="stat-label">Already Covered</div></div>
+        <div class="stat-card"><div class="stat-value text-amber-400" id="stat-pending">0</div><div class="stat-label">Pending Coverage</div></div>
+        <div class="stat-card"><div class="stat-value text-blue-400" id="stat-new-cells">0</div><div class="stat-label">New Cells Needed</div></div>
+        <div class="stat-card" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.3)"><div class="stat-value text-amber-300" id="stat-opex">$0</div><div class="stat-label">Est. Monthly OPEX</div></div>
+      </div>
+      <div id="strategy-summary" class="glass rounded-2xl p-5 mb-6 border-l-4 border-emerald-500"></div>
+      <div class="glass rounded-2xl overflow-hidden mb-8">
+        <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-2"><h3 class="font-semibold text-white">Coverage Map</h3><div class="flex gap-3 text-xs flex-wrap"><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing</div><div class="legend-item"><div class="legend-dot" style="background:#10b981;width:8px;height:8px"></div>Covered</div><div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Pending</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Impossible</div><div class="legend-item"><div class="legend-diamond" style="background:#3b82f6"></div>Recommended</div></div></div>
+        <div class="h-[300px] sm:h-[400px]"><div id="dash-map" class="w-full h-full"></div></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-check text-emerald-400"></i></div><h3 class="font-semibold text-white">Already Covered</h3></div><div id="dash-covered-list" class="space-y-2"></div></div>
+        <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i class="fas fa-clock text-amber-400"></i></div><h3 class="font-semibold text-white">Pending Coverage</h3></div><div id="dash-pending-list" class="space-y-2"></div></div>
+        <div class="result-card" id="impossible-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center"><i class="fas fa-ban text-red-400"></i></div><h3 class="font-semibold text-white">Impossible SLA</h3></div><div id="dash-impossible-list" class="space-y-2"></div></div>
+      </div>
+      <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered endpoint (including existing ones)</p></div></div><div id="explorer-list" class="space-y-5"></div></div>
+      <div class="glass rounded-2xl p-6 mb-8"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fas fa-lightbulb text-blue-400"></i></div><h3 class="font-semibold text-white text-lg">Recommended New Cells</h3></div><div id="dash-recommendations" class="space-y-4"></div></div>
+      <div class="flex justify-between"><button class="btn-ghost px-6 py-3" onclick="goToStep(3)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-secondary px-6 py-3 rounded-xl" onclick="goToStep(1)"><i class="fas fa-redo mr-2"></i>Start Over</button></div>
+    </div>
+  </main>
+  <footer class="text-center py-8 text-xs text-slate-600 border-t border-slate-800/50 px-4">
+    AWS Cell Placement Optimizer · Direct Distance & Matrix Models · Normalized global cost index<br>
+    <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-emerald-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
+  </footer>
+</div>
+
+<!-- MODULE: ONBOARDING CALCULATOR -->
+<div id="module-onboarding" style="display: none;">
+  <header class="border-b border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-[2000] bg-[#020617]/85 backdrop-blur-lg">
+    <div class="flex items-center gap-3">
+      <button class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center mr-2 bg-slate-800/50 hover:bg-slate-700/80" onclick="showModule('gateway')" title="Back to ATLAS Home">
+        <i class="fas fa-home text-slate-300"></i>
+      </button>
+      <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><i class="fas fa-file-invoice-dollar text-blue-400 text-lg"></i></div>
+      <div><h1 class="text-base sm:text-lg font-bold text-white">Onboarding Cost Calculator</h1><p class="text-xs text-slate-400">Project Scoping & Interactive Timeline</p></div>
+    </div>
+    <div class="flex items-center gap-1 sm:gap-2 relative" id="onb-header-actions">
+      <input type="file" id="import-onb-file" accept=".json" class="hidden" onchange="handleOnboardingImport(event)">
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="document.getElementById('import-onb-file').click()" title="Import Session"><i class="fas fa-file-import text-blue-400"></i><span class="hidden sm:inline">Import</span></button>
+      
+      <div class="relative inline-block">
+        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="toggleExportMenu('export-menu-onb')" id="export-btn-onb" title="Export Data"><i class="fas fa-file-export text-purple-400"></i><span class="hidden sm:inline">Export</span><i class="fas fa-chevron-down text-[10px] ml-1 opacity-70"></i></button>
+        <div class="export-dropdown" id="export-menu-onb">
+          <button class="export-option" onclick="openProposalModal()">
+            <div class="export-option-title"><i class="fas fa-file-pdf text-red-400"></i> Client Proposal (PDF) <span class="bg-amber-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded ml-2 uppercase">BETA</span></div>
+            <div class="export-option-desc">Generates a branded, external-facing proposal masking internal margins.</div>
+          </button>
+          <button class="export-option" onclick="exportOnboardingJSON()">
+            <div class="export-option-title"><i class="fas fa-code text-purple-400"></i> JSON File</div>
+            <div class="export-option-desc">Saves full project timeline and quoting state.</div>
+          </button>
+          <button class="export-option" onclick="exportOnboardingCSV()">
+            <div class="export-option-title"><i class="fas fa-table text-blue-400"></i> CSV Quote</div>
+            <div class="export-option-desc">Exports financial summary and itemized project schedule.</div>
+          </button>
+        </div>
+      </div>
+  
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('onboarding')"><i class="fas fa-book-open text-blue-400"></i><span class="hidden sm:inline">Guide</span></button>
+    </div>
+  </header>
+  
+  <main class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Top Ribbon Dashboard -->
+    <div class="glass rounded-2xl p-5 mb-6 shadow-xl border border-slate-700/60 flex flex-col lg:flex-row gap-6 justify-between items-center bg-gradient-to-br from-slate-900/90 to-slate-800/80">
+      
+      <div class="flex flex-wrap items-center gap-6">
+        <!-- Settings -->
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Blended Rate</label>
+          <div class="ob-input-wrapper">
+            <span class="text-slate-500 mr-1">$</span>
+            <input type="number" id="ob-rate" value="100" min="1" class="ob-global-input" onchange="updateOnboardingFinancials()">
+            <span class="text-slate-500 ml-1 text-xs">/hr</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Desired Margin</label>
+          <div class="ob-input-wrapper">
+            <input type="number" id="ob-margin" value="20" min="0" max="99" class="ob-global-input pr-1" onchange="updateOnboardingFinancials()">
+            <span class="text-slate-500">%</span>
+          </div>
+        </div>
+        
+        <div class="w-px h-10 bg-slate-700 mx-2 hidden sm:block"></div>
+        
+        <div class="flex flex-col justify-center gap-3">
+          <div class="w-[340px] relative">
+              <select id="deployment-scope" onchange="handleScopeChange(this.value)" class="appearance-none w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-3 pr-8 text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer font-medium shadow-sm transition-colors hover:border-slate-500">
+                  <option value="1">Tier 1: Full Deployment (New Cell + New Provider)</option>
+                  <option value="2">Tier 2: Integration Only (Existing Cell + New Provider)</option>
+                  <option value="3">Tier 3: Standard Onboarding (Existing Cell & Provider)</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                  <i class="fas fa-chevron-down text-[10px]"></i>
+              </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- FIXED: Unchecked by default -->
+            <input type="checkbox" id="ob-link-duration" class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-500 focus:ring-blue-500" onchange="toggleLinkDuration()">
+            <label for="ob-link-duration" class="text-xs font-semibold text-blue-300">Link Gantt Duration to Cost</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Financial Summary -->
+      <div class="flex items-center gap-4 sm:gap-6 bg-slate-900/60 p-4 rounded-xl border border-blue-500/20 w-full lg:w-auto justify-center lg:justify-end flex-wrap">
+        <div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Project Duration</div>
+          <div class="text-2xl font-bold text-white tracking-tight" id="ob-total-days">0 Days</div>
+          <div class="text-[10px] text-slate-500 mt-1" id="ob-total-hours">0 total hours</div>
+        </div>
+        <div class="w-px h-12 bg-slate-700 hidden sm:block"></div>
+        <div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Total Internal Cost</div>
+          <div class="text-2xl font-bold text-white tracking-tight" id="ob-internal-cost">$0</div>
+        </div>
+        <div class="w-px h-12 bg-slate-700 hidden sm:block"></div>
+        <div>
+          <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-1">Customer Price</div>
+          <div class="text-3xl font-extrabold text-emerald-400 tracking-tight drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" id="ob-customer-price">$0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DHTMLX Gantt Unified Container -->
+    <div class="glass p-4 rounded-2xl border border-slate-700/60 shadow-2xl flex flex-col">
+       <!-- Header Row with Reset Button -->
+       <div class="flex items-center justify-between mb-4 px-2">
+         <h3 class="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+           <i class="fas fa-stream text-blue-400"></i> Interactive Project Timeline
+         </h3>
+         <button class="btn-secondary text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-700" onclick="promptResetTimeline()">
+            <i class="fas fa-undo"></i> Reset Timeline
+         </button>
+       </div>
+       
+       <!-- Grid & Chart unified real estate -->
+       <div id="gantt_here" style="width:100%; border-radius: 12px; overflow: hidden; min-height: 250px;"></div>
+       
+       <!-- Bottom Toolbar -->
+       <div class="mt-4 pt-4 border-t border-slate-700/60 flex justify-between items-center">
+         <button class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-700/80 text-blue-400" onclick="addObTask()">
+            <i class="fas fa-plus"></i> Add Task
+         </button>
+         <div class="text-[10px] text-slate-500 italic flex items-center gap-1.5">
+            <i class="fas fa-info-circle"></i> Drag row edges vertically to reorder tasks. Dates are driven strictly by dependencies.
+         </div>
+       </div>
+    </div>
+  </main>
+  
+  <footer class="text-center py-8 text-xs text-slate-600 border-t border-slate-800/50 px-4">
+    Customer Onboarding Scoping · Interactive Gantt Timelines · Financial Quoting<br>
+    <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-blue-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
+  </footer>
+</div>
+
+<!-- GLOBAL COMPONENTS -->
+<button class="help-fab" onclick="openHelpDefault()" aria-label="Open user guide"><i class="fas fa-question"></i></button>
+<div class="help-backdrop" id="help-backdrop" onclick="closeHelp()"></div>
+<div id="toast-msg" class="toast"><i id="toast-icon" class="fas fa-check-circle toast-icon success"></i><span id="toast-text"></span></div>
+
+<!-- Proposal Config Modal -->
+<div id="proposal-modal-root" class="proposal-modal-backdrop">
+  <div class="proposal-modal">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-white"><i class="fas fa-file-pdf text-red-400 mr-2"></i> Configure Proposal</h2>
+      <button onclick="closeProposalModal()" class="text-slate-400 hover:text-white transition-colors"><i class="fas fa-times text-lg"></i></button>
+    </div>
+    
+    <div class="mb-5 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-300">
+      <i class="fas fa-exclamation-triangle mr-1"></i> <strong>Beta Feature:</strong> Formatting may vary across devices. Please review the generated document before sending to clients.
+    </div>
+    
+    <div class="space-y-4 mb-6">
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Client / Prospect Name</label>
+        <input type="text" id="prop-client-name" class="proposal-input" placeholder="e.g. Acme Corp">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Prepared By</label>
+          <input type="text" id="prop-prepared-by" class="proposal-input" value="Solutions Architecture Team">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date</label>
+          <input type="date" id="prop-date" class="proposal-input">
+        </div>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Document Title</label>
+        <input type="text" id="prop-project-name" class="proposal-input" value="Global Infrastructure & Onboarding Strategy">
+      </div>
+      
+      <div class="pt-4 border-t border-slate-700/60 mt-2 space-y-3">
+        <label class="cb-wrapper">
+           <input type="checkbox" id="prop-toggle-infra" class="hidden" checked>
+           <div class="cb-box"></div>
+           <span class="text-sm font-medium text-slate-300">Include Infrastructure Strategy & Coverage</span>
+        </label>
+        <label class="cb-wrapper">
+           <input type="checkbox" id="prop-toggle-onb" class="hidden" checked>
+           <div class="cb-box"></div>
+           <span class="text-sm font-medium text-slate-300">Include Implementation Timeline (Gantt Schedule)</span>
+        </label>
+        <label class="cb-wrapper">
+           <input type="checkbox" id="prop-toggle-fin" class="hidden" checked>
+           <div class="cb-box"></div>
+           <span class="text-sm font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">Include Financial Quote (Masks Internal Costs)</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="flex justify-end gap-3 pt-5 border-t border-slate-700/60">
+      <button class="btn-ghost px-5 py-2 rounded-lg text-sm font-medium" onclick="closeProposalModal()">Cancel</button>
+      <button class="btn-primary px-5 py-2 rounded-lg text-sm flex items-center gap-2" onclick="buildAndDownloadPDF()">
+        <i class="fas fa-download"></i> Generate PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Reset Modal -->
+<div id="confirm-modal-root" class="proposal-modal-backdrop">
+  <div class="proposal-modal" style="max-width: 400px;">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-exclamation-triangle text-amber-500 text-2xl"></i>
+      </div>
+      <h2 class="text-xl font-bold text-white mb-2">Reset Timeline?</h2>
+      <p class="text-sm text-slate-300">This will reset your interactive timeline to the default template for the selected tier. Any custom tasks or hours will be lost.</p>
+    </div>
+    <div class="flex justify-center gap-3 pt-4 border-t border-slate-700/60">
+      <button class="btn-ghost px-5 py-2 rounded-lg text-sm font-medium" onclick="cancelScopeChange()">Cancel</button>
+      <button class="px-5 py-2 rounded-lg text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-slate-900 transition-colors" onclick="confirmScopeChange()">Change & Reset</button>
+    </div>
+  </div>
+</div>
+
+<aside class="help-drawer" id="help-drawer" aria-label="User Guide">
+  <div class="help-header">
+    <h2><i class="fas fa-book-open text-emerald-400"></i> ATLAS User Guide</h2>
+    <button class="help-close" onclick="closeHelp()" aria-label="Close guide"><i class="fas fa-times"></i></button>
+  </div>
+  
+  <div class="flex border-b border-slate-700/80 bg-slate-800/80 shrink-0">
+    <button class="flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-emerald-400" id="help-tab-optimizer" onclick="switchHelpTab('optimizer')">Placement Optimizer</button>
+    <button class="flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent" id="help-tab-onboarding" onclick="switchHelpTab('onboarding')">Onboarding Calculator</button>
+  </div>
+
+  <!-- HELP CONTENT: OPTIMIZER -->
+  <div id="help-content-optimizer" class="flex-1 overflow-y-auto flex flex-col">
+    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">💡 Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">💰 Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Endpoints</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">🔧 How It Works</a></div></div>
+    <div class="help-body" id="help-body-optimizer">
+      <section class="help-section" id="intro"><h3><i class="fas fa-book-open text-emerald-400"></i> What Is This Tool?</h3><p>This tool helps you figure out <strong>where to place your infrastructure ("cells")</strong> around the world so that your endpoints get fast, reliable connections.</p><p>You tell the tool:</p><ul><li>Where your <em>existing cells</em> are today</li><li>Where your <em>endpoints</em> are located</li><li>What <em>latency</em> (in milliseconds) you promised them in your SLA</li><li>Optionally, how much your current cells <em>cost</em> per month</li></ul><p>The tool then uses realistic distance parameters and a 32x32 AWS latency matrix to recommend exactly where to deploy new cells — optimizing to strictly meet your SLA for the lowest possible cost.</p></section>
+      <section class="help-section" id="concepts"><h3><i class="fas fa-lightbulb text-amber-400"></i> Key Concepts</h3><h4>Cell</h4><p>A server or piece of infrastructure you deploy in an AWS data center.</p><h4>Endpoint</h4><p>An integration partner, service consumer, or client application that needs to connect to your cell.</p><h4>SLA (Service Level Agreement)</h4><p>The maximum latency (in milliseconds) you've promised your endpoints.</p><h4>Latency</h4><p>The round-trip time (in milliseconds) for data to travel from your cell to your endpoint and back.</p></section>
+      <section class="help-section" id="step1"><h3><span class="step-num">1</span> Current Footprint</h3><p>Tell the tool where you <strong>already</strong> have cells deployed. This is optional.</p><p>Use <strong>List View</strong> to browse regions by continent, or <strong>Map View</strong> to visualize your selections.</p><p>Below the cell selection, you'll find the <strong>Infrastructure Cost Profile</strong> accordion — see the next section for details.</p></section>
+      <section class="help-section" id="cost"><h3><i class="fas fa-dollar-sign text-amber-400"></i> Cost Calculator</h3><p>The cost calculator is <strong>optional but powerful</strong>. It lets you estimate the monthly OPEX impact of deploying new cells.</p><h4>The "Hidden Global Index"</h4><p>The tool has a hardcoded <strong>AWS Regional Price Index</strong> anchored to <strong>US East (N. Virginia) = 1.00x</strong>. Every other region is priced relative to it:</p><div class="help-index-grid"><div class="help-index-row"><span class="region">US East (Virginia)</span><span class="idx discount">1.00x</span></div><div class="help-index-row"><span class="region">Europe (Paris)</span><span class="idx parity">1.10x</span></div><div class="help-index-row"><span class="region">Asia Pacific (Tokyo)</span><span class="idx premium">1.25x</span></div><div class="help-index-row"><span class="region">South America (São Paulo)</span><span class="idx premium">1.50x</span></div><div class="help-index-row"><span class="region">Africa (Cape Town)</span><span class="idx premium">1.30x</span></div><div class="help-index-row"><span class="region">Middle East (Dubai)</span><span class="idx premium">1.25x</span></div></div><h4>Reverse-Engineering the Global Base</h4><p>When you input a cost for Paris ($2,674), the tool knows Paris is 1.10x. It <strong>reverse-engineers</strong> the normalized base:</p><div class="help-formula">$2,674 ÷ 1.10 = <strong>$2,430</strong> (True Global Base)</div><h4>Blended vs. Specific Baseline</h4><ul><li><strong>Blended:</strong> Averages reverse-engineered base costs from all inputted cells.</li><li><strong>Specific:</strong> Anchors to one specific cell of your choice.</li></ul></section>
+      <section class="help-section" id="step2"><h3><span class="step-num">2</span> Endpoint Locations</h3><p>Add endpoints via the <strong>AWS Regions</strong> tab or <strong>World Cities</strong> tab. You can also click anywhere on the map to snap to the nearest major city.</p></section>
+      <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>Choose how the tool calculates latency between your infrastructure and end users:</p><ul><li><b>Naive Mode:</b> Uses a simplified "proxy" approach. If an endpoint is in a non-AWS city, the tool finds the geographically closest AWS region to them and uses the known AWS backbone latency from your cell to that proxy region. It ignores exact fiber distances and local internet infrastructure quality.</li><li><b>Realistic Mode</b> (recommended) introduces an intelligent hybrid distance model:<ul><li><b>Direct Distance Model:</b> For non-AWS locations (like world cities), the matrix is bypassed in favor of a direct Haversine formula distance calculation combined with a 0.012 ms/km fiber speed penalty.</li><li><b>Infrastructure tax:</b> Adds penalty latency based on the tier of the city (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul></li></ul></section>
+      <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <b>Latency Explorer</b> to debug exactly why a cell passed or failed for a given endpoint.</p></section>
+      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Cost-Effective Coverage Algorithm</h4><p>The tool strictly treats the SLA as a <b>pass/fail gate</b>. For each candidate AWS region, the tool calculates a <b>Cost Efficiency Score</b>:</p><div class="help-formula">Score = Region_Cost ÷ Endpoints_Covered</div><p>Lower scores win. The algorithm iteratively picks the cheapest combination of regions to get 100% of your un-covered endpoints into the "Pass" state.</p><h4>Direct Distance vs AWS Backbone</h4><p>When computing latency, the tool checks the entity type of both endpoints:</p><ul><li><b>AWS to AWS:</b> Uses a hardcoded 32x32 ping matrix representing the true latency of the AWS global backbone.</li><li><b>AWS to City (Naive Mode):</b> Finds the nearest AWS region to the target city and uses the 32x32 backbone matrix latency directly to that proxy region.</li><li><b>AWS to City (Realistic Mode):</b> Defaults to the Direct Distance Model. It calculates the exact Haversine geographic distance between the data center and the city coordinates, multiplies it by 0.012 ms per kilometer, and adds a last-mile infrastructure tier tax.</li></ul>
+      <h4>Why 0.012 ms/km? (The Physics)</h4>
+      <p>This propagation delay factor is mathematically grounded in the physics of fiber optic networking:</p>
+      <ul>
+        <li><b>Speed of light in a vacuum:</b> ~300,000 km/s.</li>
+        <li><b>Speed of light in glass (fiber):</b> ~200,000 km/s (due to a refractive index of ~1.5).</li>
+        <li><b>Time per kilometer:</b> 1 km / 200,000 km/s = 0.000005 seconds, or 0.005 ms per km.</li>
+        <li><b>Round-Trip Time (RTT):</b> Networking latency measures the time to go and come back. Doubling the one-way time: 0.005 ms × 2 = 0.01 ms per km.</li>
+      </ul>
+      <div class="help-callout success"><div class="callout-title"><i class="fas fa-heart text-emerald-400"></i> That's it!</div>Close this guide and start planning your next cell deployment.</div></section>
+    </div>
+  </div>
+
+  <!-- HELP CONTENT: ONBOARDING -->
+  <div id="help-content-onboarding" class="flex-1 overflow-y-auto flex flex-col" style="display:none;">
+    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('ob-intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('ob-tiers')">🏗️ Deployment Tiers</a><a class="help-toc-link" onclick="scrollToSection('ob-math')">🧮 How Math Works</a><a class="help-toc-link" onclick="scrollToSection('ob-drag')">🖱️ Interactive Gantt</a></div></div>
+    <div class="help-body" id="help-body-onboarding">
+      <section class="help-section" id="ob-intro">
+        <h3><i class="fas fa-book-open text-blue-400"></i> What Is This Tool?</h3>
+        <p>The Onboarding Cost Calculator scopes out the engineering hours and timeline required to bring a new customer online.</p>
+        <p>It acts as an "MS Project" style interactive grid, generating a <strong>Financial Quote</strong> (Internal Cost + Customer Price) and an <strong>Interactive Project Timeline</strong> all in one unified view.</p>
+      </section>
+      
+      <section class="help-section" id="ob-tiers">
+        <h3><i class="fas fa-layer-group text-purple-400"></i> Deployment Scopes (Tiers)</h3>
+        <p>The onboarding effort scales based on the infrastructure and integration requirements for the specific customer. Select the appropriate tier from the top ribbon to load the default task template.</p>
+        <ul>
+          <li><strong>Tier 1: Full Deployment (New Cell + New Provider)</strong><br>The heaviest lift. Requires standing up new AWS infrastructure, building initial API handshakes with a new service provider, and running full security validation.</li>
+          <li><strong>Tier 2: Integration Only (Existing Cell + New Provider)</strong><br>Uses existing infrastructure in the region, but requires establishing API handshakes and security posture with a new service provider.</li>
+          <li><strong>Tier 3: Standard Onboarding (Existing Cell & Provider)</strong><br>The lightest workload. The cell and provider are already established. Focuses purely on QA, training, and cutover for the new end customer.</li>
+        </ul>
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-undo"></i> Warning: Resetting Timeline</div>
+          Changing the Deployment Scope tier will ask for confirmation before <strong>resetting your entire timeline</strong> to the default template for that tier. Save your work (Export JSON) before switching if you want to keep custom tasks!
+        </div>
+      </section>
+
+      <section class="help-section" id="ob-math">
+        <h3><i class="fas fa-calculator text-amber-400"></i> How the Math Works</h3>
+        <h4>The 4-Hour Ceiling Rule</h4>
+        <p>Project estimation must be realistic. If you type "17" hours into the grid, the calculator automatically snaps it to <strong>20 hours</strong>. We strictly enforce a 4-hour (half-day) minimum increment for all scoping to avoid messy fractions.</p>
+        <h4>Financial Formulas</h4>
+        <div class="help-formula">Internal Cost = Total Hours × Blended Hourly Rate</div>
+        <div class="help-formula">Customer Price = Internal Cost ÷ (1 - Margin %)</div>
+      </section>
+
+      <section class="help-section" id="ob-drag">
+        <h3><i class="fas fa-mouse-pointer text-emerald-400"></i> Interactive Gantt Features</h3>
+        <p>The unified grid on the left and the chart on the right are perfectly synced.</p>
+        <ul>
+          <li><strong>Drawing Dependencies:</strong> Hover over a blue task bar. Grab the small circle at the end of the bar and drag it to the start of another task to draw a dependency arrow.</li>
+          <li><strong>Deleting Dependencies:</strong> Double-click on any green dependency arrow to delete it.</li>
+          <li><strong>Generic Calendar:</strong> The top scale abstracts real-world dates (ignoring weekends) into clean "Day 1, Day 2" progression blocks for pristine scoping.</li>
+        </ul>
+        <h4>Dragging to Resize Tasks</h4>
+        <p>You can grab the edge of any blue task bar and stretch it. What happens next depends on the <strong>Link Duration to Cost</strong> checkbox in the top ribbon:</p>
+        <div class="help-callout success">
+          <div class="callout-title"><i class="fas fa-link"></i> Linked (Checked)</div>
+          Stretching a task from 2 days to 3 days <strong>adds billable hours</strong> (e.g., jumps from 16h to 24h) and automatically updates the input grid. Your total project cost and invoice price will immediately increase.
+        </div>
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-unlink text-slate-400"></i> Unlinked (Unchecked)</div>
+          Stretching a task from 2 days to 3 days simply means the resource is working part-time. <strong>The billed hours and financial cost remain perfectly locked.</strong>
+        </div>
+      </section>
+    </div>
+  </div>
+</aside>
+
+<script>
+// ==========================================
+// APP NAVIGATION & STATE
+// ==========================================
+let currentAppModule = 'gateway';
+
+function showModule(moduleName) {
+  document.getElementById('module-gateway').style.display = 'none';
+  document.getElementById('module-optimizer').style.display = 'none';
+  document.getElementById('module-onboarding').style.display = 'none';
+  
+  document.getElementById('module-' + moduleName).style.display = (moduleName === 'gateway') ? 'flex' : 'block';
+  currentAppModule = moduleName;
+
+  if (moduleName === 'optimizer') {
+    if (fpMap) fpMap.invalidateSize();
+    if (custMap) custMap.invalidateSize();
+    if (dashMap) dashMap.invalidateSize();
+  } else if (moduleName === 'onboarding') {
+    if (!ob_gantt_initialized) {
+      initDhtmlxGantt();
+      const state = generateGanttStateFromTasks(getDefaultTemplate(currentScope));
+      tierStates[currentScope] = state;
+      renderState(state);
+    } else {
+      renderState(tierStates[currentScope]);
+    }
+  }
+}
+
+// ==========================================
+// ONBOARDING CALCULATOR & DHTMLX GANTT LOGIC
+// ==========================================
+let ob_hourlyRate = 100;
+let ob_margin = 20;
+// FIXED: Unchecked by default
+let ob_linkDuration = false;
+let ob_gantt_initialized = false;
+let currentScope = 1;
+
+// The multi-tier memory cache
+let tierStates = { 1: null, 2: null, 3: null };
+
+// FIXED: Establishing Day 0 Anchor. 
+// The timeline will start drawing at TIMELINE_START.
+// Tasks will mathematically snap to start at PROJECT_START (Day 1).
+const TIMELINE_START = new Date(2025, 0, 1); // Renders as empty Day 0
+const PROJECT_START = new Date(2025, 0, 2);  // First valid day for tasks
+
+function formatGanttDate(date) {
+  if (!date) return "";
+  if (typeof date === 'string') return date;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function toggleLinkDuration() {
+  ob_linkDuration = document.getElementById('ob-link-duration').checked;
+  
+  // FIXED: Sync Logic. Snaps Gantt bars to Estimated Hours if user re-checks the box
+  if (ob_linkDuration && ob_gantt_initialized) {
+      gantt.eachTask(function(task) {
+          const reqDays = Math.max(0.5, Math.ceil((task.hours || 4) / 8));
+          task.duration = reqDays;
+          task.end_date = gantt.calculateEndDate({start_date: task.start_date, duration: task.duration});
+          gantt.updateTask(task.id);
+      });
+      gantt.render();
+      updateOnboardingFinancials();
+      saveActiveState();
+      showToast("Timeline synced to Estimated Hours!");
+  }
+}
+
+function saveActiveState() {
+  if (!ob_gantt_initialized) return;
+  let data = [];
+  gantt.eachTask(function(task) {
+      data.push({
+          id: task.id,
+          text: task.text,
+          hours: task.hours || 0,
+          start_date: formatGanttDate(task.start_date),
+          duration: task.duration
+      });
+  });
+  let links = gantt.getLinks().map(l => ({
+      id: l.id, source: l.source, target: l.target, type: l.type
+  }));
+  tierStates[currentScope] = { data, links };
+}
+
+function renderState(stateObj) {
+  if (!ob_gantt_initialized) initDhtmlxGantt();
+  const scroll = ob_gantt_initialized ? gantt.getScrollState() : {x:0, y:0};
+  gantt.clearAll();
+  gantt.parse(stateObj);
+  gantt.scrollTo(scroll.x, scroll.y);
+  updateOnboardingFinancials();
+}
+
+function getDefaultTemplate(scope) {
+  if (scope === 1) {
+      return [
+          { id: "t1", name: "Provision Near-Prem Cell", hours: 40, deps: "" },
+          { id: "t2", name: "Core Network Configuration", hours: 24, deps: "t1" },
+          { id: "t3", name: "Central-Cell Sync Integration", hours: 32, deps: "t2" },
+          { id: "t4", name: "Service Provider Handshake (API)", hours: 16, deps: "t3" },
+          { id: "t5", name: "Firewall & Security Posture", hours: 32, deps: "t3" },
+          { id: "t6", name: "Load Testing & QA", hours: 16, deps: "t4, t5" },
+          { id: "t7", name: "Training", hours: 16, deps: "t6" },
+          { id: "t8", name: "Go-Live Cutover and Hypercare Support", hours: 16, deps: "t7" },
+          { id: "t9", name: "Project Coordination", hours: 40, deps: "" }
+      ];
+  } else if (scope === 2) {
+      return [
+          { id: "t3", name: "Central-Cell Sync Integration", hours: 32, deps: "" },
+          { id: "t4", name: "Service Provider Handshake (API)", hours: 16, deps: "t3" },
+          { id: "t5", name: "Firewall & Security Posture", hours: 32, deps: "t3" },
+          { id: "t6", name: "Load Testing & QA", hours: 16, deps: "t4, t5" },
+          { id: "t7", name: "Training", hours: 16, deps: "t6" },
+          { id: "t8", name: "Go-Live Cutover and Hypercare Support", hours: 16, deps: "t7" },
+          { id: "t9", name: "Project Coordination", hours: 24, deps: "" }
+      ];
+  } else {
+      return [
+          { id: "t6", name: "Load Testing & QA", hours: 16, deps: "" },
+          { id: "t7", name: "Training", hours: 16, deps: "t6" },
+          { id: "t8", name: "Go-Live Cutover and Hypercare Support", hours: 16, deps: "t7" },
+          { id: "t9", name: "Project Coordination", hours: 16, deps: "" }
+      ];
+  }
+}
+
+function generateGanttStateFromTasks(tasks) {
+  let taskDict = {};
+  tasks.forEach(t => {
+      taskDict[t.id] = t;
+      t.computed_start_days = 0;
+      t.computed_end_days = 0;
+  });
+
+  // Iterative topological sort to cascade default sequence
+  let changed = true;
+  let loops = 0;
+  while (changed && loops < 20) {
+      changed = false;
+      loops++;
+      tasks.forEach(t => {
+          let maxDepEnd = 1; // FIXED: Default snapping to Day 1, not Day 0
+          if (t.deps && t.deps.trim() !== '') {
+              const depIds = t.deps.split(',').map(s => s.trim());
+              maxDepEnd = 1;
+              depIds.forEach(did => {
+                  if (taskDict[did] && taskDict[did].computed_end_days > maxDepEnd) {
+                      maxDepEnd = taskDict[did].computed_end_days;
+                  }
+              });
+          }
+          const days = t.hours / 8;
+          if (t.computed_start_days !== maxDepEnd) {
+              t.computed_start_days = maxDepEnd;
+              t.computed_end_days = maxDepEnd + days;
+              changed = true;
+          } else if (t.computed_end_days !== t.computed_start_days + days) {
+              t.computed_end_days = t.computed_start_days + days;
+              changed = true;
+          }
+      });
+  }
+
+  let dhtmlxTasks = [];
+  let dhtmlxLinks = [];
+  let linkId = 1;
+  
+  tasks.forEach(t => {
+      // Special logic: Project Coordination stretches the whole project by default
+      if (t.name === 'Project Coordination') {
+         const maxEnd = Math.max(...tasks.map(tx => tx.name === 'Project Coordination' ? 0 : tx.computed_end_days));
+         t.computed_start_days = 1; // FIXED: Start on Day 1
+         t.computed_end_days = maxEnd > 1 ? maxEnd : (t.hours / 8) + 1;
+      }
+      
+      const start = new Date(PROJECT_START.getTime() + (t.computed_start_days - 1) * 24 * 3600 * 1000);
+      let duration = t.computed_end_days - t.computed_start_days;
+      if (duration <= 0) duration = 0.5;
+
+      dhtmlxTasks.push({
+          id: t.id,
+          text: t.name,
+          start_date: formatGanttDate(start),
+          duration: duration,
+          hours: t.hours
+      });
+      
+      if (t.deps) {
+          const deps = t.deps.split(',').map(s => s.trim());
+          deps.forEach(d => {
+              if (d) dhtmlxLinks.push({ id: linkId++, source: d, target: t.id, type: "0" });
+          });
+      }
+  });
+
+  return { data: dhtmlxTasks, links: dhtmlxLinks };
+}
+
+// Triggered by the inline inputs inside the DHTMLX Grid
+window.updateGridHours = function(id, val) {
+  let rawHours = parseFloat(val) || 0;
+  let hours = Math.ceil(rawHours / 4) * 4; 
+  if (hours === 0) hours = 4;
+  
+  let task = gantt.getTask(id);
+  task.hours = hours;
+  if (ob_linkDuration) {
+      task.duration = Math.max(0.5, Math.ceil(task.hours / 8));
+      task.end_date = gantt.calculateEndDate({start_date: task.start_date, duration: task.duration});
+  }
+  
+  const scroll = gantt.getScrollState();
+  gantt.updateTask(id);
+  gantt.scrollTo(scroll.x, scroll.y);
+  
+  updateOnboardingFinancials();
+  saveActiveState();
+};
+
+window.updateGridText = function(id, val) {
+  let task = gantt.getTask(id);
+  task.text = val;
+  gantt.updateTask(id);
+  saveActiveState();
+};
+
+window.deleteObTask = function(id) {
+  gantt.deleteTask(id);
+  updateOnboardingFinancials();
+  saveActiveState();
+};
+
+window.addObTask = function() {
+  const newId = 't' + (new Date().getTime());
+  gantt.addTask({
+      id: newId,
+      text: 'New Task',
+      hours: 8,
+      duration: 1,
+      start_date: PROJECT_START // Starts on Day 1
+  });
+  updateOnboardingFinancials();
+  saveActiveState();
+};
+
+// --- MULTI-TIER ENGINE ---
+window.handleScopeChange = function(val) {
+    saveActiveState(); // Quietly save current tier
+    
+    currentScope = parseInt(val);
+    if (tierStates[currentScope]) {
+        renderState(tierStates[currentScope]); // Restore previous work
+    } else {
+        const state = generateGanttStateFromTasks(getDefaultTemplate(currentScope));
+        tierStates[currentScope] = state;
+        renderState(state); // Load fresh defaults
+    }
+};
+
+window.promptResetTimeline = function() {
+    document.getElementById('confirm-modal-root').classList.add('open');
+};
+
+window.confirmScopeChange = function() {
+    document.getElementById('confirm-modal-root').classList.remove('open');
+    const state = generateGanttStateFromTasks(getDefaultTemplate(currentScope));
+    tierStates[currentScope] = state; // Overwrite cache
+    renderState(state);
+    showToast("Tier timeline reset successfully!");
+};
+
+window.cancelScopeChange = function() {
+    document.getElementById('confirm-modal-root').classList.remove('open');
+};
+
+function updateOnboardingFinancials() {
+  ob_hourlyRate = parseFloat(document.getElementById('ob-rate').value) || 0;
+  ob_margin = parseFloat(document.getElementById('ob-margin').value) || 0;
+  
+  let totalHours = 0;
+  let maxDate = gantt.config.start_date;
+  
+  if (ob_gantt_initialized) {
+      gantt.eachTask(function(task) {
+          totalHours += (task.hours || 0);
+          if (task.end_date > maxDate) maxDate = task.end_date;
+      });
+  }
+  
+  const internalCost = totalHours * ob_hourlyRate;
+  const marginMultiplier = 1 - (ob_margin / 100);
+  const customerPrice = marginMultiplier > 0 ? internalCost / marginMultiplier : internalCost;
+  
+  // Math adjusted to compute from PROJECT_START (Day 1) instead of TIMELINE_START
+  const totalDays = ob_gantt_initialized ? Math.max(0, Math.round((maxDate - PROJECT_START) / (1000 * 60 * 60 * 24))) : 0;
+
+  document.getElementById('ob-total-days').textContent = `${totalDays} Days`;
+  document.getElementById('ob-total-hours').textContent = `${totalHours} total estimated hours`;
+  document.getElementById('ob-internal-cost').textContent = '$' + internalCost.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ob-customer-price').textContent = '$' + customerPrice.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function initDhtmlxGantt() {
+  if (ob_gantt_initialized) return;
+
+  gantt.config.date_format = "%Y-%m-%d";
+  gantt.config.start_date = TIMELINE_START; // This starts drawing at Day 0
+  gantt.config.end_date = new Date(TIMELINE_START.getTime() + 60 * 24 * 3600 * 1000); // 60 days of visual runway
+  
+  gantt.config.details_on_dblclick = false; 
+  gantt.config.details_on_create = false;
+  gantt.config.drag_progress = false; 
+  gantt.config.grid_width = 540;
+  gantt.config.grid_resize = true;
+  gantt.config.autosize = "y";
+  gantt.config.order_branch = true;
+  gantt.config.order_branch_free = true;
+  gantt.config.show_errors = false;
+  gantt.config.time_step = 12 * 60; // 12 hours
+  gantt.config.duration_unit = "day";
+  gantt.config.duration_step = 1;
+  gantt.config.round_dnd_dates = false; 
+  
+  gantt.config.work_time = false;
+  gantt.config.skip_off_time = false;
+
+  gantt.config.scales = [
+      {
+          unit: "day", step: 1, format: function(date){
+              // Calculate difference from TIMELINE_START (which is our Day 0 anchor)
+              const diff = Math.floor((date - TIMELINE_START) / (1000 * 60 * 60 * 24));
+              return "Day " + diff;
+          }
+      }
+  ];
+  
+  gantt.config.columns = [
+      {name: "drag", label: "", width: 34, align: "center", template: function(task){
+          return `<div class="gantt_custom_flex_cell text-slate-600 cursor-grab hover:text-slate-300 transition-colors" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>`;
+      }},
+      {name: "text", label: "Line Item / Activity", width: '*', template: function(task){
+          const safeText = task.text ? task.text.replace(/"/g, '&quot;') : '';
+          return `<input type="text" class="bg-transparent text-white outline-none w-full font-medium" value="${safeText}" onchange="updateGridText('${task.id}', this.value)" onclick="event.stopPropagation();">`;
+      }},
+      {name: "hours", label: "Est. Hrs", align: "center", width: 80, template: function(task){
+          return `<div class="gantt_custom_flex_cell"><div class="bg-slate-900/80 border border-slate-700/80 rounded" style="width:55px; padding: 2px;" onclick="event.stopPropagation();">
+              <input type="number" class="ob-grid-input" value="${task.hours || 0}" min="4" step="4" onchange="updateGridHours('${task.id}', this.value)">
+          </div></div>`;
+      }},
+      {name: "cost", label: "Est. Cost", align: "center", width: 90, template: function(task){
+          const cost = (task.hours || 0) * ob_hourlyRate;
+          return `<div class="gantt_custom_flex_cell text-emerald-400 text-xs font-mono font-semibold">$${cost.toLocaleString('en-US')}</div>`;
+      }},
+      {name: "duration", label: "Vis. Days", align: "center", width: 65, template: function(task){
+          return `<div class="gantt_custom_flex_cell text-slate-400 text-xs">${task.duration}</div>`;
+      }},
+      {name: "delete", label: "", width: 40, align: "center", template: function(task){
+          return `<div class="gantt_custom_flex_cell text-slate-500 hover:text-red-400 cursor-pointer transition-colors" onclick="event.stopPropagation(); deleteObTask('${task.id}')" title="Delete Task"><i class="fas fa-trash-alt"></i></div>`;
+      }}
+  ];
+  
+  // Connect structural edits to the auto-saver silently
+  gantt.attachEvent("onRowDragEnd", function(id, target) { saveActiveState(); });
+  gantt.attachEvent("onAfterLinkAdd", function(id, item){ saveActiveState(); });
+  gantt.attachEvent("onAfterLinkDelete", function(id, item){ saveActiveState(); });
+  
+  gantt.attachEvent("onAfterTaskDrag", function(id, mode, e){
+      const task = gantt.getTask(id);
+      if (mode === "resize") {
+          const days = Math.max(0.5, Math.round(task.duration * 2) / 2);
+          task.duration = days;
+          task.end_date = gantt.calculateEndDate({start_date: task.start_date, duration: task.duration});
+          if (ob_linkDuration) {
+              let newHours = days * 8;
+              newHours = Math.ceil(newHours / 4) * 4; 
+              if (newHours === 0) newHours = 4;
+              task.hours = newHours;
+          }
+          gantt.updateTask(id);
+      }
+      updateOnboardingFinancials();
+      saveActiveState();
+  });
+  
+  gantt.templates.tooltip_text = function(start, end, task){
+      return `<div class="mb-2"><b class="text-blue-400">${task.text}</b></div>
+              <div class="text-xs text-slate-400 flex justify-between gap-4 mb-1"><span>Billed Effort:</span> <b class="text-white font-mono">${task.hours} Hrs</b></div>
+              <div class="text-xs text-slate-400 flex justify-between gap-4"><span>Visual Calendar:</span> <b class="text-white font-mono">${task.duration} Days</b></div>`;
+  };
+
+  gantt.init("gantt_here");
+  ob_gantt_initialized = true;
+}
+
+// ==========================================
+// GLOBAL HELP DRAWER LOGIC
+// ==========================================
+function switchHelpTab(tab) {
+  const optBtn = document.getElementById('help-tab-optimizer');
+  const onbBtn = document.getElementById('help-tab-onboarding');
+  const optContent = document.getElementById('help-content-optimizer');
+  const onbContent = document.getElementById('help-content-onboarding');
+
+  if (tab === 'optimizer') {
+    optBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-emerald-400';
+    onbBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent';
+    optContent.style.display = 'flex';
+    onbContent.style.display = 'none';
+  } else {
+    onbBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-blue-400';
+    optBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent';
+    onbContent.style.display = 'flex';
+    optContent.style.display = 'none';
+  }
+}
+
+function openHelp(forceTab) {
+  if (forceTab) switchHelpTab(forceTab);
+  document.getElementById('help-drawer').classList.add('open');
+  document.getElementById('help-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openHelpDefault() {
+  openHelp(currentAppModule === 'onboarding' ? 'onboarding' : 'optimizer');
+}
+
+function closeHelp() {
+  document.getElementById('help-drawer').classList.remove('open');
+  document.getElementById('help-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeHelp();
+});
+
+// ==========================================
+// OPTIMIZER PRISTINE LOGIC
+// ==========================================
+const regions=[{code:'af-south-1',name:'Cape Town',city:'Cape Town, South Africa',continent:'Africa',lat:-33.9249,lng:18.4241},{code:'ap-east-1',name:'Hong Kong',city:'Hong Kong',continent:'Asia Pacific',lat:22.3193,lng:114.1694},{code:'ap-northeast-1',name:'Tokyo',city:'Tokyo, Japan',continent:'Asia Pacific',lat:35.6762,lng:139.6503},{code:'ap-northeast-2',name:'Seoul',city:'Seoul, South Korea',continent:'Asia Pacific',lat:37.5665,lng:126.9780},{code:'ap-northeast-3',name:'Osaka',city:'Osaka, Japan',continent:'Asia Pacific',lat:34.6937,lng:135.5023},{code:'ap-south-1',name:'Mumbai',city:'Mumbai, India',continent:'Asia Pacific',lat:19.0760,lng:72.8777},{code:'ap-south-2',name:'Hyderabad',city:'Hyderabad, India',continent:'Asia Pacific',lat:17.3850,lng:78.4867},{code:'ap-southeast-1',name:'Singapore',city:'Singapore',continent:'Asia Pacific',lat:1.3521,lng:103.8198},{code:'ap-southeast-2',name:'Sydney',city:'Sydney, Australia',continent:'Asia Pacific',lat:-33.8688,lng:151.2093},{code:'ap-southeast-3',name:'Jakarta',city:'Jakarta, Indonesia',continent:'Asia Pacific',lat:-6.2088,lng:106.8456},{code:'ap-southeast-4',name:'Melbourne',city:'Melbourne, Australia',continent:'Asia Pacific',lat:-37.8136,lng:144.9631},{code:'ap-southeast-5',name:'Auckland',city:'Auckland, New Zealand',continent:'Asia Pacific',lat:-36.8485,lng:174.7633},{code:'ap-southeast-7',name:'Kuala Lumpur',city:'Kuala Lumpur, Malaysia',continent:'Asia Pacific',lat:3.1390,lng:101.6869},{code:'ca-central-1',name:'Montreal',city:'Montreal, QC',continent:'North America',lat:45.5017,lng:-73.5673},{code:'ca-west-1',name:'Calgary',city:'Calgary, Alberta',continent:'North America',lat:51.0447,lng:-114.0719},{code:'eu-central-1',name:'Frankfurt',city:'Frankfurt, Germany',continent:'Europe',lat:50.1109,lng:8.6821},{code:'eu-central-2',name:'Zurich',city:'Zurich, Switzerland',continent:'Europe',lat:47.3769,lng:8.5417},{code:'eu-north-1',name:'Stockholm',city:'Stockholm, Sweden',continent:'Europe',lat:59.3293,lng:18.0686},{code:'eu-south-1',name:'Milan',city:'Milan, Italy',continent:'Europe',lat:45.4642,lng:9.1900},{code:'eu-south-2',name:'Madrid',city:'Madrid, Spain',continent:'Europe',lat:40.4168,lng:-3.7038},{code:'eu-west-1',name:'Dublin',city:'Dublin, Ireland',continent:'Europe',lat:53.3498,lng:-6.2603},{code:'eu-west-2',name:'London',city:'London, UK',continent:'Europe',lat:51.5074,lng:-0.1278},{code:'eu-west-3',name:'Paris',city:'Paris, France',continent:'Europe',lat:48.8566,lng:2.3522},{code:'il-central-1',name:'Tel Aviv',city:'Tel Aviv, Israel',continent:'Middle East',lat:32.0853,lng:34.7818},{code:'me-central-1',name:'Dubai',city:'Dubai, UAE',continent:'Middle East',lat:25.2048,lng:55.2708},{code:'me-south-1',name:'Manama',city:'Manama, Bahrain',continent:'Middle East',lat:26.2285,lng:50.5860},{code:'mx-central-1',name:'Mexico City',city:'Mexico City, Mexico',continent:'North America',lat:19.4326,lng:-99.1332},{code:'sa-east-1',name:'São Paulo',city:'São Paulo, Brazil',continent:'South America',lat:-23.5505,lng:-46.6333},{code:'us-east-1',name:'N. Virginia',city:'Washington, DC',continent:'North America',lat:38.9072,lng:-77.0369},{code:'us-east-2',name:'Ohio',city:'Columbus, Ohio',continent:'North America',lat:39.9612,lng:-82.9988},{code:'us-west-1',name:'N. California',city:'San Francisco, CA',continent:'North America',lat:37.7749,lng:-122.4194},{code:'us-west-2',name:'Oregon',city:'Portland, OR',continent:'North America',lat:45.5152,lng:-122.6784}];
+
+const AWS_PRICE_INDEX={'us-east-1':1.00,'us-east-2':1.00,'us-west-1':1.08,'us-west-2':1.00,'ca-central-1':1.04,'ca-west-1':1.04,'mx-central-1':1.15,'sa-east-1':1.50,'eu-west-1':1.08,'eu-west-2':1.10,'eu-west-3':1.10,'eu-central-1':1.10,'eu-central-2':1.15,'eu-north-1':1.08,'eu-south-1':1.10,'eu-south-2':1.08,'ap-northeast-1':1.25,'ap-northeast-2':1.18,'ap-northeast-3':1.25,'ap-south-1':1.05,'ap-south-2':1.05,'ap-southeast-1':1.18,'ap-southeast-2':1.20,'ap-southeast-3':1.20,'ap-southeast-4':1.20,'ap-southeast-5':1.25,'ap-southeast-7':1.15,'ap-east-1':1.18,'me-south-1':1.25,'me-central-1':1.25,'il-central-1':1.20,'af-south-1':1.30};
+const PARIS_DEFAULT_COST=2674;
+const PARIS_INDEX=AWS_PRICE_INDEX['eu-west-3'];
+
+const matrix=[[5,351,386,380,391,310,336,322,410,333,421,320,342,229,291,154,151,174,197,137,159,153,143,229,291,255,282,336,225,236,290,275],[354,6,55,43,49,99,92,40,130,54,140,44,65,207,165,224,209,237,206,189,268,203,200,240,128,134,215,321,205,197,159,148],[381,51,3,36,11,132,124,71,110,86,139,78,97,158,116,235,222,247,218,219,207,216,223,271,171,179,166,262,152,138,110,100],[381,39,38,7,31,138,125,73,147,87,157,79,98,181,143,233,225,254,220,219,239,251,259,274,159,167,197,297,186,171,136,127],[389,48,10,28,5,140,130,78,120,95,131,83,102,158,116,246,228,253,225,227,216,226,232,280,167,174,173,274,160,147,110,102],[307,98,140,134,141,5,30,68,156,80,165,71,91,195,243,129,116,150,116,148,128,120,113,146,32,43,248,305,192,203,235,228],[326,82,119,119,122,27,12,49,139,62,147,55,75,210,226,148,135,165,132,166,146,135,130,166,45,57,273,321,207,222,219,207],[320,37,74,73,83,66,52,4,95,18,104,9,31,218,178,175,161,182,160,154,176,168,165,206,89,100,244,328,222,205,172,162],[410,130,104,148,123,159,148,96,5,110,15,101,122,198,160,264,262,285,251,244,257,267,281,296,181,195,214,312,201,188,142,143],[348,54,95,95,100,92,75,21,120,4,143,36,54,240,201,190,178,210,175,176,194,191,182,241,105,117,267,347,247,227,190,175],[427,145,141,160,136,171,154,105,16,124,2,112,132,214,170,272,267,287,257,255,265,281,295,309,193,203,228,326,213,202,154,154],[326,49,77,81,86,78,61,10,103,28,114,5,25,222,182,173,163,189,161,162,179,173,170,218,98,109,257,339,226,209,180,166],[345,68,100,103,112,99,81,36,128,55,133,34,4,250,203,200,196,217,188,181,207,197,195,235,125,128,279,357,251,239,203,198],[225,203,156,183,163,197,219,221,199,231,208,219,243,5,48,96,95,106,103,109,73,82,87,141,202,163,72,127,17,29,83,63],[300,167,118,147,124,250,231,178,166,197,175,187,206,51,2,167,165,176,178,182,143,160,163,209,275,261,90,199,59,44,43,24],[154,203,235,234,234,129,156,169,263,181,268,168,193,94,161,2,9,23,15,36,28,18,11,67,115,88,153,206,93,104,154,144],[153,191,222,226,231,117,141,158,260,174,267,160,184,95,163,11,4,29,9,31,30,23,13,44,112,94,150,204,93,105,155,147],[174,239,276,277,283,151,177,209,293,221,302,211,230,109,176,26,30,7,33,55,40,37,34,88,137,108,170,226,112,126,176,158],[193,185,218,224,230,115,141,156,251,172,253,156,183,104,170,14,10,32,5,26,41,31,22,54,109,119,160,213,105,113,166,153],[147,200,223,231,231,149,174,157,252,173,260,163,182,120,179,37,32,59,30,3,32,39,16,64,125,94,168,224,107,120,173,159],[161,262,206,241,214,129,148,176,258,189,266,179,202,70,142,30,27,43,37,34,5,17,21,70,130,99,129,179,70,83,130,123],[149,203,215,248,226,119,142,170,269,182,278,170,217,80,147,18,20,37,29,35,14,4,12,62,123,90,136,188,81,90,149,131],[144,195,224,259,234,114,134,163,283,178,295,169,190,88,155,12,12,32,23,17,20,11,8,55,115,88,141,196,85,96,145,138],[246,248,283,294,289,166,182,214,315,240,326,231,250,153,223,75,51,95,63,67,91,72,54,7,159,122,201,252,134,155,204,185],[295,130,169,161,166,33,54,89,183,104,195,94,119,202,269,118,113,140,109,122,133,127,118,144,4,17,253,309,195,204,259,256],[257,133,181,171,178,42,66,104,194,116,201,105,126,165,261,92,92,108,121,93,100,91,90,112,14,5,220,275,162,173,227,268],[287,217,171,203,178,261,289,249,220,263,225,252,274,74,86,158,148,174,166,170,129,139,142,201,255,232,4,171,64,54,76,93],[335,319,265,298,272,305,326,332,313,344,325,333,352,128,192,204,203,224,214,220,178,189,196,243,307,274,171,4,118,125,176,175],[223,206,152,184,161,197,216,220,204,246,210,224,250,18,53,96,92,117,107,110,69,77,87,133,194,161,58,116,10,14,81,69],[242,200,137,175,147,205,222,211,194,219,205,217,227,34,39,111,102,129,114,124,84,90,101,150,205,177,56,127,16,9,71,55],[284,157,111,134,111,236,230,171,139,185,150,174,195,84,42,154,153,174,162,169,131,149,145,196,256,221,76,174,75,68,2,21],[273,145,100,122,101,225,213,163,146,177,152,165,187,61,22,145,144,158,152,159,119,131,136,186,258,270,91,176,65,48,21,3]];
+
+const worldCities=[{name:'New York, USA',lat:40.7128,lng:-74.0060,tier:1},{name:'Los Angeles, USA',lat:34.0522,lng:-118.2437,tier:1},{name:'Chicago, USA',lat:41.8781,lng:-87.6298,tier:1},{name:'Houston, USA',lat:29.7604,lng:-95.3698,tier:1},{name:'Phoenix, USA',lat:33.4484,lng:-112.0740,tier:1},{name:'Philadelphia, USA',lat:39.9526,lng:-75.1652,tier:1},{name:'San Antonio, USA',lat:29.4241,lng:-98.4936,tier:1},{name:'San Diego, USA',lat:32.7157,lng:-117.1611,tier:1},{name:'Dallas, USA',lat:32.7767,lng:-96.7970,tier:1},{name:'Seattle, USA',lat:47.6062,lng:-122.3321,tier:1},{name:'Denver, USA',lat:39.7392,lng:-104.9903,tier:1},{name:'Boston, USA',lat:42.3601,lng:-71.0589,tier:1},{name:'Miami, USA',lat:25.7617,lng:-80.1918,tier:1},{name:'Atlanta, USA',lat:33.7490,lng:-84.3880,tier:1},{name:'Toronto, Canada',lat:43.6532,lng:-79.3832,tier:1},{name:'Vancouver, Canada',lat:49.2827,lng:-123.1207,tier:1},{name:'Montreal, Canada',lat:45.5017,lng:-73.5673,tier:1},{name:'Calgary, Canada',lat:51.0447,lng:-114.0719,tier:1},{name:'Mexico City, Mexico',lat:19.4326,lng:-99.1332,tier:2},{name:'Bogotá, Colombia',lat:4.7110,lng:-74.0721,tier:2},{name:'Lima, Peru',lat:-12.0464,lng:-77.0428,tier:2},{name:'Buenos Aires, Argentina',lat:-34.6037,lng:-58.3816,tier:2},{name:'Santiago, Chile',lat:-33.4489,lng:-70.6693,tier:2},{name:'São Paulo, Brazil',lat:-23.5505,lng:-46.6333,tier:2},{name:'Rio de Janeiro, Brazil',lat:-22.9068,lng:-43.1729,tier:2},{name:'London, UK',lat:51.5074,lng:-0.1278,tier:1},{name:'Manchester, UK',lat:53.4808,lng:-2.2426,tier:1},{name:'Edinburgh, UK',lat:55.9533,lng:-3.1883,tier:1},{name:'Birmingham, UK',lat:52.4862,lng:-1.8904,tier:1},{name:'Paris, France',lat:48.8566,lng:2.3522,tier:1},{name:'Lyon, France',lat:45.7640,lng:4.8357,tier:1},{name:'Marseille, France',lat:43.2965,lng:5.3698,tier:1},{name:'Berlin, Germany',lat:52.5200,lng:13.4050,tier:1},{name:'Munich, Germany',lat:48.1351,lng:11.5820,tier:1},{name:'Frankfurt, Germany',lat:50.1109,lng:8.6821,tier:1},{name:'Hamburg, Germany',lat:53.5511,lng:9.9937,tier:1},{name:'Madrid, Spain',lat:40.4168,lng:-3.7038,tier:1},{name:'Barcelona, Spain',lat:41.3874,lng:2.1686,tier:1},{name:'Rome, Italy',lat:41.9028,lng:12.4964,tier:1},{name:'Milan, Italy',lat:45.4642,lng:9.1900,tier:1},{name:'Florence, Italy',lat:43.7696,lng:11.2558,tier:1},{name:'Naples, Italy',lat:40.8518,lng:14.2681,tier:1},{name:'Amsterdam, Netherlands',lat:52.3676,lng:4.9041,tier:1},{name:'Brussels, Belgium',lat:50.8503,lng:4.3517,tier:1},{name:'Vienna, Austria',lat:48.2082,lng:16.3738,tier:1},{name:'Warsaw, Poland',lat:52.2297,lng:21.0122,tier:1},{name:'Prague, Czech Republic',lat:50.0755,lng:14.4378,tier:1},{name:'Budapest, Hungary',lat:47.4979,lng:19.0402,tier:2},{name:'Lisbon, Portugal',lat:38.7223,lng:-9.1393,tier:1},{name:'Athens, Greece',lat:37.9838,lng:23.7275,tier:2},{name:'Istanbul, Turkey',lat:41.0082,lng:28.9784,tier:3},{name:'Moscow, Russia',lat:55.7558,lng:37.6173,tier:3},{name:'Zurich, Switzerland',lat:47.3769,lng:8.5417,tier:1},{name:'Stockholm, Sweden',lat:59.3293,lng:18.0686,tier:1},{name:'Oslo, Norway',lat:59.9139,lng:10.7522,tier:1},{name:'Copenhagen, Denmark',lat:55.6761,lng:12.5683,tier:1},{name:'Helsinki, Finland',lat:60.1699,lng:24.9384,tier:1},{name:'Dublin, Ireland',lat:53.3498,lng:-6.2603,tier:1},{name:'Ljubljana, Slovenia',lat:46.0569,lng:14.5058,tier:2},{name:'Podgorica, Montenegro',lat:42.4304,lng:19.2594,tier:2},{name:'Nicosia, Cyprus',lat:35.1856,lng:33.3823,tier:2},{name:'Yerevan, Armenia',lat:40.1792,lng:44.4991,tier:4},{name:'Chișinău, Moldova',lat:47.0105,lng:28.8638,tier:4},{name:'Skopje, North Macedonia',lat:41.9981,lng:21.4254,tier:2},{name:'Cairo, Egypt',lat:30.0444,lng:31.2357,tier:3},{name:'Lagos, Nigeria',lat:6.5244,lng:3.3792,tier:4},{name:'Abuja, Nigeria',lat:9.0579,lng:7.4951,tier:4},{name:'Nairobi, Kenya',lat:-1.2921,lng:36.8219,tier:4},{name:'Johannesburg, South Africa',lat:-26.2041,lng:28.0473,tier:3},{name:'Cape Town, South Africa',lat:-33.9249,lng:18.4241,tier:3},{name:'Casablanca, Morocco',lat:33.5731,lng:-7.5898,tier:3},{name:'Abidjan, Ivory Coast',lat:5.3600,lng:-4.0083,tier:4},{name:'Dakar, Senegal',lat:14.7167,lng:-17.4677,tier:4},{name:'Addis Ababa, Ethiopia',lat:9.0320,lng:38.7469,tier:4},{name:'Accra, Ghana',lat:5.6037,lng:-0.1870,tier:4},{name:'Kampala, Uganda',lat:0.3476,lng:32.5825,tier:4},{name:'Dar es Salaam, Tanzania',lat:-6.7924,lng:39.2083,tier:4},{name:'Lusaka, Zambia',lat:-15.3875,lng:28.3228,tier:4},{name:'Gaborone, Botswana',lat:-24.6282,lng:25.9231,tier:4},{name:'Windhoek, Namibia',lat:-22.5609,lng:17.0658,tier:4},{name:'Maputo, Mozambique',lat:-25.9692,lng:32.5732,tier:4},{name:'Port Louis, Mauritius',lat:-20.1609,lng:57.5012,tier:4},{name:'São Tomé, São Tomé and Príncipe',lat:0.3365,lng:6.7273,tier:4},{name:'Tripoli, Libya',lat:32.8872,lng:13.1913,tier:3},{name:'Dubai, UAE',lat:25.2048,lng:55.2708,tier:2},{name:'Abu Dhabi, UAE',lat:24.4539,lng:54.3773,tier:2},{name:'Riyadh, Saudi Arabia',lat:24.7136,lng:46.6753,tier:2},{name:'Jeddah, Saudi Arabia',lat:21.4858,lng:39.1925,tier:2},{name:'Tel Aviv, Israel',lat:32.0853,lng:34.7818,tier:2},{name:'Beirut, Lebanon',lat:33.8938,lng:35.5018,tier:2},{name:'Amman, Jordan',lat:31.9454,lng:35.9284,tier:2},{name:'Doha, Qatar',lat:25.2854,lng:51.5310,tier:2},{name:'Kuwait City, Kuwait',lat:29.3759,lng:47.9774,tier:2},{name:'Muscat, Oman',lat:23.5880,lng:58.3829,tier:2},{name:'Manama, Bahrain',lat:26.2285,lng:50.5860,tier:2},{name:"Sana'a, Yemen",lat:15.3694,lng:44.1910,tier:4},{name:'Tehran, Iran',lat:35.6892,lng:51.3890,tier:3},{name:'Baghdad, Iraq',lat:33.3152,lng:44.3661,tier:3},{name:'Mumbai, India',lat:19.0760,lng:72.8777,tier:3},{name:'Delhi, India',lat:28.7041,lng:77.1025,tier:3},{name:'Bangalore, India',lat:12.9716,lng:77.5946,tier:3},{name:'Hyderabad, India',lat:17.3850,lng:78.4867,tier:3},{name:'Chennai, India',lat:13.0827,lng:80.2707,tier:3},{name:'Kolkata, India',lat:22.5726,lng:88.3639,tier:3},{name:'Pune, India',lat:18.5204,lng:73.8567,tier:3},{name:'Ahmedabad, India',lat:23.0225,lng:72.5714,tier:3},{name:'Beijing, China',lat:39.9042,lng:116.4074,tier:3},{name:'Shanghai, China',lat:31.2304,lng:121.4737,tier:3},{name:'Guangzhou, China',lat:23.1291,lng:113.2644,tier:3},{name:'Shenzhen, China',lat:22.5431,lng:114.0579,tier:3},{name:'Tokyo, Japan',lat:35.6762,lng:139.6503,tier:1},{name:'Osaka, Japan',lat:34.6937,lng:135.5023,tier:1},{name:'Seoul, South Korea',lat:37.5665,lng:126.9780,tier:1},{name:'Singapore',lat:1.3521,lng:103.8198,tier:1},{name:'Bangkok, Thailand',lat:13.7563,lng:100.5018,tier:2},{name:'Jakarta, Indonesia',lat:-6.2088,lng:106.8456,tier:2},{name:'Manila, Philippines',lat:14.5995,lng:120.9842,tier:2},{name:'Ho Chi Minh City, Vietnam',lat:10.8231,lng:106.6297,tier:2},{name:'Hanoi, Vietnam',lat:21.0285,lng:105.8542,tier:2},{name:'Kuala Lumpur, Malaysia',lat:3.1390,lng:101.6869,tier:2},{name:'Sydney, Australia',lat:-33.8688,lng:151.2093,tier:1},{name:'Melbourne, Australia',lat:-37.8136,lng:144.9631,tier:1},{name:'Brisbane, Australia',lat:-27.4698,lng:153.0251,tier:1},{name:'Perth, Australia',lat:-31.9505,lng:115.8605,tier:1},{name:'Auckland, New Zealand',lat:-36.8485,lng:174.7633,tier:1},{name:'Wellington, New Zealand',lat:-41.2865,lng:174.7762,tier:1},{name:'Hong Kong',lat:22.3193,lng:114.1694,tier:2},{name:'Taipei, Taiwan',lat:25.0330,lng:121.5654,tier:2},{name:'Karachi, Pakistan',lat:24.8607,lng:67.0011,tier:3},{name:'Dhaka, Bangladesh',lat:23.8103,lng:90.4125,tier:3},{name:'Colombo, Sri Lanka',lat:6.9271,lng:79.8612,tier:3},{name:'Chengdu, China',lat:30.5728,lng:104.0668,tier:3},{name:'Wuhan, China',lat:30.5928,lng:114.3055,tier:3},{name:'Hangzhou, China',lat:30.2741,lng:120.1551,tier:3},{name:'Nanjing, China',lat:32.0603,lng:118.7969,tier:3},{name:'Busan, South Korea',lat:35.1796,lng:129.0756,tier:1},{name:'Fukuoka, Japan',lat:33.5904,lng:130.4017,tier:1},{name:'Sapporo, Japan',lat:43.0618,lng:141.3545,tier:1},{name:'Nagoya, Japan',lat:35.1815,lng:136.9066,tier:1},{name:'Adelaide, Australia',lat:-34.9285,lng:138.6007,tier:1},{name:'Christchurch, New Zealand',lat:-43.5321,lng:172.6362,tier:1}];
+
+let currentStep = 1;
+let maxStepReached = 1;
+let selectedFootprint = [];
+let customers = [];
+let slaMode = 'global';
+let globalSLA = 150;
+let perCustomerSLA = {};
+let processingTime = 10;
+let footprintView = 'list';
+let custSource = 'aws';
+let clickPlaceMode = false;
+let realisticMode = true;
+let cellCosts = {};
+let baselineMode = 'blended';
+let specificBaselineIdx = null;
+let fpMap, custMap, dashMap;
+let fpMapMarkers = [], custMapMarkers = [], availableCityMarkers = [], dashMapMarkers = [];
+
+const MAP_BOUNDS = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
+const TIER_TAX = { 1: 5, 2: 20, 3: 40, 4: 60 };
+
+function getTimestamp() {
+  const date = new Date();
+  return `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function getGlobalBaseCost() {
+  const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] !== undefined && cellCosts[idx] > 0);
+  if (cellsWithCosts.length === 0) return PARIS_DEFAULT_COST / PARIS_INDEX;
+  
+  if (baselineMode === 'specific' && specificBaselineIdx !== null && cellCosts[specificBaselineIdx] > 0) {
+    const cost = cellCosts[specificBaselineIdx];
+    const regionCode = regions[specificBaselineIdx].code;
+    const index = AWS_PRICE_INDEX[regionCode];
+    return cost / index;
+  }
+  
+  const baseCosts = cellsWithCosts.map(idx => {
+    const cost = cellCosts[idx];
+    const regionCode = regions[idx].code;
+    const index = AWS_PRICE_INDEX[regionCode];
+    return cost / index;
+  });
+  
+  const sum = baseCosts.reduce((a, b) => a + b, 0);
+  return sum / baseCosts.length;
+}
+
+function estimateRegionCost(regionIdx) {
+  const baseCost = getGlobalBaseCost();
+  const regionCode = regions[regionIdx].code;
+  const index = AWS_PRICE_INDEX[regionCode];
+  return Math.round(baseCost * index);
+}
+
+function formatMoney(amount) {
+  return '$' + amount.toLocaleString('en-US');
+}
+
+function getIndexTier(regionCode) {
+  const idx = AWS_PRICE_INDEX[regionCode];
+  if (idx <= 1.02) return 'discount';
+  if (idx <= 1.18) return 'parity';
+  return 'premium';
+}
+
+function renderCostCellsList() {
+  const cellsSection = document.getElementById('cost-cells-section');
+  const defaultBanner = document.getElementById('cost-default-banner');
+  const infoPill = document.getElementById('cost-info-pill');
+  
+  if (selectedFootprint.length === 0) {
+    cellsSection.style.display = 'none';
+    defaultBanner.style.display = 'block';
+    infoPill.textContent = 'Optional';
+    return;
+  }
+  
+  cellsSection.style.display = 'block';
+  defaultBanner.style.display = 'none';
+  
+  const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] !== undefined && cellCosts[idx] > 0);
+  infoPill.textContent = cellsWithCosts.length > 0 ? `${cellsWithCosts.length} of ${selectedFootprint.length} with cost` : 'Optional';
+  
+  const list = document.getElementById('cost-cells-list');
+  list.innerHTML = selectedFootprint.map(idx => {
+    const r = regions[idx];
+    const index = AWS_PRICE_INDEX[r.code];
+    const tier = getIndexTier(r.code);
+    const currentCost = cellCosts[idx] !== undefined ? cellCosts[idx] : '';
+    const tierLabel = tier === 'discount' ? 'Discount' : tier === 'parity' ? 'Parity' : 'Premium';
+    
+    return `<div class="cost-cell-row">
+      <div class="cell-name"><div class="name">${r.name} <span class="cost-tag ${tier}" style="margin-left:6px">${index.toFixed(2)}x · ${tierLabel}</span></div><div class="code">${r.code}</div></div>
+      <div class="cell-cost"><span class="currency">$</span><input type="number" data-cell-idx="${idx}" value="${currentCost}" placeholder="${PARIS_DEFAULT_COST}" min="0"><span class="currency">/mo</span></div>
+    </div>`;
+  }).join('');
+  
+  list.querySelectorAll('input[data-cell-idx]').forEach(input => {
+    input.addEventListener('change', function() {
+      const idx = parseInt(this.getAttribute('data-cell-idx'));
+      const numValue = parseFloat(this.value);
+      if (isNaN(numValue) || numValue <= 0) {
+        delete cellCosts[idx];
+      } else {
+        cellCosts[idx] = numValue;
+      }
+      updateBaselineState();
+      updateBaselineSummary();
+      updateSpecificDropdown();
+    });
+  });
+}
+
+function updateSpecificDropdown() {
+  const dropdown = document.getElementById('baseline-specific-dropdown');
+  const specificBtn = document.getElementById('baseline-specific-btn');
+  const reasonEl = document.getElementById('specific-disabled-reason');
+  const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] !== undefined && cellCosts[idx] > 0);
+  
+  if (cellsWithCosts.length === 0) {
+    specificBtn.disabled = true;
+    reasonEl.textContent = 'Enter a cost for at least one cell';
+    if (baselineMode === 'specific') {
+      baselineMode = 'blended';
+      document.getElementById('baseline-blended-btn').className = 'active';
+      specificBtn.className = '';
+      document.getElementById('baseline-specific-dropdown-wrap').style.display = 'none';
+    }
+    dropdown.innerHTML = '';
+    return;
+  }
+  
+  specificBtn.disabled = false;
+  dropdown.innerHTML = cellsWithCosts.map(idx => {
+    const r = regions[idx];
+    const cost = cellCosts[idx];
+    const index = AWS_PRICE_INDEX[r.code];
+    const baseCost = cost / index;
+    return `<option value="${idx}" ${specificBaselineIdx === idx ? 'selected' : ''}>${r.name} — ${formatMoney(cost)}/mo → normalized ${formatMoney(Math.round(baseCost))}</option>`;
+  }).join('');
+  
+  if (specificBaselineIdx === null || !cellsWithCosts.includes(specificBaselineIdx)) {
+    specificBaselineIdx = cellsWithCosts[0];
+    dropdown.value = specificBaselineIdx;
+  }
+}
+
+function updateBaselineState() {
+  const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] !== undefined && cellCosts[idx] > 0);
+  if (cellsWithCosts.length > 0 && specificBaselineIdx === null) {
+    specificBaselineIdx = cellsWithCosts[0];
+  }
+  if (specificBaselineIdx !== null && !cellsWithCosts.includes(specificBaselineIdx)) {
+    specificBaselineIdx = cellsWithCosts.length > 0 ? cellsWithCosts[0] : null;
+  }
+}
+
+function updateBaselineSummary() {
+  const baseCost = getGlobalBaseCost();
+  document.getElementById('baseline-value').textContent = formatMoney(Math.round(baseCost));
+  const label = document.getElementById('baseline-mode-label');
+  const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] > 0);
+  
+  if (cellsWithCosts.length === 0) {
+    label.innerHTML = `Reverse-engineered from Paris default<br>(Paris = ${PARIS_INDEX.toFixed(2)}x regional index)`;
+  } else if (baselineMode === 'blended') {
+    if (cellsWithCosts.length === 1) {
+      const r = regions[cellsWithCosts[0]];
+      label.innerHTML = `Reverse-engineered from ${r.name}<br>(${r.code} = ${AWS_PRICE_INDEX[r.code].toFixed(2)}x)`;
+    } else {
+      label.innerHTML = `Blended from ${cellsWithCosts.length} cells<br>(normalized to 1.0x global index)`;
+    }
+  } else {
+    if (specificBaselineIdx !== null) {
+      const r = regions[specificBaselineIdx];
+      label.innerHTML = `Anchored to ${r.name}<br>(${r.code} = ${AWS_PRICE_INDEX[r.code].toFixed(2)}x)`;
+    } else {
+      label.innerHTML = `Select a baseline cell`;
+    }
+  }
+}
+
+function setBaselineMode(mode) {
+  const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] > 0);
+  if (mode === 'specific' && cellsWithCosts.length === 0) return;
+  
+  baselineMode = mode;
+  document.getElementById('baseline-blended-btn').className = mode === 'blended' ? 'active' : '';
+  document.getElementById('baseline-specific-btn').className = mode === 'specific' ? 'active' : '';
+  document.getElementById('baseline-specific-dropdown-wrap').style.display = mode === 'specific' ? 'block' : 'none';
+  updateBaselineSummary();
+}
+
+function updateCostBaseline() {
+  if (baselineMode === 'specific') {
+    const val = document.getElementById('baseline-specific-dropdown').value;
+    specificBaselineIdx = val !== '' ? parseInt(val) : null;
+  }
+  updateBaselineSummary();
+}
+
+function toggleCostAccordion() {
+  document.getElementById('cost-accordion').classList.toggle('open');
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function findNearestRegionIdx(lat, lng) {
+  let minDist = Infinity, nearestIdx = 0;
+  regions.forEach((r, i) => {
+    const d = haversine(r.lat, r.lng, lat, lng);
+    if (d < minDist) {
+      minDist = d;
+      nearestIdx = i;
+    }
+  });
+  return nearestIdx;
+}
+
+function getCustomerTier(customer) {
+  if (customer.tier !== undefined) return customer.tier;
+  if (customer.regionIdx !== undefined) return 1;
+  return 2;
+}
+
+function getCustomerLatency(cellIdx, customer, withBreakdown = false) {
+  const cell = regions[cellIdx];
+  const tier = getCustomerTier(customer);
+
+  if (customer.regionIdx !== undefined) {
+    const baseLatency = matrix[cellIdx][customer.regionIdx];
+    if (!realisticMode) {
+      return withBreakdown ? { base: baseLatency, distance: 0, infra: 0, proc: processingTime, total: baseLatency + processingTime, nearestRegionIdx: customer.regionIdx, distanceKm: 0, tier, isDirect: false } : baseLatency + processingTime;
+    }
+    const infraTax = TIER_TAX[tier];
+    const total = baseLatency + infraTax + processingTime;
+    return withBreakdown ? { base: baseLatency, distance: 0, infra: infraTax, proc: processingTime, total: Math.round(total), nearestRegionIdx: customer.regionIdx, distanceKm: 0, tier, isDirect: false } : Math.round(total);
+  } else {
+    const distanceKm = haversine(cell.lat, cell.lng, customer.lat, customer.lng);
+    
+    if (!realisticMode) {
+      const nearestRegionIdx = findNearestRegionIdx(customer.lat, customer.lng);
+      const proxyLatency = matrix[cellIdx][nearestRegionIdx];
+      return withBreakdown ? { base: proxyLatency, distance: 0, infra: 0, proc: processingTime, total: proxyLatency + processingTime, nearestRegionIdx, distanceKm, tier, isDirect: false } : proxyLatency + processingTime;
+    }
+    
+    const FIBER_SPEED_MS_PER_KM = 0.012;
+    const distancePenalty = distanceKm * FIBER_SPEED_MS_PER_KM;
+    const infraTax = TIER_TAX[tier];
+    const total = distancePenalty + infraTax + processingTime;
+    
+    return withBreakdown ? { base: 0, distance: Math.round(distancePenalty), infra: infraTax, proc: processingTime, total: Math.round(total), nearestRegionIdx: null, distanceKm: Math.round(distanceKm), tier, isDirect: true } : Math.round(total);
+  }
+}
+
+function renderBreakdown(b) {
+  if (!realisticMode) {
+      if (b.proc > 0) return `<div class="breakdown-bar"><span class="breakdown-seg base" title="AWS Backbone">${b.base}ms</span><span class="text-slate-600 mx-1">+</span><span class="breakdown-seg proc" title="Processing Time">${b.proc}ms</span><span class="text-slate-600 mx-1">=</span><span class="breakdown-seg total">${b.total}ms</span></div>`;
+      return `<span class="breakdown-seg total">${b.total}ms</span>`;
+  }
+  
+  let parts = [];
+  if (b.base > 0) parts.push(`<span class="breakdown-seg base" title="AWS Backbone">${b.base}ms</span>`);
+  if (b.distance > 0 || b.isDirect) parts.push(`<span class="breakdown-seg dist" title="${b.distanceKm}km Direct Distance">${b.distance}ms</span>`);
+  if (b.infra > 0) parts.push(`<span class="breakdown-seg infra" title="Tier ${b.tier} Infrastructure Tax">${b.infra}ms</span>`);
+  if (b.proc > 0) parts.push(`<span class="breakdown-seg proc" title="Processing Time">${b.proc}ms</span>`);
+  
+  const formula = parts.join('<span class="text-slate-600 mx-1">+</span>');
+  return `<div class="breakdown-bar">${formula}<span class="text-slate-600 mx-1">=</span><span class="breakdown-seg total">${b.total}ms</span></div>`;
+}
+
+function createCustomIcon(color, size = 12) {
+  return L.divIcon({ className: 'custom-div-icon', html: `<div style="width:${size}px;height:${size}px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);"></div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+}
+
+function createPulseIcon(color) {
+  return L.divIcon({ className: 'custom-div-icon', html: `<div style="position:relative;width:16px;height:16px;"><div style="position:absolute;width:16px;height:16px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);z-index:2;"></div><div class="pulse-ring" style="position:absolute;width:16px;height:16px;background:${color};border-radius:50%;opacity:0.5;"></div></div>`, iconSize: [16, 16], iconAnchor: [8, 8] });
+}
+
+function createRecommendedIcon() {
+  return L.divIcon({ className: 'custom-div-icon', html: `<div style="position:relative;width:28px;height:28px;"><div class="pulse-ring-diamond" style="position:absolute;width:18px;height:18px;top:5px;left:5px;background:rgba(59,130,246,0.4);"></div><div style="position:absolute;width:18px;height:18px;top:5px;left:5px;background:#3b82f6;transform:rotate(45deg);border:2px solid rgba(255,255,255,0.95);box-shadow:0 0 14px rgba(59,130,246,0.7);z-index:2;"></div></div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+}
+
+function createMapOptions() {
+  return { zoomControl: false, minZoom: 2, maxZoom: 10, maxBounds: MAP_BOUNDS, maxBoundsViscosity: 1.0, worldCopyJump: false };
+}
+
+function tryGoToStep(step) {
+  if (step <= maxStepReached) {
+    goToStep(step);
+  }
+}
+
+function goToStep(step) {
+  if (step > maxStepReached) maxStepReached = step;
+  
+  document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+  document.getElementById(`step-${step}`).classList.remove('hidden');
+  currentStep = step;
+  updateStepIndicator();
+  
+  if (step === 1) {
+    renderFootprintList();
+    renderCostCellsList();
+    updateSpecificDropdown();
+    updateBaselineSummary();
+  }
+  if (step === 2) {
+    renderCustSourceList();
+    renderCustList();
+    setTimeout(() => initCustMap(), 100);
+  }
+  if (step === 3) renderSLAPerList();
+  if (step === 4) renderDashboard();
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateStepIndicator() {
+  for (let i = 1; i <= 4; i++) {
+    const ind = document.getElementById(`step-ind-${i}`);
+    const dot = ind.querySelector('.step-dot');
+    const label = ind.querySelector('.step-text');
+    
+    if (i <= maxStepReached) {
+      ind.classList.add('clickable');
+    } else {
+      ind.classList.remove('clickable');
+    }
+    
+    dot.className = 'step-dot transition-all';
+    label.className = 'text-xs font-medium text-slate-500 step-text transition-colors';
+    
+    if (i < currentStep) {
+      dot.classList.add('completed');
+      dot.innerHTML = '<i class="fas fa-check text-sm"></i>';
+      label.classList.replace('text-slate-500', 'text-slate-400');
+    } else if (i === currentStep) {
+      dot.classList.add('active');
+      const icons = ['fa-server', 'fa-network-wired', 'fa-sliders', 'fa-chart-bar'];
+      dot.innerHTML = `<i class="fas ${icons[i - 1]} text-sm"></i>`;
+      label.classList.replace('text-slate-500', 'accent');
+    } else {
+      const icons = ['fa-server', 'fa-network-wired', 'fa-sliders', 'fa-chart-bar'];
+      dot.innerHTML = `<i class="fas ${icons[i - 1]} text-sm"></i>`;
+    }
+    
+    if (i < 4) {
+      document.getElementById(`line-${i}`).className = i < currentStep ? 'step-line active' : 'step-line';
+    }
+  }
+}
+
+function setFootprintView(view) {
+  footprintView = view;
+  document.getElementById('fp-list-btn').className = view === 'list' ? 'active' : '';
+  document.getElementById('fp-map-btn').className = view === 'map' ? 'active' : '';
+  document.getElementById('fp-list-view').className = view === 'list' ? 'glass rounded-2xl p-4 sm:p-6' : 'hidden';
+  document.getElementById('fp-map-view').className = view === 'map' ? '' : 'hidden';
+  if (view === 'map') setTimeout(() => initFpMap(), 100);
+}
+
+function toggleFootprint(idx) {
+  if (selectedFootprint.includes(idx)) {
+    selectedFootprint = selectedFootprint.filter(i => i !== idx);
+    delete cellCosts[idx];
+    if (specificBaselineIdx === idx) specificBaselineIdx = null;
+  } else {
+    selectedFootprint.push(idx);
+  }
+  
+  renderFootprintList();
+  renderFpPills();
+  renderCostCellsList();
+  updateSpecificDropdown();
+  updateBaselineSummary();
+  if (footprintView === 'map') updateFpMap();
+}
+
+function removeFootprint(idx) {
+  selectedFootprint = selectedFootprint.filter(i => i !== idx);
+  delete cellCosts[idx];
+  if (specificBaselineIdx === idx) specificBaselineIdx = null;
+  
+  renderFootprintList();
+  renderFpPills();
+  renderCostCellsList();
+  updateSpecificDropdown();
+  updateBaselineSummary();
+  if (footprintView === 'map') updateFpMap();
+}
+
+function renderFpPills() {
+  document.getElementById('fp-pills').innerHTML = selectedFootprint.map(idx => `<span class="pill">${regions[idx].name} <span class="remove" onclick="removeFootprint(${idx})"><i class="fas fa-times text-xs"></i></span></span>`).join('');
+}
+
+function renderFootprintList() {
+  const container = document.getElementById('fp-region-list');
+  const search = document.getElementById('fp-search').value.toLowerCase();
+  const continents = [...new Set(regions.map(r => r.continent))];
+  let html = '';
+  
+  continents.forEach(continent => {
+    const contRegions = regions.filter((r, i) => r.continent === continent && (r.name.toLowerCase().includes(search) || r.code.toLowerCase().includes(search)));
+    if (contRegions.length === 0) return;
+    
+    html += `<div class="mb-4"><h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">${continent}</h4><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">`;
+    contRegions.forEach(r => {
+      const idx = regions.indexOf(r);
+      const selected = selectedFootprint.includes(idx);
+      html += `<div class="region-card ${selected ? 'selected' : ''}" onclick="toggleFootprint(${idx})"><div class="checkbox">${selected ? '<i class="fas fa-check text-xs text-slate-900"></i>' : ''}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate">${r.name}</div><div class="text-xs text-slate-500 truncate">${r.code}</div></div></div>`;
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function filterFootprintList() {
+  renderFootprintList();
+}
+
+function initFpMap() {
+  if (fpMap) {
+    fpMap.remove();
+    fpMap = null;
+  }
+  fpMap = L.map('fp-map', createMapOptions()).setView([20, 0], 2);
+  L.control.zoom({ position: 'bottomright' }).addTo(fpMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(fpMap);
+  updateFpMap();
+}
+
+function updateFpMap() {
+  fpMapMarkers.forEach(m => fpMap.removeLayer(m));
+  fpMapMarkers = [];
+  
+  selectedFootprint.forEach(idx => {
+    const r = regions[idx];
+    const marker = L.marker([r.lat, r.lng], { icon: createPulseIcon('#10b981') }).addTo(fpMap);
+    marker.bindPopup(`<b>${r.name}</b><br><span class="text-xs text-slate-400">${r.code}</span>`);
+    fpMapMarkers.push(marker);
+  });
+}
+
+function setCustSource(source) {
+  custSource = source;
+  document.getElementById('src-aws-btn').className = source === 'aws' ? 'active' : '';
+  document.getElementById('src-cities-btn').className = source === 'cities' ? 'active' : '';
+  renderCustSourceList();
+}
+
+function renderCustSourceList() {
+  const container = document.getElementById('cust-source-list');
+  const search = document.getElementById('cust-search').value.toLowerCase();
+  
+  if (custSource === 'aws') {
+    const filtered = regions.filter(r => r.name.toLowerCase().includes(search) || r.code.toLowerCase().includes(search) || r.city.toLowerCase().includes(search));
+    container.innerHTML = filtered.map(r => {
+      const idx = regions.indexOf(r);
+      return `<div class="flex items-center justify-between py-2 px-2 rounded hover:bg-slate-700/30 cursor-pointer transition" onclick="addCustomerRegion(${idx})"><div class="flex items-center gap-2"><i class="fas fa-plus text-emerald-400 text-xs"></i><span class="text-sm text-slate-300">${r.city}</span></div><span class="text-xs text-slate-600">${r.code}</span></div>`;
+    }).join('');
+  } else {
+    let html = '';
+    worldCities.forEach((c, originalIndex) => {
+      if (c.name.toLowerCase().includes(search)) {
+        html += `<div class="flex items-center justify-between py-2 px-2 rounded hover:bg-slate-700/30 cursor-pointer transition" onclick="addCustomerCity(${originalIndex})"><div class="flex items-center gap-2"><i class="fas fa-plus text-emerald-400 text-xs"></i><span class="text-sm text-slate-300">${c.name}</span></div><span class="tier-badge tier-${c.tier}">T${c.tier}</span></div>`;
+      }
+    });
+    container.innerHTML = html;
+  }
+}
+
+function filterCustList() {
+  renderCustSourceList();
+}
+
+function addCustomerRegion(idx) {
+  if (customers.some(c => c.regionIdx === idx)) return;
+  const r = regions[idx];
+  customers.push({ name: r.city, lat: r.lat, lng: r.lng, regionIdx: idx, type: 'aws', tier: 1 });
+  renderCustList();
+  renderCustSourceList();
+  updateCustMap();
+}
+
+function addCustomerCity(idx) {
+  const c = worldCities[idx];
+  if (customers.some(k => k.name === c.name)) return;
+  customers.push({ name: c.name, lat: c.lat, lng: c.lng, type: 'city', tier: c.tier });
+  renderCustList();
+  renderCustSourceList();
+  updateCustMap();
+}
+
+function removeCustomer(idx) {
+  customers.splice(idx, 1);
+  renderCustList();
+  renderCustSourceList();
+  updateCustMap();
+}
+
+function renderCustList() {
+  const container = document.getElementById('cust-list');
+  document.getElementById('cust-count').textContent = customers.length;
+  
+  container.innerHTML = customers.map((c, i) => {
+    const tierBadge = c.tier ? `<span class="tier-badge tier-${c.tier} ml-1">T${c.tier}</span>` : '';
+    return `<div class="customer-row"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${c.name}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div></div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
+  }).join('');
+}
+
+function toggleClickPlace() {
+  clickPlaceMode = !clickPlaceMode;
+  const btn = document.getElementById('click-place-btn');
+  const text = document.getElementById('click-place-text');
+  
+  if (clickPlaceMode) {
+    btn.classList.add('accent-glow');
+    text.textContent = 'Cancel Placement';
+    custMap.getContainer().style.cursor = 'crosshair';
+  } else {
+    btn.classList.remove('accent-glow');
+    text.textContent = 'Click to Place on Map';
+    custMap.getContainer().style.cursor = '';
+  }
+  updateCustMap();
+}
+
+function initCustMap() {
+  if (custMap) {
+    custMap.remove();
+    custMap = null;
+  }
+  custMap = L.map('cust-map', createMapOptions()).setView([20, 0], 2);
+  L.control.zoom({ position: 'bottomright' }).addTo(custMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(custMap);
+  
+  custMap.on('click', function(e) {
+    if (!clickPlaceMode) return;
+    const lat = e.latlng.lat, lng = e.latlng.lng;
+    let nearest = worldCities[0], minDist = Infinity;
+    let nearestIdx = 0;
+    
+    worldCities.forEach((c, idx) => {
+      const d = haversine(c.lat, c.lng, lat, lng);
+      if (d < minDist) {
+        minDist = d;
+        nearest = c;
+        nearestIdx = idx;
+      }
+    });
+    
+    if (!customers.some(k => k.name === nearest.name)) {
+      addCustomerCity(nearestIdx);
+    }
+    
+    toggleClickPlace();
+  });
+  
+  updateCustMap();
+}
+
+function updateCustMap() {
+  custMapMarkers.forEach(m => custMap.removeLayer(m));
+  custMapMarkers = [];
+  
+  availableCityMarkers.forEach(m => custMap.removeLayer(m));
+  availableCityMarkers = [];
+  
+  selectedFootprint.forEach(idx => {
+    const r = regions[idx];
+    const marker = L.marker([r.lat, r.lng], { icon: createPulseIcon('#10b981') }).addTo(custMap);
+    marker.bindPopup(`<b>${r.name}</b><br><span class="text-xs text-slate-400">Existing Cell</span>`);
+    custMapMarkers.push(marker);
+  });
+  
+  customers.forEach((c, i) => {
+    const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#ef4444') }).addTo(custMap);
+    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-slate-400">Endpoint #${i + 1}</span>`);
+    custMapMarkers.push(marker);
+  });
+
+  if (clickPlaceMode) {
+    worldCities.forEach(c => {
+      if (!customers.some(k => k.name === c.name)) {
+        const marker = L.circleMarker([c.lat, c.lng], {
+          radius: 4,
+          color: 'rgba(255,255,255,0.6)',
+          fillColor: '#94a3b8',
+          fillOpacity: 0.5,
+          weight: 1,
+          interactive: false
+        }).addTo(custMap);
+        availableCityMarkers.push(marker);
+      }
+    });
+  }
+}
+
+function setRealisticMode(mode) {
+  realisticMode = mode;
+  document.getElementById('mode-naive-card').className = !mode ? 'mode-card selected' : 'mode-card';
+  document.getElementById('mode-realistic-card').className = mode ? 'mode-card selected' : 'mode-card';
+  document.getElementById('realistic-info').className = mode ? 'mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg' : 'hidden mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg';
+  if (slaMode === 'per-customer') renderSLAPerList();
+}
+
+function setSLAMode(mode) {
+  slaMode = mode;
+  document.getElementById('sla-global-card').className = mode === 'global' ? 'mode-card selected' : 'mode-card';
+  document.getElementById('sla-per-card').className = mode === 'per-customer' ? 'mode-card selected' : 'mode-card';
+  document.getElementById('sla-global-section').className = mode === 'global' ? 'glass rounded-2xl p-6' : 'glass rounded-2xl p-6 hidden';
+  document.getElementById('sla-per-section').className = mode === 'per-customer' ? 'glass rounded-2xl p-6' : 'glass rounded-2xl p-6 hidden';
+  if (mode === 'per-customer') renderSLAPerList();
+}
+
+function renderSLAPerList() {
+  const container = document.getElementById('sla-per-list');
+  if (customers.length === 0) {
+    container.innerHTML = '<p class="text-sm text-slate-500 italic">No endpoints added yet.</p>';
+    return;
+  }
+  
+  container.innerHTML = customers.map((c, i) => {
+    const val = perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150;
+    let preview;
+    if (selectedFootprint.length > 0) {
+      let bestBreakdown = null;
+      for (let cellIdx of selectedFootprint) {
+        const b = getCustomerLatency(cellIdx, c, true);
+        if (!bestBreakdown || b.total < bestBreakdown.total) bestBreakdown = b;
+      }
+      preview = renderBreakdown(bestBreakdown);
+    } else {
+      const b = getCustomerLatency(findNearestRegionIdx(c.lat, c.lng), c, true);
+      preview = renderBreakdown(b);
+    }
+    const tierBadge = c.tier && realisticMode ? `<span class="tier-badge tier-${c.tier} ml-2">T${c.tier}</span>` : '';
+    return `<div class="flex flex-col gap-2 py-2 px-3 rounded-lg bg-slate-800/40"><div class="flex items-center gap-3"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm flex items-center">${c.name}${tierBadge}</div>${preview}</div><div class="flex items-center gap-2"><input type="number" value="${val}" min="1" class="w-20 text-sm" onchange="perCustomerSLA[${i}]=parseInt(this.value)"><span class="text-slate-400 text-sm">ms</span></div></div></div>`;
+  }).join('');
+}
+
+function analyzeCoverage() {
+  globalSLA = parseInt(document.getElementById('global-sla-input').value) || 150;
+  processingTime = parseInt(document.getElementById('processing-time-input').value) || 0;
+  goToStep(4);
+}
+
+function getTopCandidatesForCustomer(customer, sla, topN = 5) {
+  const candidates = [];
+  for (let ci = 0; ci < regions.length; ci++) {
+    const b = getCustomerLatency(ci, customer, true);
+    candidates.push({ cellIdx: ci, cellName: regions[ci].name, cellCode: regions[ci].code, breakdown: b, withinSLA: b.total <= sla });
+  }
+  candidates.sort((a, b) => a.breakdown.total - b.breakdown.total);
+  return candidates.slice(0, topN);
+}
+
+function renderDashboard() {
+  const covered = [], uncovered = [];
+  
+  customers.forEach((c, i) => {
+    const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150);
+    let isCovered = false;
+    let bestServing = null;
+    
+    for (let cellIdx of selectedFootprint) {
+      const b = getCustomerLatency(cellIdx, c, true);
+      if (b.total <= sla) {
+        isCovered = true;
+        if (!bestServing || b.total < bestServing.breakdown.total) {
+          bestServing = { cellIdx, breakdown: b };
+        }
+      }
+    }
+    
+    if (isCovered) {
+      covered.push({ ...c, sla, idx: i, serving: bestServing });
+    } else {
+      let bestFrom = null;
+      const cellsToCheck = selectedFootprint.length > 0 ? selectedFootprint : [findNearestRegionIdx(c.lat, c.lng)];
+      for (let cellIdx of cellsToCheck) {
+        const b = getCustomerLatency(cellIdx, c, true);
+        if (!bestFrom || b.total < bestFrom.breakdown.total) {
+          bestFrom = { cellIdx, breakdown: b };
+        }
+      }
+      uncovered.push({ ...c, sla, idx: i, bestFrom });
+    }
+  });
+
+  const recommendations = [];
+  const remainingSet = new Set(uncovered.map(c => c.idx));
+  const remainingCustomers = [...uncovered];
+  const usedCells = new Set();
+  
+  while (remainingSet.size > 0) {
+    let bestCellIdx = -1;
+    let bestCoveredList = [];
+    let minCostPerCust = Infinity;
+    let maxCountTieBreaker = 0;
+    
+    for (let ci = 0; ci < regions.length; ci++) {
+      if (usedCells.has(ci)) continue;
+      
+      const coversNow = [];
+      for (const cust of remainingCustomers) {
+        if (!remainingSet.has(cust.idx)) continue;
+        const b = getCustomerLatency(ci, cust, true);
+        if (b.total <= cust.sla) {
+          coversNow.push({ ...cust, breakdown: b });
+        }
+      }
+      
+      if (coversNow.length === 0) continue;
+      
+      const regionCost = estimateRegionCost(ci);
+      const costPerCust = regionCost / coversNow.length;
+      
+      if (costPerCust < minCostPerCust || (Math.abs(costPerCust - minCostPerCust) < 0.01 && coversNow.length > maxCountTieBreaker)) {
+        minCostPerCust = costPerCust;
+        maxCountTieBreaker = coversNow.length;
+        bestCellIdx = ci;
+        bestCoveredList = coversNow;
+      }
+    }
+
+    if (bestCellIdx === -1) break;
+    
+    recommendations.push({ cellIdx: bestCellIdx, cellName: regions[bestCellIdx].name, cellCode: regions[bestCellIdx].code, covers: bestCoveredList });
+    usedCells.add(bestCellIdx);
+    for (const cust of bestCoveredList) {
+      remainingSet.delete(cust.idx);
+    }
+  }
+
+  const coverageMap = new Map();
+  recommendations.forEach(rec => { 
+    rec.covers.forEach(c => coverageMap.set(c.idx, { rec, breakdown: c.breakdown }));
+  });
+
+  const pendingCovered = [], impossible = [];
+  uncovered.forEach(c => {
+    const coverage = coverageMap.get(c.idx);
+    if (coverage) {
+      pendingCovered.push({ ...c, coveredByCell: coverage.rec.cellName, coveredByCellCode: coverage.rec.cellCode, coveredByCellIdx: coverage.rec.cellIdx, recBreakdown: coverage.breakdown });
+    } else {
+      impossible.push(c);
+    }
+  });
+
+  const recommendedTotalOPEX = recommendations.reduce((sum, r) => sum + estimateRegionCost(r.cellIdx), 0);
+  
+  const allServed = [
+    ...covered.map(c => ({ latency: c.serving.breakdown.total })),
+    ...pendingCovered.map(c => ({ latency: c.recBreakdown.total }))
+  ];
+  const avgLatency = allServed.length > 0 ? Math.round(allServed.reduce((s, c) => s + c.latency, 0) / allServed.length) : 0;
+
+  document.getElementById('dash-subtitle').textContent = realisticMode ? 'Realistic Mode · Coverage Optimization' : 'Naive Mode · Coverage Optimization';
+
+  document.getElementById('stat-total').textContent = customers.length;
+  document.getElementById('stat-covered').textContent = covered.length;
+  document.getElementById('stat-pending').textContent = pendingCovered.length;
+  document.getElementById('stat-new-cells').textContent = recommendations.length;
+  document.getElementById('stat-opex').textContent = recommendedTotalOPEX > 0 ? `+${formatMoney(recommendedTotalOPEX)}` : '$0';
+
+  const summaryEl = document.getElementById('strategy-summary');
+  if (recommendations.length > 0 || covered.length > 0) {
+    summaryEl.innerHTML = `
+      <div class="flex items-start gap-3">
+        <i class="fas fa-bullseye text-xl mt-1 text-emerald-400"></i>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Optimization Summary</span>
+            <span class="text-sm font-bold text-white">Cost-Effective Coverage</span>
+          </div>
+          <p class="text-sm text-slate-300 mt-1">Algorithm calculated the optimal cell placement to meet SLA requirements while minimizing new infrastructure costs.</p>
+          <div class="flex items-center gap-4 mt-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-tachometer-alt text-purple-400"></i>
+              <span class="text-xs text-slate-400">Avg. Latency (served):</span>
+              <span class="latency-badge">${avgLatency}ms</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fas fa-dollar-sign text-amber-400"></i>
+              <span class="text-xs text-slate-400">Total New OPEX:</span>
+              <span class="cost-tag">${recommendedTotalOPEX > 0 ? formatMoney(recommendedTotalOPEX) + '/mo' : '$0'}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    summaryEl.classList.remove('hidden');
+  } else {
+    summaryEl.classList.add('hidden');
+  }
+
+  const covList = document.getElementById('dash-covered-list');
+  covList.innerHTML = covered.length > 0 ? covered.map(c => `<div class="py-2 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"><div class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name}</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`).join('') : '<p class="text-sm text-slate-500 italic">No endpoints covered by existing cells.</p>';
+
+  const pendList = document.getElementById('dash-pending-list');
+  pendList.innerHTML = pendingCovered.length > 0 ? pendingCovered.map(c => `<div class="py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/20"><div class="flex items-center gap-2"><i class="fas fa-clock text-amber-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">via <span class="text-blue-400">${c.coveredByCell}</span></div>${renderBreakdown(c.recBreakdown)}</div></div></div>`).join('') : '<p class="text-sm text-slate-500 italic">No pending coverage.</p>';
+
+  const impCard = document.getElementById('impossible-card');
+  const impList = document.getElementById('dash-impossible-list');
+  if (impossible.length > 0) {
+    impCard.classList.remove('hidden');
+    impList.innerHTML = impossible.map(c => {
+      const overshoot = c.bestFrom.breakdown.total - c.sla;
+      return `<div class="py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/20"><div class="flex items-center gap-2"><i class="fas fa-ban text-red-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms · Best: <span class="text-red-400">${c.bestFrom.breakdown.total}ms (+${overshoot})</span></div></div></div></div>`;
+    }).join('');
+  } else {
+    impCard.classList.add('hidden');
+  }
+
+  const explorerDiv = document.getElementById('latency-explorer');
+  const explorerList = document.getElementById('explorer-list');
+  if (uncovered.length > 0) {
+    explorerDiv.classList.remove('hidden');
+    explorerList.innerHTML = uncovered.map(c => {
+      const candidates = getTopCandidatesForCustomer(c, c.sla, 5);
+      return `<div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4"><div class="flex items-center gap-2 mb-3"><i class="fas fa-map-marker-alt text-red-400"></i><span class="font-semibold text-white text-sm">${c.name}</span><span class="text-xs text-slate-500 ml-2">SLA: ${c.sla}ms</span></div><div class="space-y-2">${candidates.map((cand, rank) => {
+        const isWinner = cand.withinSLA;
+        const isExisting = selectedFootprint.includes(cand.cellIdx);
+        const existingTag = isExisting ? '<span class="text-[10px] font-semibold bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded ml-2 uppercase tracking-wide">Existing</span>' : '';
+        const candCost = estimateRegionCost(cand.cellIdx);
+        return `<div class="candidate-row ${isWinner && rank === 0 ? 'winner' : ''}"><div class="candidate-rank">${rank + 1}</div><div class="flex-1 min-w-0"><div class="text-xs font-medium ${isWinner ? 'text-emerald-300' : 'text-slate-300'} truncate flex items-center">${cand.cellName}${isWinner ? '<i class="fas fa-check-circle text-emerald-400 ml-1"></i>' : ''}${existingTag}</div><div class="text-xs text-slate-500 flex items-center gap-1.5"><span>${cand.cellCode}</span><span class="text-[10px] font-mono text-slate-400 bg-slate-900/50 px-1.5 py-0.5 rounded border border-slate-700">~${formatMoney(candCost)}/mo</span></div></div>${renderBreakdown(cand.breakdown)}</div>`;
+      }).join('')}</div></div>`;
+    }).join('');
+  } else {
+    explorerDiv.classList.add('hidden');
+  }
+
+  const recDiv = document.getElementById('dash-recommendations');
+  if (uncovered.length === 0) {
+    recDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-4xl text-emerald-400 mb-3"></i><p class="text-lg font-semibold text-white">All endpoints are already covered!</p><p class="text-sm text-slate-400 mt-1">No new cell deployments required.</p></div>';
+  } else if (recommendations.length === 0) {
+    recDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3"></i><p class="text-lg font-semibold text-white">Impossible SLA Requirements</p><p class="text-sm text-slate-400 mt-1">No AWS region on Earth can serve these endpoints within their SLA.</p></div>';
+  } else {
+    recDiv.innerHTML = recommendations.map((r, i) => {
+      const cost = estimateRegionCost(r.cellIdx);
+      const idx = AWS_PRICE_INDEX[r.cellCode];
+      const tier = getIndexTier(r.cellCode);
+      const tierLabel = tier === 'discount' ? 'Discount Region' : tier === 'parity' ? 'Parity Region' : 'Premium Region';
+      const recLatencies = r.covers.map(c => c.breakdown.total);
+      const recAvgLatency = Math.round(recLatencies.reduce((s, v) => s + v, 0) / recLatencies.length);
+      return `<div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <div class="flex items-center gap-3 mb-3 flex-wrap">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">${i + 1}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-white">Deploy in ${r.cellName}</div>
+            <div class="text-xs text-slate-400">${r.cellCode} · ${idx.toFixed(2)}x · ${tierLabel}</div>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            <div class="text-sm text-emerald-400 font-medium">${r.covers.length} endpoint${r.covers.length > 1 ? 's' : ''}</div>
+            <div class="flex items-center gap-2">
+              <span class="latency-badge">~${recAvgLatency}ms avg</span>
+              <span class="cost-tag ${tier}">~${formatMoney(cost)}/mo</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-2">${r.covers.map(c => `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name}</div>${renderBreakdown(c.breakdown)}</div>`).join('')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  setTimeout(() => initDashMap(covered, pendingCovered, impossible, recommendations), 100);
+}
+
+function initDashMap(covered, pendingCovered, impossible, recommendations) {
+  if (dashMap) {
+    dashMap.remove();
+    dashMap = null;
+  }
+  dashMap = L.map('dash-map', createMapOptions()).setView([20, 0], 2);
+  L.control.zoom({ position: 'bottomright' }).addTo(dashMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(dashMap);
+  dashMapMarkers = [];
+
+  recommendations.forEach(r => {
+    const region = regions[r.cellIdx];
+    r.covers.forEach(c => {
+      if (Math.abs(c.lat - region.lat) < 0.1 && Math.abs(c.lng - region.lng) < 0.1) return;
+      const line = L.polyline([[region.lat, region.lng], [c.lat, c.lng]], { color: '#3b82f6', weight: 1.5, opacity: 0.35, dashArray: '6,4' }).addTo(dashMap);
+      dashMapMarkers.push(line);
+    });
+  });
+
+  covered.forEach(c => {
+    const marker = L.marker([c.lat, c.lng], { icon: createCustomIcon('#10b981', 8) }).addTo(dashMap);
+    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-emerald-400">Covered ✓</span><br><span class="text-xs text-slate-400">${c.serving.breakdown.total}ms via ${regions[c.serving.cellIdx].name}</span>`);
+    dashMapMarkers.push(marker);
+  });
+
+  pendingCovered.forEach(c => {
+    const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#f59e0b') }).addTo(dashMap);
+    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-amber-400">Pending Coverage ⏱</span><br><span class="text-xs text-slate-400">Will be served by <b class="text-blue-400">${c.coveredByCell}</b></span><br><span class="text-xs text-slate-500">${c.recBreakdown.total}ms</span>`);
+    dashMapMarkers.push(marker);
+  });
+
+  impossible.forEach(c => {
+    const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#ef4444') }).addTo(dashMap);
+    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-red-400">Impossible SLA ✗</span><br><span class="text-xs text-slate-400">SLA: ${c.sla}ms · Best: ${c.bestFrom.breakdown.total}ms</span>`);
+    dashMapMarkers.push(marker);
+  });
+
+  selectedFootprint.forEach(idx => {
+    const r = regions[idx];
+    const cost = estimateRegionCost(idx);
+    const marker = L.marker([r.lat, r.lng], { icon: createPulseIcon('#10b981') }).addTo(dashMap);
+    marker.bindPopup(`<b>${r.name}</b><br><span class="text-xs text-emerald-400">Existing Cell</span><br><span class="text-xs text-slate-500">${r.code}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
+    dashMapMarkers.push(marker);
+  });
+
+  recommendations.forEach(r => {
+    const region = regions[r.cellIdx];
+    const cost = estimateRegionCost(r.cellIdx);
+    const marker = L.marker([region.lat, region.lng], { icon: createRecommendedIcon() }).addTo(dashMap);
+    const coveredNames = r.covers.map(c => c.name).join(', ');
+    marker.bindPopup(`<b>${region.name}</b><br><span class="text-xs text-blue-400">Recommended Cell ◆</span><br><span class="text-xs text-slate-500">${region.code}</span><br><span class="text-xs text-emerald-400">Covers ${r.covers.length}: ${coveredNames}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
+    dashMapMarkers.push(marker);
+  });
+
+  if (dashMapMarkers.length > 0) {
+    const markerOnly = dashMapMarkers.filter(m => m instanceof L.Marker);
+    if (markerOnly.length > 0) {
+      const group = L.featureGroup(markerOnly);
+      dashMap.fitBounds(group.getBounds().pad(0.2));
+    }
+  }
+}
+
+function showToast(msg, isError = false) {
+  const toast = document.getElementById('toast-msg');
+  const icon = document.getElementById('toast-icon');
+  document.getElementById('toast-text').textContent = msg;
+  icon.className = `fas ${isError ? 'fa-exclamation-circle error' : 'fa-check-circle success'} toast-icon`;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function toggleExportMenu(menuId = 'export-menu') {
+  document.getElementById(menuId).classList.toggle('show');
+}
+
+document.addEventListener('click', function(event) {
+  const optMenu = document.getElementById('export-menu');
+  const optBtn = document.getElementById('export-btn');
+  const onbMenu = document.getElementById('export-menu-onb');
+  const onbBtn = document.getElementById('export-btn-onb');
+  
+  if (optMenu && optBtn && optMenu.classList.contains('show') && !optMenu.contains(event.target) && !optBtn.contains(event.target)) {
+    optMenu.classList.remove('show');
+  }
+  if (onbMenu && onbBtn && onbMenu.classList.contains('show') && !onbMenu.contains(event.target) && !onbBtn.contains(event.target)) {
+    onbMenu.classList.remove('show');
+  }
+});
+
+// ==========================================
+// CLIENT PROPOSAL (PDF) EXPORT LOGIC
+// ==========================================
+function openProposalModal() {
+  document.getElementById('export-menu').classList.remove('show');
+  document.getElementById('export-menu-onb').classList.remove('show');
+  document.getElementById('prop-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('proposal-modal-root').classList.add('open');
+}
+
+function closeProposalModal() {
+  document.getElementById('proposal-modal-root').classList.remove('open');
+}
+
+function buildAndDownloadPDF() {
+  const clientName = document.getElementById('prop-client-name').value || 'Valued Client';
+  const preparedBy = document.getElementById('prop-prepared-by').value || 'Solutions Architecture Team';
+  const projName = document.getElementById('prop-project-name').value || 'Infrastructure & Onboarding Strategy';
+  const rawDate = document.getElementById('prop-date').value;
+  const dateStr = rawDate ? new Date(rawDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const includeInfra = document.getElementById('prop-toggle-infra').checked;
+  const includeOnb = document.getElementById('prop-toggle-onb').checked;
+  const includeFin = document.getElementById('prop-toggle-fin').checked;
+
+  const infraData = generateHeadlessAnalysis();
+  
+  // Update and retrieve active Gantt financial state
+  saveActiveState();
+  const activeState = tierStates[currentScope] || { data: [], links: [] };
+  const totalHours = activeState.data.reduce((sum, t) => sum + (t.hours || 0), 0);
+  const internalCost = totalHours * ob_hourlyRate;
+  const marginMultiplier = 1 - (ob_margin / 100);
+  const customerPrice = marginMultiplier > 0 ? internalCost / marginMultiplier : internalCost;
+  
+  let maxDate = gantt.config.start_date;
+  if (ob_gantt_initialized) {
+     gantt.eachTask(function(task) { if (task.end_date > maxDate) maxDate = task.end_date; });
+  }
+  const totalDays = ob_gantt_initialized ? Math.max(0, Math.round((maxDate - PROJECT_START) / (1000 * 60 * 60 * 24))) : 0;
+
+  let html = `
+    <div class="pdf-header">
+      <h1 class="pdf-title">${projName}</h1>
+      <div class="pdf-meta">
+        <div><strong>Prepared For:</strong><br>${clientName}</div>
+        <div style="text-align:right;"><strong>Prepared By:</strong> ${preparedBy}<br><strong>Date:</strong> ${dateStr}</div>
+      </div>
+    </div>
+    
+    <h2 class="pdf-section-title">1. Executive Summary</h2>
+    <p>To support ${clientName}'s global expansion, Provenant Inc. has conducted a comprehensive infrastructure footprint analysis and scoped a seamless technical onboarding plan designed to exceed operational latency and reliability requirements.</p>
+  `;
+
+  let sectionCounter = 2;
+
+  if (includeInfra) {
+    html += `
+      <h2 class="pdf-section-title">${sectionCounter++}. Global Infrastructure Strategy</h2>
+      <p>Our optimization engine has analyzed the geographic distribution of your endpoints. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
+      <ul style="margin-bottom:20px;">
+         ${infraData.recommendedNewCells.map(c => `<li>• <strong>Deploy new dedicated cell:</strong> ${c.cellName} (${c.cellCode})</li>`).join('')}
+         ${infraData.alreadyCovered.length > 0 && infraData.recommendedNewCells.length === 0 ? '<li>• <strong>Status:</strong> All endpoints are optimally covered by existing infrastructure. No new cells required.</li>' : ''}
+      </ul>
+      
+      <p style="margin-top:10px; font-weight:bold;">Endpoint Coverage & Latency Forecast</p>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>Endpoint Name</th>
+            <th>Target SLA</th>
+            <th>Serving Cell</th>
+            <th>Est. Latency</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    
+    infraData.alreadyCovered.forEach(ep => {
+         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${ep.servedByCell}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">✓ Pass</td></tr>`;
+    });
+    infraData.recommendedNewCells.forEach(cell => {
+        cell.endpointsCovered.forEach(ep => {
+             html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${cell.cellCode}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">✓ Pass</td></tr>`;
+        });
+    });
+    infraData.impossibleSLAs.forEach(ep => {
+         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>Best Effort</td><td><strong>${ep.bestPossibleLatency}ms</strong></td><td style="color:#ef4444;font-weight:bold;">✗ Miss</td></tr>`;
+    });
+    
+    html += `</tbody></table>`;
+  }
+
+  if (includeOnb) {
+    html += `
+      <h2 class="pdf-section-title">${sectionCounter++}. Implementation & Onboarding Timeline</h2>
+      <p>To ensure a smooth transition, we have scoped a comprehensive integration schedule. The project is estimated to take <strong>${totalDays} business days</strong> from kickoff to Go-Live, executing a tailored technical implementation plan.</p>
+      
+      <table class="pdf-table" style="margin-top:20px;">
+        <thead>
+          <tr>
+            <th>Phase / Milestone</th>
+            <th>Estimated Duration</th>
+            <th>Dependencies</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    
+    activeState.data.forEach(t => {
+        const depsLinks = activeState.links.filter(l => String(l.target) === String(t.id));
+        let deps = depsLinks.map(l => {
+            const sourceTask = activeState.data.find(st => String(st.id) === String(l.source));
+            return sourceTask ? sourceTask.text : l.source;
+        }).join(', ');
+        if (!deps) deps = '<em>None</em>';
+        html += `<tr><td><strong>${t.text}</strong></td><td>${t.duration} Days</td><td>${deps}</td></tr>`;
+    });
+    
+    html += `</tbody></table>`;
+  }
+
+  if (includeFin) {
+    html += `
+      <h2 class="pdf-section-title">${sectionCounter++}. Financial Investment</h2>
+      <p>Based on the scoped implementation effort and technical requirements, the total investment is structured as a single, one-time onboarding and implementation fee. This ensures transparency and eliminates hidden deployment costs.</p>
+      
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-top:20px;">
+        <p style="margin-top:0; font-size:14px; font-weight:700; color:#0f172a;">Implementation & Onboarding Services</p>
+        <p style="font-size:12px; color:#475569; margin-bottom:15px;">This covers the end-to-end deployment, integration, security configuration, and testing required to bring your designated infrastructure online and successfully hand over to your team.</p>
+        
+        <table style="width:100%; font-size:14px;">
+          <tr>
+            <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; color:#334155;"><strong>Estimated Project Duration</strong></td>
+            <td style="padding:8px 0; border-bottom:1px solid #e2e8f0; text-align:right; font-weight:bold; color:#0f172a;">${totalDays} Business Days</td>
+          </tr>
+          <tr>
+            <td style="padding:12px 0 0 0; font-size:16px; color:#334155;"><strong>Total Onboarding Fee</strong></td>
+            <td style="padding:12px 0 0 0; text-align:right; font-size:22px; font-weight:800; color:#10b981;">$${customerPrice.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0})}</td>
+          </tr>
+        </table>
+      </div>
+      <p style="font-size:11px; color:#64748b; margin-top:15px;"><em>Invoicing Schedule: 50% billed upon project kickoff, 50% billed upon successful Go-Live. Recurring infrastructure operations and data transmission are fully managed and are not included in this deployment schedule.</em></p>
+    `;
+  }
+
+  showToast("Rendering Document...");
+  
+  const safeClientName = clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  
+  const opt = {
+      margin:       0.7,
+      filename:     `Proposal_${safeClientName}_${rawDate || getTimestamp()}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+
+  const finalHtml = `
+    <div style="background:#fff; color:#0f172a; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height:1.6; padding: 20px;">
+      <style>
+        .pdf-header { border-bottom:3px solid #10b981; padding-bottom:20px; margin-bottom:30px; }
+        .pdf-title { font-size:26px; font-weight:800; color:#0f172a; margin:0 0 10px 0; }
+        .pdf-meta { display:flex; justify-content:space-between; font-size:12px; color:#475569; }
+        .pdf-section-title { font-size:18px; font-weight:700; color:#0f172a; margin:30px 0 15px 0; padding-bottom:8px; border-bottom:1px solid #cbd5e1; }
+        .pdf-table { width:100%; border-collapse:collapse; margin-bottom:20px; font-size:12px; }
+        .pdf-table th { background:#f1f5f9; text-align:left; padding:10px; border-bottom:2px solid #cbd5e1; color:#334155; }
+        .pdf-table td { padding:10px; border-bottom:1px solid #e2e8f0; color:#475569; }
+        .pdf-table tr:nth-child(even) { background:#f8fafc; }
+        .pdf-highlight { color:#10b981; font-weight:700; }
+      </style>
+      ${html}
+    </div>
+  `;
+
+  html2pdf().from(finalHtml).set(opt).save().then(() => {
+      closeProposalModal();
+      showToast("Proposal PDF generated successfully!");
+  }).catch(err => {
+      console.error(err);
+      closeProposalModal();
+      showToast("Error generating PDF.", true);
+  });
+}
+
+function exportSessionJSON() {
+  document.getElementById('export-menu').classList.remove('show');
+  
+  const results = generateHeadlessAnalysis();
+  
+  const sessionData = {
+    version: "2.0",
+    selectedFootprint,
+    cellCosts,
+    baselineMode,
+    specificBaselineIdx,
+    customers,
+    slaMode,
+    globalSLA,
+    perCustomerSLA,
+    processingTime,
+    realisticMode,
+    analysisResults: results 
+  };
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sessionData, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", `cell_optimizer_session_${getTimestamp()}.json`);
+  
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+  showToast("JSON exported successfully!");
+}
+
+function generateHeadlessAnalysis() {
+  const covered = [], uncovered = [];
+  customers.forEach((c, i) => {
+    const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150);
+    let isCovered = false, bestServing = null;
+    
+    for (let cellIdx of selectedFootprint) {
+      const b = getCustomerLatency(cellIdx, c, true);
+      if (b.total <= sla) {
+        isCovered = true;
+        if (!bestServing || b.total < bestServing.breakdown.total) bestServing = { cellIdx, breakdown: b };
+      }
+    }
+    
+    if (isCovered) {
+      covered.push({ ...c, sla, idx: i, serving: bestServing });
+    } else {
+      let bestFrom = null;
+      const cellsToCheck = selectedFootprint.length > 0 ? selectedFootprint : [findNearestRegionIdx(c.lat, c.lng)];
+      for (let cellIdx of cellsToCheck) {
+        const b = getCustomerLatency(cellIdx, c, true);
+        if (!bestFrom || b.total < bestFrom.breakdown.total) bestFrom = { cellIdx, breakdown: b };
+      }
+      uncovered.push({ ...c, sla, idx: i, bestFrom });
+    }
+  });
+
+  const recommendations = [];
+  const remainingSet = new Set(uncovered.map(c => c.idx));
+  const remainingCustomers = [...uncovered];
+  const usedCells = new Set();
+  
+  while (remainingSet.size > 0) {
+    let bestCellIdx = -1, bestCoveredList = [], minCostPerCust = Infinity, maxCountTieBreaker = 0;
+    
+    for (let ci = 0; ci < regions.length; ci++) {
+      if (usedCells.has(ci)) continue;
+      
+      const coversNow = [];
+      for (const cust of remainingCustomers) {
+        if (!remainingSet.has(cust.idx)) continue;
+        const b = getCustomerLatency(ci, cust, true);
+        if (b.total <= cust.sla) coversNow.push({ ...cust, breakdown: b });
+      }
+      
+      if (coversNow.length === 0) continue;
+      
+      const regionCost = estimateRegionCost(ci);
+      const costPerCust = regionCost / coversNow.length;
+      
+      if (costPerCust < minCostPerCust || (Math.abs(costPerCust - minCostPerCust) < 0.01 && coversNow.length > maxCountTieBreaker)) {
+        minCostPerCust = costPerCust;
+        maxCountTieBreaker = coversNow.length;
+        bestCellIdx = ci;
+        bestCoveredList = coversNow;
+      }
+    }
+
+    if (bestCellIdx === -1) break;
+    
+    recommendations.push({ cellIdx: bestCellIdx, cellName: regions[bestCellIdx].name, cellCode: regions[bestCellIdx].code, covers: bestCoveredList });
+    usedCells.add(bestCellIdx);
+    for (const cust of bestCoveredList) remainingSet.delete(cust.idx);
+  }
+  
+  const totalOpex = recommendations.reduce((sum, r) => sum + estimateRegionCost(r.cellIdx), 0);
+  const coverageMap = new Map();
+  recommendations.forEach(rec => { rec.covers.forEach(c => coverageMap.set(c.idx, { rec, breakdown: c.breakdown })); });
+  
+  const impossible = [];
+  uncovered.forEach(c => { if (!coverageMap.has(c.idx)) impossible.push(c); });
+
+  return {
+    summary: {
+      totalEndpoints: customers.length,
+      alreadyCoveredCount: covered.length,
+      newRecommendationsCount: recommendations.length,
+      impossibleToCoverCount: impossible.length,
+      estimatedNewMonthlyOpex: totalOpex
+    },
+    alreadyCovered: covered.map(c => ({
+      name: c.name, slaThreshold: c.sla, servedByCell: regions[c.serving.cellIdx].code, actualLatency: c.serving.breakdown.total
+    })),
+    recommendedNewCells: recommendations.map(r => ({
+      cellCode: r.cellCode, cellName: r.cellName, estimatedMonthlyCost: estimateRegionCost(r.cellIdx), endpointsCoveredCount: r.covers.length, endpointsCovered: r.covers.map(c => ({
+        name: c.name, slaThreshold: c.sla, actualLatency: c.breakdown.total
+      }))
+    })),
+    impossibleSLAs: impossible.map(c => ({ name: c.name, slaThreshold: c.sla, bestPossibleLatency: c.bestFrom.breakdown.total }))
+  };
+}
+
+function exportSessionCSV() {
+  document.getElementById('export-menu').classList.remove('show');
+  
+  let csvContent = "data:text/csv;charset=utf-8,";
+  
+  csvContent += "--- GLOBAL SETTINGS ---\n";
+  csvContent += `SLA Mode,${slaMode}\n`;
+  if (slaMode === 'global') csvContent += `Global SLA Limit (ms),${globalSLA}\n`;
+  csvContent += `Internal Processing Time (ms),${processingTime}\n`;
+  csvContent += `Latency Model,${realisticMode ? 'Realistic (Distance + Infra Tax)' : 'Naive (AWS Proxy)'}\n`;
+  csvContent += `Optimization Strategy,Cost-Effective Coverage\n\n`;
+  
+  csvContent += "--- EXISTING INFRASTRUCTURE FOOTPRINT ---\n";
+  csvContent += "Region Name,Region Code,Continent,Entered Cost ($/mo)\n";
+  if (selectedFootprint.length === 0) {
+    csvContent += "No existing cells defined.,,,\n";
+  } else {
+    selectedFootprint.forEach(idx => {
+      const r = regions[idx];
+      const cost = cellCosts[idx] || 'N/A';
+      csvContent += `"${r.name}","${r.code}","${r.continent}","${cost}"\n`;
+    });
+  }
+  csvContent += "\n";
+  
+  csvContent += "--- TARGET ENDPOINTS ---\n";
+  csvContent += "Endpoint Name,Latitude,Longitude,Tier,SLA Threshold (ms)\n";
+  if (customers.length === 0) {
+    csvContent += "No endpoints defined.,,,,\n";
+  } else {
+    customers.forEach((c, i) => {
+      const tier = c.tier || (c.regionIdx !== undefined ? 1 : 2);
+      const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] || 150);
+      csvContent += `"${c.name}",${c.lat},${c.lng},${tier},${sla}\n`;
+    });
+  }
+  csvContent += "\n";
+
+  csvContent += "--- ANALYSIS RESULTS ---\n";
+  const results = generateHeadlessAnalysis();
+  
+  csvContent += "SUMMARY\n";
+  csvContent += `Total Endpoints,${results.summary.totalEndpoints}\n`;
+  csvContent += `Already Covered,${results.summary.alreadyCoveredCount}\n`;
+  csvContent += `New Cells Recommended,${results.summary.newRecommendationsCount}\n`;
+  csvContent += `Impossible to Cover,${results.summary.impossibleToCoverCount}\n`;
+  csvContent += `Estimated Monthly OPEX,$${results.summary.estimatedNewMonthlyOpex}\n\n`;
+
+  csvContent += "RECOMMENDED NEW CELLS\n";
+  if (results.recommendedNewCells.length === 0) {
+    csvContent += "No new cells needed.\n";
+  } else {
+    csvContent += "Cell Code,Cell Name,Monthly Cost,Endpoint Name,Required SLA (ms),Actual Latency (ms)\n";
+    results.recommendedNewCells.forEach(cell => {
+      cell.endpointsCovered.forEach((ep, index) => {
+        if (index === 0) {
+          csvContent += `"${cell.cellCode}","${cell.cellName}","$${cell.estimatedMonthlyCost}","${ep.name}",${ep.slaThreshold},${ep.actualLatency}\n`;
+        } else {
+          csvContent += `,,,"${ep.name}",${ep.slaThreshold},${ep.actualLatency}\n`;
+        }
+      });
+    });
+  }
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `cell_optimizer_data_${getTimestamp()}.csv`);
+  
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  showToast("CSV report exported successfully!");
+}
+
+function exportOnboardingJSON() {
+  document.getElementById('export-menu-onb').classList.remove('show');
+  
+  saveActiveState();
+  const sessionData = {
+    version: "2.0",
+    ob_hourlyRate,
+    ob_margin,
+    currentScope,
+    ob_linkDuration,
+    tierStates
+  };
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sessionData, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", `onboarding_session_${getTimestamp()}.json`);
+  
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+  showToast("Onboarding JSON exported successfully!");
+}
+
+function exportOnboardingCSV() {
+  document.getElementById('export-menu-onb').classList.remove('show');
+  saveActiveState();
+  
+  let csvContent = "data:text/csv;charset=utf-8,";
+  
+  const activeState = tierStates[currentScope] || { data: [] };
+  const totalHours = activeState.data.reduce((sum, t) => sum + (t.hours || 0), 0);
+  const internalCost = totalHours * ob_hourlyRate;
+  const marginMultiplier = 1 - (ob_margin / 100);
+  const customerPrice = marginMultiplier > 0 ? internalCost / marginMultiplier : internalCost;
+  
+  csvContent += "--- FINANCIAL SUMMARY (ACTIVE TIER) ---\n";
+  csvContent += `Blended Hourly Rate,$${ob_hourlyRate}\n`;
+  csvContent += `Target Margin,${ob_margin}%\n`;
+  csvContent += `Total Project Hours,${totalHours}\n`;
+  csvContent += `Total Internal Cost,$${internalCost.toFixed(2)}\n`;
+  csvContent += `Final Customer Price,$${customerPrice.toFixed(2)}\n\n`;
+  
+  csvContent += "--- MULTI-TIER PROJECT SCHEDULE ---\n";
+  csvContent += "Tier,Task Name,Estimated Hours,Visual Days,Dependencies\n";
+  
+  for (let i = 1; i <= 3; i++) {
+      let state = tierStates[i];
+      if (!state) state = generateGanttStateFromTasks(getDefaultTemplate(i));
+      
+      state.data.forEach(t => {
+          const depsLinks = state.links.filter(l => String(l.target) === String(t.id));
+          const deps = depsLinks.map(l => {
+              const sourceTask = state.data.find(st => String(st.id) === String(l.source));
+              return sourceTask ? sourceTask.text : l.source;
+          }).join(', ');
+          const depsStr = deps ? `"${deps}"` : "None";
+          const safeText = t.text ? t.text.replace(/"/g, '""') : "Task";
+          csvContent += `Tier ${i},"${safeText}",${t.hours || 0},${t.duration},${depsStr}\n`;
+      });
+  }
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `onboarding_quote_${getTimestamp()}.csv`);
+  
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  showToast("Onboarding multi-tier CSV exported successfully!");
+}
+
+function handleOnboardingImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (data.ob_hourlyRate !== undefined) ob_hourlyRate = data.ob_hourlyRate;
+      if (data.ob_margin !== undefined) ob_margin = data.ob_margin;
+      if (data.ob_linkDuration !== undefined) ob_linkDuration = data.ob_linkDuration;
+      
+      document.getElementById('ob-rate').value = ob_hourlyRate;
+      document.getElementById('ob-margin').value = ob_margin;
+      document.getElementById('ob-link-duration').checked = ob_linkDuration;
+      
+      // Load Master Memory Cache
+      if (data.tierStates) {
+          tierStates = data.tierStates;
+      } else if (data.ob_tasks) {
+          // Backwards compatibility for v1.0 JSONs: Convert to Tier 1
+          const state = generateGanttStateFromTasks(data.ob_tasks);
+          tierStates = { 1: state, 2: null, 3: null }; 
+      }
+
+      currentScope = data.currentScope || (data.ob_newCell !== undefined ? (data.ob_newCell ? 1 : 2) : 1);
+      document.getElementById('deployment-scope').value = currentScope;
+      
+      if (!ob_gantt_initialized) initDhtmlxGantt();
+      
+      renderState(tierStates[currentScope] || generateGanttStateFromTasks(getDefaultTemplate(currentScope)));
+      showToast("Multi-Tier Session successfully restored!");
+    } catch (err) {
+      console.error("Import error:", err);
+      showToast("Failed to parse session file. Invalid JSON.", true);
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.onerror = function() {
+    showToast("Error reading file.", true);
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      selectedFootprint = data.selectedFootprint || [];
+      cellCosts = data.cellCosts || {};
+      baselineMode = data.baselineMode || 'blended';
+      specificBaselineIdx = data.specificBaselineIdx !== undefined ? data.specificBaselineIdx : null;
+      customers = data.customers || [];
+      slaMode = data.slaMode || 'global';
+      globalSLA = data.globalSLA || 150;
+      perCustomerSLA = data.perCustomerSLA || {};
+      processingTime = data.processingTime !== undefined ? data.processingTime : 10;
+      
+      if (data.realisticMode !== undefined) {
+         setRealisticMode(data.realisticMode);
+      }
+      
+      document.getElementById('global-sla-input').value = globalSLA;
+      document.getElementById('processing-time-input').value = processingTime;
+      setSLAMode(slaMode);
+      
+      goToStep(1);
+      showToast("Session imported successfully!");
+    } catch (err) {
+      console.error("Import error:", err);
+      showToast("Failed to parse session file. Invalid JSON.", true);
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.onerror = function() {
+    showToast("Error reading file.", true);
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderFootprintList();
+  renderFpPills();
+  renderCostCellsList();
+  updateSpecificDropdown();
+  updateBaselineSummary();
+  showModule('gateway');
+});
+</script>
+</body>
+</html>
