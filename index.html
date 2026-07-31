@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ATLAS - Cell Placement & Onboarding Cost Assessment Suite for AWS Global Infrastructure Planning">
 <title>ATLAS | Infrastructure Strategy & Onboarding</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+
+<!-- Content Security Policy -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
 
 <!-- Leaflet Config -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -27,6 +32,13 @@
 /* Global Resets & Typography */
 *{font-family:'Inter',system-ui,sans-serif}
 body{background:#020617;color:#e2e8f0;min-height:100vh;overflow-x:hidden;}
+
+/* Screen Reader Only Utility */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+.sr-only:focus{position:static;width:auto;height:auto;padding:0.5rem;margin:0;overflow:visible;clip:auto;white-space:normal}
+
+/* Skip Link */
+.skip-link{transition:all 0.2s}
 
 /* Hide Number Input Spinners Globally */
 input[type="number"]::-webkit-inner-spin-button, 
@@ -289,11 +301,17 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 .callout-title { font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
 
 </style>
+
+<!-- ARIA Live Region for Screen Reader Announcements -->
+<div id="aria-live" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
 </head>
 <body>
+<!-- Skip Navigation Link -->
+<a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[10000] focus:bg-emerald-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">Skip to main content</a>
 
 <!-- MODULE: GATEWAY (ATLAS) -->
-<div id="module-gateway" class="flex flex-col items-center justify-center min-h-screen px-6 py-12 relative overflow-hidden">
+<div id="module-gateway" class="flex flex-col items-center justify-center min-h-screen px-6 py-12 relative overflow-hidden" role="main">
   <!-- Decorative background elements -->
   <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
   <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -873,10 +891,18 @@ function showModule(moduleName) {
   document.getElementById('module-' + moduleName).style.display = (moduleName === 'gateway') ? 'flex' : 'block';
   currentAppModule = moduleName;
 
+  // Announce module change to screen readers
+  const ariaLive = document.getElementById('aria-live');
+  if (ariaLive) {
+    const moduleNames = { 'gateway': 'ATLAS Home', 'optimizer': 'Cell Placement Optimizer', 'onboarding': 'Onboarding Calculator' };
+    ariaLive.textContent = `Navigated to ${moduleNames[moduleName] || moduleName}`;
+  }
+
   if (moduleName === 'optimizer') {
-    if (fpMap) fpMap.invalidateSize();
-    if (custMap) custMap.invalidateSize();
-    if (dashMap) dashMap.invalidateSize();
+    // Use requestAnimationFrame instead of setTimeout for map initialization
+    if (fpMap) requestAnimationFrame(() => fpMap.invalidateSize());
+    if (custMap) requestAnimationFrame(() => custMap.invalidateSize());
+    if (dashMap) requestAnimationFrame(() => dashMap.invalidateSize());
   } else if (moduleName === 'onboarding') {
     if (!ob_gantt_initialized) {
       initDhtmlxGantt();
@@ -1642,7 +1668,8 @@ function goToStep(step) {
   if (step === 2) {
     renderCustSourceList();
     renderCustList();
-    setTimeout(() => initCustMap(), 100);
+    // Use requestAnimationFrame instead of setTimeout for map initialization
+    requestAnimationFrame(() => initCustMap());
   }
   if (step === 3) renderSLAPerList();
   if (step === 4) renderDashboard();
@@ -1691,7 +1718,8 @@ function setFootprintView(view) {
   document.getElementById('fp-map-btn').className = view === 'map' ? 'active' : '';
   document.getElementById('fp-list-view').className = view === 'list' ? 'glass rounded-2xl p-4 sm:p-6' : 'hidden';
   document.getElementById('fp-map-view').className = view === 'map' ? '' : 'hidden';
-  if (view === 'map') setTimeout(() => initFpMap(), 100);
+  // Use requestAnimationFrame instead of setTimeout for map initialization
+  if (view === 'map') requestAnimationFrame(() => initFpMap());
 }
 
 function toggleFootprint(idx) {
@@ -1754,7 +1782,13 @@ function filterFootprintList() {
 }
 
 function initFpMap() {
+  // Proper cleanup to prevent memory leaks
   if (fpMap) {
+    fpMap.eachLayer((layer) => {
+      if (!(layer instanceof L.TileLayer)) {
+        fpMap.removeLayer(layer);
+      }
+    });
     fpMap.remove();
     fpMap = null;
   }
@@ -1861,7 +1895,14 @@ function toggleClickPlace() {
 }
 
 function initCustMap() {
+  // Proper cleanup to prevent memory leaks
   if (custMap) {
+    custMap.eachLayer((layer) => {
+      if (!(layer instanceof L.TileLayer)) {
+        custMap.removeLayer(layer);
+      }
+    });
+    custMap.off(); // Remove all event listeners
     custMap.remove();
     custMap = null;
   }
@@ -1975,8 +2016,26 @@ function renderSLAPerList() {
 }
 
 function analyzeCoverage() {
-  globalSLA = parseInt(document.getElementById('global-sla-input').value) || 150;
-  processingTime = parseInt(document.getElementById('processing-time-input').value) || 0;
+  // Validate input values with proper bounds checking
+  const slaInput = document.getElementById('global-sla-input');
+  const processingInput = document.getElementById('processing-time-input');
+  
+  let slaValue = parseInt(slaInput.value);
+  if (isNaN(slaValue) || slaValue < 1) {
+    slaValue = 150;
+    slaInput.value = 150;
+    showToast('Global SLA must be at least 1ms', true);
+  }
+  
+  let processingValue = parseInt(processingInput.value);
+  if (isNaN(processingValue) || processingValue < 0) {
+    processingValue = 0;
+    processingInput.value = 0;
+    showToast('Processing time cannot be negative', true);
+  }
+  
+  globalSLA = slaValue;
+  processingTime = processingValue;
   goToStep(4);
 }
 
@@ -2198,11 +2257,19 @@ function renderDashboard() {
     }).join('');
   }
 
-  setTimeout(() => initDashMap(covered, pendingCovered, impossible, recommendations), 100);
+  // Use requestAnimationFrame instead of setTimeout for map initialization
+  requestAnimationFrame(() => initDashMap(covered, pendingCovered, impossible, recommendations));
 }
 
 function initDashMap(covered, pendingCovered, impossible, recommendations) {
+  // Proper cleanup to prevent memory leaks
   if (dashMap) {
+    dashMap.eachLayer((layer) => {
+      if (!(layer instanceof L.TileLayer)) {
+        dashMap.removeLayer(layer);
+      }
+    });
+    dashMap.off(); // Remove all event listeners
     dashMap.remove();
     dashMap = null;
   }
