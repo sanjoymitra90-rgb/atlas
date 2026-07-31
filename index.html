@@ -350,6 +350,19 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         Launch Calculator <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
       </div>
     </div>
+    
+    <div class="gateway-card" onclick="showModule('gap-analyzer')" style="border-color: rgba(139, 92, 246, 0.6);">
+      <div class="gateway-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); color: #a78bfa;">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-3">Gap Analyzer</h2>
+      <p class="text-slate-400 text-sm leading-relaxed mb-6">
+        Upload call data CSVs to analyze gaps between signing and verification requests, validate UK numbers, and detect anomalies.
+      </p>
+      <div class="mt-auto pt-4 border-t border-slate-700/50 w-full text-violet-400 font-semibold text-sm flex items-center justify-center gap-2 group">
+        Launch Analyzer <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+      </div>
+    </div>
   </div>
   
   <div class="absolute bottom-8 w-full text-center text-xs text-slate-600 z-10 px-4">
@@ -569,6 +582,362 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
     AWS Cell Placement Optimizer · Direct Distance & Matrix Models · Normalized global cost index<br>
     <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-emerald-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
   </footer>
+</div>
+
+<!-- MODULE: GAP ANALYZER -->
+<div id="module-gap-analyzer" style="display: none;">
+  <header class="border-b border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-[2000] bg-[#020617]/85 backdrop-blur-lg">
+    <div class="flex items-center gap-3">
+      <button class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center mr-2 bg-slate-800/50 hover:bg-slate-700/80" onclick="showModule('gateway')" title="Back to ATLAS Home">
+        <i class="fas fa-home text-slate-300"></i>
+      </button>
+      <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center"><i class="fas fa-chart-line text-violet-400 text-lg"></i></div>
+      <div><h1 class="text-base sm:text-lg font-bold text-white">Gap Analyzer</h1><p class="text-xs text-slate-400">EDR Call Data Analysis & Validation</p></div>
+    </div>
+    <div class="flex items-center gap-1 sm:gap-2 relative" id="header-actions-gap">
+      <input type="file" id="gap-csv-upload" accept=".csv" class="hidden" onchange="handleGapCSVUpload(event)">
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="document.getElementById('gap-csv-upload').click()" title="Upload CSV File">
+        <i class="fas fa-file-upload text-violet-400"></i>
+        <span class="hidden sm:inline">Upload CSV</span>
+      </button>
+      
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openGapSettings()" title="Column Mapping Settings">
+        <i class="fas fa-cog text-violet-400"></i>
+        <span class="hidden sm:inline">Settings</span>
+      </button>
+
+      <div class="relative inline-block">
+        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="toggleGapExportMenu()" id="gap-export-btn" title="Export Results" disabled>
+          <i class="fas fa-file-export text-violet-400"></i>
+          <span class="hidden sm:inline">Export</span>
+          <i class="fas fa-chevron-down text-[10px] ml-1 opacity-70"></i>
+        </button>
+        <div class="export-dropdown" id="gap-export-menu" style="display: none;">
+          <button class="export-option" onclick="exportGapData('csv')">
+            <div class="export-option-title"><i class="fas fa-file-csv text-emerald-400"></i> CSV File</div>
+            <div class="export-option-desc">Export analysis results as CSV spreadsheet.</div>
+          </button>
+          <button class="export-option" onclick="exportGapData('json')">
+            <div class="export-option-title"><i class="fas fa-code text-violet-400"></i> JSON File</div>
+            <div class="export-option-desc">Export full analysis state as JSON.</div>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('gap')" title="User Guide">
+        <i class="fas fa-book-open text-violet-400"></i>
+        <span class="hidden sm:inline">Guide</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Column Mapping Modal -->
+  <div id="gap-column-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[3000] hidden items-center justify-center p-4" role="dialog" aria-labelledby="gap-modal-title" aria-modal="true">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+        <h2 id="gap-modal-title" class="text-lg font-bold text-white"><i class="fas fa-columns text-violet-400 mr-2"></i>Map CSV Columns</h2>
+        <button class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center" onclick="closeGapColumnModal()" aria-label="Close modal">
+          <i class="fas fa-times text-slate-400"></i>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <p class="text-slate-300 text-sm mb-4">Select which columns from your CSV correspond to each required field:</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gap-column-mappings">
+          <!-- Mappings will be populated dynamically -->
+        </div>
+      </div>
+      <div class="p-6 border-t border-slate-700 flex justify-end gap-3 sticky bottom-0 bg-slate-900">
+        <button class="btn-ghost px-4 py-2 rounded-lg hover:bg-slate-800" onclick="closeGapColumnModal()">Cancel</button>
+        <button class="btn-primary px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-medium" onclick="confirmGapColumnMapping()">
+          <i class="fas fa-check mr-2"></i>Analyze Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Options Modal -->
+  <div id="gap-export-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[3000] hidden items-center justify-center p-4" role="dialog" aria-labelledby="gap-export-title" aria-modal="true">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full shadow-2xl">
+      <div class="p-6 border-b border-slate-700">
+        <h2 id="gap-export-title" class="text-lg font-bold text-white"><i class="fas fa-download text-violet-400 mr-2"></i>Export Options</h2>
+      </div>
+      <div class="p-6 space-y-3">
+        <p class="text-slate-300 text-sm mb-4">Choose what data to export:</p>
+        <button class="w-full text-left p-4 rounded-xl border border-slate-700 hover:border-violet-500 hover:bg-violet-500/10 transition-all" onclick="confirmGapExport('filtered')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
+              <i class="fas fa-filter text-violet-400"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-white">Filtered Results</div>
+              <div class="text-xs text-slate-400">Export only currently filtered and visible rows</div>
+            </div>
+          </div>
+        </button>
+        <button class="w-full text-left p-4 rounded-xl border border-slate-700 hover:border-violet-500 hover:bg-violet-500/10 transition-all" onclick="confirmGapExport('all')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+              <i class="fas fa-database text-emerald-400"></i>
+            </div>
+            <div>
+              <div class="font-semibold text-white">All Results</div>
+              <div class="text-xs text-slate-400">Export complete dataset without any filters applied</div>
+            </div>
+          </div>
+        </button>
+      </div>
+      <div class="p-6 border-t border-slate-700 flex justify-end">
+        <button class="btn-ghost px-4 py-2 rounded-lg hover:bg-slate-800" onclick="closeGapExportModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <!-- Upload Prompt (shown when no data loaded) -->
+    <div id="gap-upload-prompt" class="text-center py-20">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+        <i class="fas fa-file-csv text-violet-400 text-5xl"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Upload EDR Call Data</h2>
+      <p class="text-slate-400 mb-6 max-w-md mx-auto">Upload a CSV file containing call data to analyze gaps between signing and verification requests, and validate UK destination numbers.</p>
+      <button class="btn-primary px-8 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold" onclick="document.getElementById('gap-csv-upload').click()">
+        <i class="fas fa-upload mr-2"></i>Select CSV File
+      </button>
+      <p class="text-xs text-slate-500 mt-4">Supported format: CSV with columns for Time, Service, From, To, Status, etc.</p>
+    </div>
+
+    <!-- Dashboard (shown when data is loaded) -->
+    <div id="gap-dashboard" class="hidden space-y-6">
+      <!-- Filters Section -->
+      <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-white"><i class="fas fa-filter text-violet-400 mr-2"></i>Filters</h3>
+          <button class="text-xs text-violet-400 hover:text-violet-300" onclick="resetGapFilters()">
+            <i class="fas fa-undo mr-1"></i>Reset All
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Service Type</label>
+            <select id="gap-filter-service" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+              <option value="all">All Services</option>
+              <option value="signing">Signing Only</option>
+              <option value="verify">Verification Only</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">UK Validation Status</label>
+            <select id="gap-filter-validation" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+              <option value="all">All Numbers</option>
+              <option value="valid">Valid UK Numbers</option>
+              <option value="invalid">Invalid UK Numbers</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">From Number</label>
+            <input type="text" id="gap-filter-from" placeholder="Search..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">To Number</label>
+            <input type="text" id="gap-filter-to" placeholder="Search..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Status Code</label>
+            <select id="gap-filter-status" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+              <option value="all">All Statuses</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Customer</label>
+            <select id="gap-filter-customer" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+              <option value="all">All Customers</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Source IP</label>
+            <input type="text" id="gap-filter-ip" placeholder="Search IP..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Processing Time (ms)</label>
+            <div class="flex gap-2">
+              <input type="number" id="gap-filter-proc-min" placeholder="Min" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
+              <input type="number" id="gap-filter-proc-max" placeholder="Max" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownGap('total')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
+              <i class="fas fa-database text-violet-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Total Records</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-total">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-total-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownGap('signing')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+              <i class="fas fa-signature text-blue-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Signing Requests</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-signing">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-signing-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownGap('verify')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <i class="fas fa-check-circle text-emerald-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Verification Requests</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-verify">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-verify-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-red-500/50 transition-all" onclick="drillDownGap('gap')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+              <i class="fas fa-exclamation-triangle text-red-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Gap Count</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-gap">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-gap-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-amber-500/50 transition-all" onclick="drillDownGap('invalid')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <i class="fas fa-phone-slash text-amber-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Invalid UK Numbers</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-invalid">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-invalid-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-purple-500/50 transition-all" onclick="drillDownGap('outliers')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+              <i class="fas fa-tachometer-alt text-purple-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Slow Requests (&gt;100ms)</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-outliers">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-outliers-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-cyan-500/50 transition-all" onclick="drillDownGap('anomalies')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+              <i class="fas fa-search text-cyan-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Anomalies Detected</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-anomalies">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-anomalies-desc">-</div>
+        </div>
+        
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-slate-500/20 flex items-center justify-center">
+              <i class="fas fa-percentage text-slate-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Gap Percentage</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-gap-pct">0%</div>
+          <div class="text-xs text-slate-500 mt-1">of signing requests</div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
+          <canvas id="gap-chart-gaps" height="200"></canvas>
+        </div>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-amber-400 mr-2"></i>Invalid Numbers Over Time</h3>
+          <canvas id="gap-chart-invalid" height="200"></canvas>
+        </div>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-stacked text-blue-400 mr-2"></i>Signing vs Verification Volume</h3>
+          <canvas id="gap-chart-volume" height="200"></canvas>
+        </div>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-bar text-purple-400 mr-2"></i>Processing Time Distribution</h3>
+          <canvas id="gap-chart-proctime" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Anomalies Section -->
+      <div id="gap-anomalies-section" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-white"><i class="fas fa-exclamation-circle text-red-400 mr-2"></i>Anomalies Detected</h3>
+          <button class="text-xs text-violet-400 hover:text-violet-300" onclick="toggleGapAnomaliesDetails()">
+            <i class="fas fa-eye mr-1"></i><span id="gap-anomalies-toggle-text">View Details</span>
+          </button>
+        </div>
+        <div id="gap-anomalies-list" class="space-y-2 hidden">
+          <!-- Anomalies will be populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden">
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between flex-wrap gap-4">
+          <h3 class="text-sm font-semibold text-white"><i class="fas fa-table text-violet-400 mr-2"></i>Call Data</h3>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Rows per page:</span>
+            <select id="gap-rows-per-page" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" onchange="changeGapRowsPerPage(this.value)">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-800/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('time')">Time <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('service')">Service <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('from')">From <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('to')">To <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('status')">Status <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('procTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400" title="UK number validation status"></i></th>
+              </tr>
+            </thead>
+            <tbody id="gap-table-body" class="divide-y divide-slate-800">
+              <!-- Rows will be populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div class="p-4 border-t border-slate-800 flex items-center justify-between flex-wrap gap-4">
+          <div class="text-xs text-slate-400" id="gap-pagination-info">Showing 0-0 of 0</div>
+          <div class="flex items-center gap-2">
+            <button class="btn-ghost px-3 py-1.5 rounded-lg hover:bg-slate-800 text-xs" onclick="changeGapPage(-1)" id="gap-prev-btn" disabled>
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span class="text-xs text-slate-400" id="gap-page-indicator">Page 1 of 1</span>
+            <button class="btn-ghost px-3 py-1.5 rounded-lg hover:bg-slate-800 text-xs" onclick="changeGapPage(1)" id="gap-next-btn" disabled>
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
 <!-- MODULE: ONBOARDING CALCULATOR -->
@@ -887,6 +1256,7 @@ function showModule(moduleName) {
   document.getElementById('module-gateway').style.display = 'none';
   document.getElementById('module-optimizer').style.display = 'none';
   document.getElementById('module-onboarding').style.display = 'none';
+  document.getElementById('module-gap-analyzer').style.display = 'none';
   
   document.getElementById('module-' + moduleName).style.display = (moduleName === 'gateway') ? 'flex' : 'block';
   currentAppModule = moduleName;
@@ -894,7 +1264,7 @@ function showModule(moduleName) {
   // Announce module change to screen readers
   const ariaLive = document.getElementById('aria-live');
   if (ariaLive) {
-    const moduleNames = { 'gateway': 'ATLAS Home', 'optimizer': 'Cell Placement Optimizer', 'onboarding': 'Onboarding Calculator' };
+    const moduleNames = { 'gateway': 'ATLAS Home', 'optimizer': 'Cell Placement Optimizer', 'onboarding': 'Onboarding Calculator', 'gap-analyzer': 'Gap Analyzer' };
     ariaLive.textContent = `Navigated to ${moduleNames[moduleName] || moduleName}`;
   }
 
@@ -2913,6 +3283,683 @@ document.addEventListener('DOMContentLoaded', () => {
   updateBaselineSummary();
   showModule('gateway');
 });
+
+// ==========================================
+// GAP ANALYZER MODULE
+// ==========================================
+let gapData = [];
+let gapFilteredData = [];
+let gapColumnMapping = {};
+let gapRawData = [];
+let gapRawHeaders = [];
+let gapCurrentPage = 1;
+let gapRowsPerPage = 25;
+let gapSortColumn = "time";
+let gapSortAscending = false;
+let gapChartData = { labels: [], gaps: [], invalid: [], signing: [], verification: [], processing: [] };
+let gapAnomalies = [];
+let gapChartInstances = {};
+let gapExportFormat = "csv";
+
+function handleGapCSVUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const csvText = e.target.result;
+      const lines = csvText.split("\n").filter(line => line.trim());
+      if (lines.length < 2) { showToast("CSV file appears to be empty or invalid.", true); return; }
+      const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+      gapRawHeaders = headers;
+      gapRawData = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+        const row = {};
+        headers.forEach((header, idx) => { row[header] = values[idx] || ""; });
+        gapRawData.push(row);
+      }
+      openGapSettings(headers);
+    } catch (err) { console.error("CSV parse error:", err); showToast("Failed to parse CSV file.", true); }
+    finally { event.target.value = ""; }
+  };
+  reader.onerror = function() { showToast("Error reading file.", true); event.target.value = ""; };
+  reader.readAsText(file);
+}
+
+function openGapSettings(headers) {
+  const mappingsContainer = document.getElementById("gap-column-mappings");
+  const fields = [
+    { key: "time", label: "Time Column", icon: "fa-clock" },
+    { key: "service", label: "Service Column", icon: "fa-network-wired" },
+    { key: "from", label: "From Number Column", icon: "fa-phone" },
+    { key: "to", label: "To Number Column", icon: "fa-phone-volume" },
+    { key: "status", label: "Status Column", icon: "fa-info-circle" },
+    { key: "customer", label: "Customer Column", icon: "fa-building" },
+    { key: "sourceIP", label: "Source IP Column", icon: "fa-globe" },
+    { key: "processingTime", label: "Processing Time Column", icon: "fa-tachometer-alt" }
+  ];
+  let html = "";
+  fields.forEach(field => {
+    html += "<div class=\"bg-slate-800/50 p-4 rounded-xl border border-slate-700\">" +
+      "<label class=\"block text-xs text-slate-400 mb-2\">" +
+      "<i class=\"fas " + field.icon + " text-violet-400 mr-2\"></i>" + field.label +
+      "</label>" +
+      "<select id=\"gap-map-" + field.key + "\" class=\"w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none\">" +
+      "<option value=\"\">-- Select Column --</option>" +
+      (headers || []).map(h => "<option value=\"" + h + "\">" + h + "</option>").join("") +
+      "</select></div>";
+  });
+  mappingsContainer.innerHTML = html;
+  document.getElementById("gap-column-modal").classList.remove("hidden");
+  document.getElementById("gap-column-modal").classList.add("flex");
+}
+
+function closeGapColumnModal() {
+  document.getElementById("gap-column-modal").classList.add("hidden");
+  document.getElementById("gap-column-modal").classList.remove("flex");
+}
+
+function confirmGapColumnMapping() {
+  gapColumnMapping = {
+    time: document.getElementById("gap-map-time").value,
+    service: document.getElementById("gap-map-service").value,
+    from: document.getElementById("gap-map-from").value,
+    to: document.getElementById("gap-map-to").value,
+    status: document.getElementById("gap-map-status").value,
+    customer: document.getElementById("gap-map-customer").value,
+    sourceIP: document.getElementById("gap-map-sourceIP").value,
+    processingTime: document.getElementById("gap-map-processingTime").value
+  };
+  const required = ["time", "service", "to"];
+  for (const field of required) {
+    if (!gapColumnMapping[field]) { showToast(field + " column mapping is required.", true); return; }
+  }
+  closeGapColumnModal();
+  processGapData();
+}
+
+
+
+function processGapData() {
+  gapData = gapRawData.map(row => {
+    const procTime = parseFloat(row[gapColumnMapping.processingTime]) || 0;
+    const toNumber = row[gapColumnMapping.to] || "";
+    const ukValid = validateUKNumber(toNumber);
+    return {
+      time: row[gapColumnMapping.time] || "",
+      service: row[gapColumnMapping.service] || "",
+      from: row[gapColumnMapping.from] || "",
+      to: toNumber,
+      status: row[gapColumnMapping.status] || "",
+      customer: row[gapColumnMapping.customer] || "",
+      sourceIP: row[gapColumnMapping.sourceIP] || "",
+      processingTime: procTime,
+      ukValid: ukValid.valid,
+      ukValidationReason: ukValid.reason,
+      isSigning: (row[gapColumnMapping.service] || "").includes("signing"),
+      isVerify: (row[gapColumnMapping.service] || "").includes("verify")
+    };
+  });
+  gapFilteredData = [...gapData];
+  gapCurrentPage = 1;
+  populateGapFilterDropdowns();
+  updateGapMetrics();
+  renderGapTable();
+  renderGapCharts();
+  detectGapAnomalies();
+  document.getElementById("gap-upload-prompt").classList.add("hidden");
+  document.getElementById("gap-dashboard").classList.remove("hidden");
+  document.getElementById("gap-export-btn").disabled = false;
+  showToast("Data analyzed successfully!");
+}
+
+function validateUKNumber(number) {
+  if (!number) return { valid: false, reason: "Empty number" };
+  const cleaned = number.replace(/[\s\-\(\)]/g, "");
+  if (!cleaned.startsWith("+44")) return { valid: false, reason: "Does not start with +44" };
+  const digits = cleaned.replace(/\D/g, "");
+  if (digits.length < 11 || digits.length > 13) return { valid: false, reason: "Invalid length" };
+  const uniqueDigits = new Set(digits.slice(2));
+  if (uniqueDigits.size === 1) return { valid: false, reason: "All digits identical" };
+  let isSequential = true;
+  for (let i = 3; i < digits.length; i++) {
+    if (parseInt(digits[i]) !== parseInt(digits[i-1]) + 1) { isSequential = false; break; }
+  }
+  if (isSequential && digits.length > 5) return { valid: false, reason: "Sequential digits detected" };
+  const afterCountryCode = digits.slice(3); // Skip +44 prefix (3 characters)
+  const validStarts = ["1", "2", "7"];
+  if (!validStarts.includes(afterCountryCode[0])) return { valid: false, reason: "Invalid UK number prefix" };
+  return { valid: true, reason: "Valid" };
+}
+
+function populateGapFilterDropdowns() {
+  const statuses = [...new Set(gapData.map(d => d.status))].filter(Boolean).sort();
+  const customers = [...new Set(gapData.map(d => d.customer))].filter(Boolean).sort();
+  const statusSelect = document.getElementById("gap-filter-status");
+  const customerSelect = document.getElementById("gap-filter-customer");
+  statusSelect.innerHTML = "<option value=\"all\">All Statuses</option>" + statuses.map(s => "<option value=\"" + s + "\">" + s + "</option>").join("");
+  customerSelect.innerHTML = "<option value=\"all\">All Customers</option>" + customers.map(c => "<option value=\"" + c + "\">" + c + "</option>").join("");
+}
+
+function applyGapFilters() {
+  const serviceFilter = document.getElementById("gap-filter-service").value;
+  const validationFilter = document.getElementById("gap-filter-validation").value;
+  const fromFilter = document.getElementById("gap-filter-from").value.toLowerCase();
+  const toFilter = document.getElementById("gap-filter-to").value.toLowerCase();
+  const statusFilter = document.getElementById("gap-filter-status").value;
+  const customerFilter = document.getElementById("gap-filter-customer").value;
+  const ipFilter = document.getElementById("gap-filter-ip").value.toLowerCase();
+  const procMin = parseFloat(document.getElementById("gap-filter-proc-min").value) || null;
+  const procMax = parseFloat(document.getElementById("gap-filter-proc-max").value) || null;
+  gapFilteredData = gapData.filter(row => {
+    if (serviceFilter === "signing" && !row.isSigning) return false;
+    if (serviceFilter === "verify" && !row.isVerify) return false;
+    if (validationFilter === "valid" && !row.ukValid) return false;
+    if (validationFilter === "invalid" && row.ukValid) return false;
+    if (fromFilter && !row.from.toLowerCase().includes(fromFilter)) return false;
+    if (toFilter && !row.to.toLowerCase().includes(toFilter)) return false;
+    if (statusFilter !== "all" && row.status !== statusFilter) return false;
+    if (customerFilter !== "all" && row.customer !== customerFilter) return false;
+    if (ipFilter && !row.sourceIP.toLowerCase().includes(ipFilter)) return false;
+    if (procMin !== null && row.processingTime < procMin) return false;
+    if (procMax !== null && row.processingTime > procMax) return false;
+    return true;
+  });
+  gapCurrentPage = 1;
+  updateGapMetrics();
+  renderGapTable();
+}
+
+function resetGapFilters() {
+  document.getElementById("gap-filter-service").value = "all";
+  document.getElementById("gap-filter-validation").value = "all";
+  document.getElementById("gap-filter-from").value = "";
+  document.getElementById("gap-filter-to").value = "";
+  document.getElementById("gap-filter-status").value = "all";
+  document.getElementById("gap-filter-customer").value = "all";
+  document.getElementById("gap-filter-ip").value = "";
+  document.getElementById("gap-filter-proc-min").value = "";
+  document.getElementById("gap-filter-proc-max").value = "";
+  applyGapFilters();
+}
+
+
+function updateGapMetrics() {
+  const total = gapFilteredData.length;
+  const signing = gapFilteredData.filter(d => d.isSigning).length;
+  const verify = gapFilteredData.filter(d => d.isVerify).length;
+  const gap = Math.abs(signing - verify);
+  const gapPct = signing > 0 ? ((gap / signing) * 100).toFixed(1) : 0;
+  const invalid = gapFilteredData.filter(d => !d.ukValid).length;
+  const outliers = gapFilteredData.filter(d => d.processingTime > 100).length;
+  const anomalies = gapAnomalies ? gapAnomalies.length : 0;
+  document.getElementById("gap-metric-total").textContent = total.toLocaleString();
+  document.getElementById("gap-metric-signing").textContent = signing.toLocaleString();
+  document.getElementById("gap-metric-verify").textContent = verify.toLocaleString();
+  document.getElementById("gap-metric-gap").textContent = gap.toLocaleString();
+  document.getElementById("gap-metric-gap-pct").textContent = gapPct + "%";
+  document.getElementById("gap-metric-invalid").textContent = invalid.toLocaleString();
+  document.getElementById("gap-metric-outliers").textContent = outliers.toLocaleString();
+  document.getElementById("gap-metric-anomalies").textContent = anomalies.toLocaleString();
+  document.getElementById("gap-metric-total-desc").textContent = "in current view";
+  document.getElementById("gap-metric-signing-desc").textContent = (signing > 0 ? ((signing/total)*100).toFixed(1) : 0) + "% of total";
+  document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
+  document.getElementById("gap-metric-gap-desc").textContent = gapPct > 10 ? "High discrepancy!" : "Within normal range";
+  document.getElementById("gap-metric-invalid-desc").textContent = invalid > 0 ? ((invalid/total)*100).toFixed(1) + "% invalid" : "All valid";
+  document.getElementById("gap-metric-outliers-desc").textContent = outliers > 0 ? "Needs investigation" : "Normal performance";
+  document.getElementById("gap-metric-anomalies-desc").textContent = anomalies > 0 ? "Review detected issues" : "No anomalies";
+}
+
+function renderGapTable() {
+  const tableBody = document.getElementById("gap-table-body");
+  if (!tableBody || gapFilteredData.length === 0) {
+    if (tableBody) tableBody.innerHTML = "<tr><td colspan='10' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
+    return;
+  }
+  
+  const start = (gapCurrentPage - 1) * gapRowsPerPage;
+  const end = start + gapRowsPerPage;
+  const pageData = gapFilteredData.slice(start, end);
+  
+  // Sort data
+  if (gapSortColumn) {
+    pageData.sort((a, b) => {
+      let aVal = a[gapSortColumn];
+      let bVal = b[gapSortColumn];
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+      if (aVal < bVal) return gapSortAscending ? -1 : 1;
+      if (aVal > bVal) return gapSortAscending ? 1 : -1;
+      return 0;
+    });
+  }
+  
+  tableBody.innerHTML = pageData.map(row => {
+    const anomalyFlags = row.anomalyFlags ? row.anomalyFlags.join(', ') : '';
+    return `<tr class="border-b border-slate-800 hover:bg-slate-800/50 ${row.anomalyFlags && row.anomalyFlags.length > 0 ? 'bg-red-900/20' : ''}">
+      <td class="py-3 px-4 text-slate-300">${row.time || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.serviceType || '-'}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.status || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.customer || '-'}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
+      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4 text-slate-400 text-xs">${anomalyFlags || '-'}</td>
+    </tr>`;
+  }).join('');
+  
+  // Update pagination
+  const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
+  document.getElementById("gap-pagination-info").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
+  document.getElementById("gap-pagination-prev").disabled = gapCurrentPage <= 1;
+  document.getElementById("gap-pagination-next").disabled = gapCurrentPage >= totalPages;
+}
+
+function renderGapCharts() {
+  // Prepare time-bucketed data
+  const timeBuckets = {};
+  gapFilteredData.forEach(row => {
+    if (!row.time) return;
+    const date = new Date(row.time);
+    const bucketKey = date.toISOString().slice(0, 13); // Hourly buckets
+    if (!timeBuckets[bucketKey]) {
+      timeBuckets[bucketKey] = { signing: 0, verify: 0, invalid: 0, gap: 0, processing: [] };
+    }
+    if (row.isSigning) timeBuckets[bucketKey].signing++;
+    if (row.isVerify) timeBuckets[bucketKey].verify++;
+    if (!row.ukValid) timeBuckets[bucketKey].invalid++;
+    timeBuckets[bucketKey].processing.push(row.processingTime);
+  });
+  
+  Object.keys(timeBuckets).forEach(key => {
+    timeBuckets[key].gap = Math.abs(timeBuckets[key].signing - timeBuckets[key].verify);
+  });
+  
+  const labels = Object.keys(timeBuckets).sort();
+  const gaps = labels.map(k => timeBuckets[k].gap);
+  const invalid = labels.map(k => timeBuckets[k].invalid);
+  const signing = labels.map(k => timeBuckets[k].signing);
+  const verification = labels.map(k => timeBuckets[k].verify);
+  const processing = labels.map(k => {
+    const arr = timeBuckets[k].processing;
+    return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
+  });
+  
+  gapChartData = { labels, gaps, invalid, signing, verification, processing };
+  
+  // Destroy existing charts
+  Object.values(gapChartInstances).forEach(chart => {
+    if (chart) chart.destroy();
+  });
+  gapChartInstances = {};
+  
+  // Gaps Over Time Chart
+  const gapsCtx = document.getElementById('gap-chart-gaps');
+  if (gapsCtx) {
+    gapChartInstances.gaps = new Chart(gapsCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Gap Count',
+          data: gaps,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8' } }
+        },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+  
+  // Invalid Numbers Over Time Chart
+  const invalidCtx = document.getElementById('gap-chart-invalid');
+  if (invalidCtx) {
+    gapChartInstances.invalid = new Chart(invalidCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Invalid UK Numbers',
+          data: invalid,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8' } }
+        },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+  
+  // Volume Comparison Chart
+  const volumeCtx = document.getElementById('gap-chart-volume');
+  if (volumeCtx) {
+    gapChartInstances.volume = new Chart(volumeCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Signing Requests',
+            data: signing,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: '#3b82f6',
+            borderWidth: 1
+          },
+          {
+            label: 'Verification Requests',
+            data: verification,
+            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+            borderColor: '#10b981',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8' } }
+        },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+  
+  // Processing Time Distribution Chart
+  const procCtx = document.getElementById('gap-chart-processing');
+  if (procCtx) {
+    gapChartInstances.processing = new Chart(procCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Avg Processing Time (ms)',
+          data: processing,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8' } }
+        },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { 
+            ticks: { color: '#64748b' }, 
+            grid: { color: '#1e293b' },
+            annotation: {
+              annotations: {
+                line1: {
+                  type: 'line',
+                  yMin: 100,
+                  yMax: 100,
+                  borderColor: '#ef4444',
+                  borderWidth: 2,
+                  borderDash: [5, 5],
+                  label: { content: '100ms Threshold', enabled: true, position: 'end' }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+function detectGapAnomalies() {
+  gapAnomalies = [];
+  
+  if (gapFilteredData.length < 3) return;
+  
+  // Calculate statistics for gap detection
+  const timeBuckets = {};
+  gapFilteredData.forEach(row => {
+    if (!row.time) return;
+    const date = new Date(row.time);
+    const bucketKey = date.toISOString().slice(0, 13);
+    if (!timeBuckets[bucketKey]) {
+      timeBuckets[bucketKey] = { signing: 0, verify: 0, invalid: 0 };
+    }
+    if (row.isSigning) timeBuckets[bucketKey].signing++;
+    if (row.isVerify) timeBuckets[bucketKey].verify++;
+    if (!row.ukValid) timeBuckets[bucketKey].invalid++;
+  });
+  
+  const bucketKeys = Object.keys(timeBuckets).sort();
+  const gaps = bucketKeys.map(k => Math.abs(timeBuckets[k].signing - timeBuckets[k].verify));
+  const invalidCounts = bucketKeys.map(k => timeBuckets[k].invalid);
+  
+  // Calculate mean and std dev for gaps
+  const meanGap = gaps.reduce((a,b) => a+b, 0) / gaps.length;
+  const varianceGap = gaps.reduce((a,b) => a + Math.pow(b - meanGap, 2), 0) / gaps.length;
+  const stdDevGap = Math.sqrt(varianceGap);
+  
+  // Calculate mean and std dev for invalid numbers
+  const meanInvalid = invalidCounts.reduce((a,b) => a+b, 0) / invalidCounts.length;
+  const varianceInvalid = invalidCounts.reduce((a,b) => a + Math.pow(b - meanInvalid, 2), 0) / invalidCounts.length;
+  const stdDevInvalid = Math.sqrt(varianceInvalid);
+  
+  // Detect anomalies (sensitive mode: 1.5 std devs)
+  bucketKeys.forEach((key, idx) => {
+    const bucket = timeBuckets[key];
+    const gap = Math.abs(bucket.signing - bucket.verify);
+    const invalid = bucket.invalid;
+    
+    // Gap spike detection
+    if (stdDevGap > 0 && gap > meanGap + (1.5 * stdDevGap)) {
+      gapAnomalies.push({
+        type: 'Gap Spike',
+        time: key,
+        value: gap,
+        threshold: (meanGap + (1.5 * stdDevGap)).toFixed(1),
+        description: `Gap count ${gap} exceeds normal range (threshold: ${(meanGap + (1.5 * stdDevGap)).toFixed(1)})`
+      });
+      
+      // Flag related rows
+      gapFilteredData.forEach(row => {
+        if (row.time && row.time.startsWith(key)) {
+          if (!row.anomalyFlags) row.anomalyFlags = [];
+          row.anomalyFlags.push('Gap Spike');
+        }
+      });
+    }
+    
+    // Invalid number spike detection
+    if (stdDevInvalid > 0 && invalid > meanInvalid + (1.5 * stdDevInvalid)) {
+      gapAnomalies.push({
+        type: 'Invalid Number Spike',
+        time: key,
+        value: invalid,
+        threshold: (meanInvalid + (1.5 * stdDevInvalid)).toFixed(1),
+        description: `Invalid numbers ${invalid} exceeds normal range (threshold: ${(meanInvalid + (1.5 * stdDevInvalid)).toFixed(1)})`
+      });
+      
+      gapFilteredData.forEach(row => {
+        if (row.time && row.time.startsWith(key) && !row.ukValid) {
+          if (!row.anomalyFlags) row.anomalyFlags = [];
+          row.anomalyFlags.push('Invalid Spike');
+        }
+      });
+    }
+  });
+  
+  // Processing time outliers (>100ms)
+  gapFilteredData.forEach(row => {
+    if (row.processingTime > 100) {
+      gapAnomalies.push({
+        type: 'Processing Time Outlier',
+        time: row.time || 'Unknown',
+        value: row.processingTime,
+        threshold: '100',
+        description: `Processing time ${row.processingTime}ms exceeds 100ms threshold`
+      });
+      if (!row.anomalyFlags) row.anomalyFlags = [];
+      row.anomalyFlags.push('Slow Processing');
+    }
+  });
+  
+  // Update UI
+  const anomalyCount = gapAnomalies.length;
+  document.getElementById("gap-anomalies-count").textContent = anomalyCount;
+  document.getElementById("gap-anomalies-section").style.display = anomalyCount > 0 ? 'block' : 'none';
+  
+  if (anomalyCount > 0) {
+    const anomaliesList = document.getElementById("gap-anomalies-list");
+    anomaliesList.innerHTML = gapAnomalies.slice(0, 5).map(a => 
+      `<div class="p-3 bg-red-900/20 border border-red-800/50 rounded-lg mb-2">
+        <div class="flex items-center justify-between">
+          <span class="text-red-400 font-semibold text-sm">${a.type}</span>
+          <span class="text-slate-400 text-xs">${a.time}</span>
+        </div>
+        <p class="text-slate-300 text-xs mt-1">${a.description}</p>
+      </div>`
+    ).join('');
+    
+    if (anomalyCount > 5) {
+      anomaliesList.innerHTML += `<div class="text-slate-400 text-xs text-center mt-2">...and ${anomalyCount - 5} more anomalies. Refine filters to see details.</div>`;
+    }
+  }
+}
+
+function exportGapData(format) {
+  const modal = document.getElementById('gap-export-modal');
+  if (modal) modal.style.display = 'none';
+  
+  const dataToExport = window.gapExportAllData ? gapData : gapFilteredData;
+  
+  if (format === 'csv') {
+    if (dataToExport.length === 0) {
+      showToast('No data to export', 'error');
+      return;
+    }
+    
+    const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Reason', 'Processing (ms)', 'Customer', 'Source IP', 'Call ID', 'Trace ID', 'UK Valid', 'Anomalies'];
+    const csvRows = [headers.join(',')];
+    
+    dataToExport.forEach(row => {
+      const csvRow = [
+        row.time || '',
+        row.serviceType || '',
+        row.from || '',
+        row.to || '',
+        row.status || '',
+        row.reason || '',
+        row.processingTime || '',
+        row.customer || '',
+        row.sourceIP || '',
+        row.callId || '',
+        row.traceId || '',
+        row.ukValid ? 'Valid' : 'Invalid',
+        row.anomalyFlags ? row.anomalyFlags.join('; ') : ''
+      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+      csvRows.push(csvRow);
+    });
+    
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `gap_analyzer_export_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    showToast('CSV exported successfully', 'success');
+    
+  } else if (format === 'json') {
+    const jsonContent = JSON.stringify({
+      exportDate: new Date().toISOString(),
+      totalRecords: dataToExport.length,
+      filters: window.gapExportAllData ? 'All Data' : 'Filtered Results',
+      data: dataToExport
+    }, null, 2);
+    
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `gap_analyzer_export_${new Date().toISOString().slice(0,10)}.json`;
+    link.click();
+    showToast('JSON exported successfully', 'success');
+  }
+}
+
+function showGapExportModal() {
+  const modal = document.getElementById('gap-export-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeGapExportModal() {
+  const modal = document.getElementById('gap-export-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function setGapExportOption(allData) {
+  window.gapExportAllData = allData;
+  closeGapExportModal();
+  setTimeout(() => {
+    exportGapData(document.getElementById('gap-export-format').value || 'csv');
+  }, 100);
+}
+
+function handleGapSort(column) {
+  if (gapSortColumn === column) {
+    gapSortAscending = !gapSortAscending;
+  } else {
+    gapSortColumn = column;
+    gapSortAscending = true;
+  }
+  renderGapTable();
+}
+
+function handleGapPagination(direction) {
+  const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
+  if (direction === 'prev' && gapCurrentPage > 1) {
+    gapCurrentPage--;
+  } else if (direction === 'next' && gapCurrentPage < totalPages) {
+    gapCurrentPage++;
+  }
+  renderGapTable();
+}
+
+function changeGapRowsPerPage(value) {
+  gapRowsPerPage = parseInt(value) || 25;
+  gapCurrentPage = 1;
+  renderGapTable();
+}
+
+
 </script>
 </body>
 </html>
