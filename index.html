@@ -27,6 +27,7 @@
 
 <!-- html2pdf.js for Client Proposal Generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
 /* Global Resets & Typography */
@@ -311,7 +312,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 <a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[10000] focus:bg-emerald-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">Skip to main content</a>
 
 <!-- MODULE: GATEWAY (ATLAS) -->
-<div id="module-gateway" class="flex flex-col items-center justify-center min-h-screen px-6 py-12 relative overflow-hidden" role="main">
+<div id="module-gateway" class="flex flex-col items-center justify-center min-h-screen px-6 py-12 pb-32 relative overflow-hidden" role="main">
   <!-- Decorative background elements -->
   <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
   <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -324,7 +325,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
     <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-medium">Cell Placement & Onboarding Cost Assessment Suite</p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full z-10">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full z-10">
     <div class="gateway-card" onclick="showModule('optimizer')">
       <div class="gateway-icon opt">
         <i class="fas fa-network-wired"></i>
@@ -357,7 +358,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       </div>
       <h2 class="text-2xl font-bold text-white mb-3">Gap Analyzer</h2>
       <p class="text-slate-400 text-sm leading-relaxed mb-6">
-        Upload call data CSVs to analyze gaps between signing and verification requests, validate UK numbers, and detect anomalies.
+        Upload call data CSVs to analyze gaps between signing and verification requests and validate UK numbers.
       </p>
       <div class="mt-auto pt-4 border-t border-slate-700/50 w-full text-violet-400 font-semibold text-sm flex items-center justify-center gap-2 group">
         Launch Analyzer <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
@@ -586,6 +587,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 
 <!-- MODULE: GAP ANALYZER -->
 <div id="module-gap-analyzer" style="display: none;">
+  <div class="flex flex-col min-h-screen">
   <header class="border-b border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-[2000] bg-[#020617]/85 backdrop-blur-lg">
     <div class="flex items-center gap-3">
       <button class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center mr-2 bg-slate-800/50 hover:bg-slate-700/80" onclick="showModule('gateway')" title="Back to ATLAS Home">
@@ -601,27 +603,16 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <span class="hidden sm:inline">Upload CSV</span>
       </button>
       
-      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openGapSettings()" title="Column Mapping Settings">
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50 opacity-50 pointer-events-none" onclick="openGapSettings()" id="gap-settings-btn" title="Column Mapping Settings" disabled>
         <i class="fas fa-cog text-violet-400"></i>
         <span class="hidden sm:inline">Settings</span>
       </button>
 
       <div class="relative inline-block">
-        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="toggleGapExportMenu()" id="gap-export-btn" title="Export Results" disabled>
+        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50 opacity-50 pointer-events-none" onclick="openGapExportModal()" id="gap-export-btn" title="Export CSV" disabled>
           <i class="fas fa-file-export text-violet-400"></i>
-          <span class="hidden sm:inline">Export</span>
-          <i class="fas fa-chevron-down text-[10px] ml-1 opacity-70"></i>
+          <span class="hidden sm:inline">Export CSV</span>
         </button>
-        <div class="export-dropdown" id="gap-export-menu" style="display: none;">
-          <button class="export-option" onclick="exportGapData('csv')">
-            <div class="export-option-title"><i class="fas fa-file-csv text-emerald-400"></i> CSV File</div>
-            <div class="export-option-desc">Export analysis results as CSV spreadsheet.</div>
-          </button>
-          <button class="export-option" onclick="exportGapData('json')">
-            <div class="export-option-title"><i class="fas fa-code text-violet-400"></i> JSON File</div>
-            <div class="export-option-desc">Export full analysis state as JSON.</div>
-          </button>
-        </div>
       </div>
 
       <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('gap')" title="User Guide">
@@ -692,7 +683,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
     </div>
   </div>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1">
     <!-- Upload Prompt (shown when no data loaded) -->
     <div id="gap-upload-prompt" class="text-center py-20">
       <div class="w-24 h-24 mx-auto mb-6 rounded-2xl bg-violet-500/10 flex items-center justify-center">
@@ -807,7 +798,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
             <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
               <i class="fas fa-exclamation-triangle text-red-400"></i>
             </div>
-            <span class="text-xs text-slate-400">Gap Count</span>
+            <span class="text-xs text-slate-400">Gap Count <i class="fas fa-info-circle text-[10px] text-violet-400" title="Absolute difference between signing and verification request counts. A gap of 0 means perfectly matched pairs."></i></span>
           </div>
           <div class="text-3xl font-bold text-white" id="gap-metric-gap">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-gap-desc">-</div>
@@ -835,23 +826,14 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-outliers-desc">-</div>
         </div>
         
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-cyan-500/50 transition-all" onclick="drillDownGap('anomalies')">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-              <i class="fas fa-search text-cyan-400"></i>
-            </div>
-            <span class="text-xs text-slate-400">Anomalies Detected</span>
-          </div>
-          <div class="text-3xl font-bold text-white" id="gap-metric-anomalies">0</div>
-          <div class="text-xs text-slate-500 mt-1" id="gap-metric-anomalies-desc">-</div>
-        </div>
+
         
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-3">
             <div class="w-10 h-10 rounded-xl bg-slate-500/20 flex items-center justify-center">
               <i class="fas fa-percentage text-slate-400"></i>
             </div>
-            <span class="text-xs text-slate-400">Gap Percentage</span>
+            <span class="text-xs text-slate-400">Gap Percentage <i class="fas fa-info-circle text-[10px] text-violet-400" title="Gap count as a percentage of total signing requests. Higher values indicate larger discrepancies between signing and verification."></i></span>
           </div>
           <div class="text-3xl font-bold text-white" id="gap-metric-gap-pct">0%</div>
           <div class="text-xs text-slate-500 mt-1">of signing requests</div>
@@ -862,32 +844,19 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
-          <canvas id="gap-chart-gaps" height="200"></canvas>
+          <div style="position:relative;height:200px;"><canvas id="gap-chart-gaps"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-amber-400 mr-2"></i>Invalid Numbers Over Time</h3>
-          <canvas id="gap-chart-invalid" height="200"></canvas>
+          <div style="position:relative;height:200px;"><canvas id="gap-chart-invalid"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-stacked text-blue-400 mr-2"></i>Signing vs Verification Volume</h3>
-          <canvas id="gap-chart-volume" height="200"></canvas>
+          <div style="position:relative;height:200px;"><canvas id="gap-chart-volume"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-bar text-purple-400 mr-2"></i>Processing Time Distribution</h3>
-          <canvas id="gap-chart-proctime" height="200"></canvas>
-        </div>
-      </div>
-
-      <!-- Anomalies Section -->
-      <div id="gap-anomalies-section" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 hidden">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold text-white"><i class="fas fa-exclamation-circle text-red-400 mr-2"></i>Anomalies Detected</h3>
-          <button class="text-xs text-violet-400 hover:text-violet-300" onclick="toggleGapAnomaliesDetails()">
-            <i class="fas fa-eye mr-1"></i><span id="gap-anomalies-toggle-text">View Details</span>
-          </button>
-        </div>
-        <div id="gap-anomalies-list" class="space-y-2 hidden">
-          <!-- Anomalies will be populated dynamically -->
+          <div style="position:relative;height:200px;"><canvas id="gap-chart-processing"></canvas></div>
         </div>
       </div>
 
@@ -908,14 +877,17 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <table class="w-full text-sm">
             <thead class="bg-slate-800/50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('time')">Time <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('service')">Service <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('from')">From <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('to')">To <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('status')">Status <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="sortGapTable('procTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400" title="UK number validation status"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('time')">Time <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('service')">Service <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('from')">From <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('to')">To <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('status')">Status <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('sourceIP')">Source IP <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('processingTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider relative" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, or 7), and rejects test/placeholder numbers with sequential or repeated digits.">
+                  UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400"></i>
+                </th>
               </tr>
             </thead>
             <tbody id="gap-table-body" class="divide-y divide-slate-800">
@@ -926,11 +898,11 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <div class="p-4 border-t border-slate-800 flex items-center justify-between flex-wrap gap-4">
           <div class="text-xs text-slate-400" id="gap-pagination-info">Showing 0-0 of 0</div>
           <div class="flex items-center gap-2">
-            <button class="btn-ghost px-3 py-1.5 rounded-lg hover:bg-slate-800 text-xs" onclick="changeGapPage(-1)" id="gap-prev-btn" disabled>
+            <button class="btn-ghost px-3 py-1.5 rounded-lg hover:bg-slate-800 text-xs" onclick="handleGapPagination('prev')" id="gap-prev-btn" disabled>
               <i class="fas fa-chevron-left"></i> Previous
             </button>
             <span class="text-xs text-slate-400" id="gap-page-indicator">Page 1 of 1</span>
-            <button class="btn-ghost px-3 py-1.5 rounded-lg hover:bg-slate-800 text-xs" onclick="changeGapPage(1)" id="gap-next-btn" disabled>
+            <button class="btn-ghost px-3 py-1.5 rounded-lg hover:bg-slate-800 text-xs" onclick="handleGapPagination('next')" id="gap-next-btn" disabled>
               Next <i class="fas fa-chevron-right"></i>
             </button>
           </div>
@@ -938,6 +910,11 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       </div>
     </div>
   </main>
+  <footer class="text-center py-8 text-xs text-slate-600 border-t border-slate-800/50 px-4">
+    EDR Call Data Analysis · UK Number Validation<br>
+    <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-violet-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
+  </footer>
+  </div>
 </div>
 
 <!-- MODULE: ONBOARDING CALCULATOR -->
@@ -1164,6 +1141,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
   <div class="flex border-b border-slate-700/80 bg-slate-800/80 shrink-0">
     <button class="flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-emerald-400" id="help-tab-optimizer" onclick="switchHelpTab('optimizer')">Placement Optimizer</button>
     <button class="flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent" id="help-tab-onboarding" onclick="switchHelpTab('onboarding')">Onboarding Calculator</button>
+    <button class="flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent" id="help-tab-gap" onclick="switchHelpTab('gap')">Gap Analyzer</button>
   </div>
 
   <!-- HELP CONTENT: OPTIMIZER -->
@@ -1241,6 +1219,70 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <div class="callout-title"><i class="fas fa-unlink text-slate-400"></i> Unlinked (Unchecked)</div>
           Stretching a task from 2 days to 3 days simply means the resource is working part-time. <strong>The billed hours and financial cost remain perfectly locked.</strong>
         </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- HELP CONTENT: GAP ANALYZER -->
+  <div id="help-content-gap" class="flex-1 overflow-y-auto flex flex-col" style="display:none;">
+    <div class="help-body" id="help-body-gap">
+      <section class="help-section" id="gap-intro">
+        <h3><i class="fas fa-chart-line text-violet-400"></i> What Is the Gap Analyzer?</h3>
+        <p>The Gap Analyzer helps Network Operations and Monitoring teams analyze EDR (Event Detail Record) call data to identify discrepancies between <strong>Signing</strong> and <strong>Verification</strong> requests, with built-in <strong>UK destination number validation</strong>.</p>
+        <p>Upload a CSV export of your call records, map the columns, and the tool automatically computes metrics and generates time-series visualizations &mdash; all in your browser with no data sent to any server.</p>
+      </section>
+
+      <section class="help-section" id="gap-upload">
+        <h3><i class="fas fa-file-csv text-emerald-400"></i> Upload &amp; Column Mapping</h3>
+        <p>Click the <strong>Upload CSV</strong> button or drag-and-drop a file onto the drop zone. ATLAS auto-detects columns by matching CSV headers against expected field names (e.g., "Time", "Service", "Source IP"). If auto-detection fails, use the manual <strong>Column Mapping</strong> dropdowns to assign each required field.</p>
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-info-circle"></i> Required Columns</div>
+          At minimum you need a <strong>timestamp</strong>, a <strong>service type</strong> (signing / verify), a <strong>destination number</strong>, and a <strong>status</strong> field. Optional columns include source IP, processing time, and customer name.
+        </div>
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-exclamation-triangle text-amber-400"></i> Excel Tip</div>
+          Format phone number columns as <strong>Text</strong> before exporting. Excel converts long numbers to scientific notation (e.g., <code>4.47305E+11</code>), which truncates digits. ATLAS can recover the <code>+</code> prefix stripped by Excel, but cannot restore lost precision.
+        </div>
+      </section>
+
+      <section class="help-section" id="gap-metrics">
+        <h3><i class="fas fa-tachometer-alt text-blue-400"></i> Dashboard Metrics</h3>
+        <p>After analysis the top row of cards summarises your dataset:</p>
+        <ul>
+          <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
+          <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
+          <li><strong>Gap (Missing)</strong> &mdash; absolute difference between signing and verification counts.</li>
+          <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation.</li>
+          <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the 100 ms processing-time threshold.</li>
+        </ul>
+        <p>Click any metric card to filter the data table. Click again or use <strong>Reset Filters</strong> to clear.</p>
+      </section>
+
+      <section class="help-section" id="gap-table">
+        <h3><i class="fas fa-table text-amber-400"></i> Data Table</h3>
+        <p>The paginated table shows individual call records. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, customer, destination, or processing time range.</p>
+      </section>
+
+      <section class="help-section" id="gap-charts">
+        <h3><i class="fas fa-chart-bar text-pink-400"></i> Visualizations</h3>
+        <p>Below the table you will find:</p>
+        <ul>
+          <li><strong>Gaps Over Time</strong> &mdash; line chart of the signing-vs-verification gap per time bucket.</li>
+          <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
+          <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
+          <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket.</li>
+        </ul>
+      </section>
+
+      <section class="help-section" id="gap-uk">
+        <h3><i class="fas fa-phone text-cyan-400"></i> UK Number Validation</h3>
+        <p>Every destination number is validated against UK formatting rules:</p>
+        <ul>
+          <li><strong>Format</strong> &mdash; must start with <code>+44</code>. Scientific notation (e.g., <code>4.47305E+11</code>) is auto-converted. The <code>+</code> prefix stripped by Excel is restored automatically.</li>
+          <li><strong>Length</strong> &mdash; total digits must be 11–13 (including country code).</li>
+          <li><strong>Prefix</strong> &mdash; first digit after <code>+44</code> must be <b>1</b>, <b>2</b>, or <b>7</b> (the only allocated UK prefixes).</li>
+          <li><strong>Pattern</strong> &mdash; rejects numbers with all identical digits or runs of 5+ sequential digits (e.g., <code>+447123456789</code>).</li>
+        </ul>
       </section>
     </div>
   </div>
@@ -1665,19 +1707,30 @@ function initDhtmlxGantt() {
 function switchHelpTab(tab) {
   const optBtn = document.getElementById('help-tab-optimizer');
   const onbBtn = document.getElementById('help-tab-onboarding');
+  const gapBtn = document.getElementById('help-tab-gap');
   const optContent = document.getElementById('help-content-optimizer');
   const onbContent = document.getElementById('help-content-onboarding');
+  const gapContent = document.getElementById('help-content-gap');
+
+  const active = 'flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 ';
+  const inactive = 'flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent';
+
+  optBtn.className = inactive;
+  onbBtn.className = inactive;
+  gapBtn.className = inactive;
+  optContent.style.display = 'none';
+  onbContent.style.display = 'none';
+  gapContent.style.display = 'none';
 
   if (tab === 'optimizer') {
-    optBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-emerald-400';
-    onbBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent';
+    optBtn.className = active + 'border-emerald-400';
     optContent.style.display = 'flex';
-    onbContent.style.display = 'none';
-  } else {
-    onbBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-blue-400';
-    optBtn.className = 'flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent';
+  } else if (tab === 'onboarding') {
+    onbBtn.className = active + 'border-blue-400';
     onbContent.style.display = 'flex';
-    optContent.style.display = 'none';
+  } else {
+    gapBtn.className = active + 'border-violet-400';
+    gapContent.style.display = 'flex';
   }
 }
 
@@ -1689,7 +1742,8 @@ function openHelp(forceTab) {
 }
 
 function openHelpDefault() {
-  openHelp(currentAppModule === 'onboarding' ? 'onboarding' : 'optimizer');
+  const map = { 'optimizer': 'optimizer', 'onboarding': 'onboarding', 'gap-analyzer': 'gap' };
+  openHelp(map[currentAppModule] || 'optimizer');
 }
 
 function closeHelp() {
@@ -2719,7 +2773,6 @@ document.addEventListener('click', function(event) {
   const optBtn = document.getElementById('export-btn');
   const onbMenu = document.getElementById('export-menu-onb');
   const onbBtn = document.getElementById('export-btn-onb');
-  
   if (optMenu && optBtn && optMenu.classList.contains('show') && !optMenu.contains(event.target) && !optBtn.contains(event.target)) {
     optMenu.classList.remove('show');
   }
@@ -3296,10 +3349,8 @@ let gapCurrentPage = 1;
 let gapRowsPerPage = 25;
 let gapSortColumn = "time";
 let gapSortAscending = false;
-let gapChartData = { labels: [], gaps: [], invalid: [], signing: [], verification: [], processing: [] };
-let gapAnomalies = [];
+let gapChartData = { labels: [], gaps: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [] };
 let gapChartInstances = {};
-let gapExportFormat = "csv";
 
 function handleGapCSVUpload(event) {
   const file = event.target.files[0];
@@ -3351,6 +3402,27 @@ function openGapSettings(headers) {
       "</select></div>";
   });
   mappingsContainer.innerHTML = html;
+  const detectMap = {
+    time: ['time', 'timestamp', 'date'],
+    service: ['service', 'type', 'direction'],
+    from: ['from', 'source number', 'calling'],
+    to: ['to', 'destination', 'called', 'called number'],
+    status: ['status', 'code', 'result'],
+    customer: ['customer', 'client', 'account'],
+    sourceIP: ['source ip', 'ip', 'address'],
+    processingTime: ['processing', 'duration', 'latency', 'rtt', 'processing (ms)']
+  };
+  fields.forEach(field => {
+    const keywords = detectMap[field.key] || [];
+    const match = headers.find(h => {
+      const lower = h.toLowerCase();
+      return keywords.some(kw => lower.includes(kw));
+    });
+    if (match) {
+      const sel = document.getElementById("gap-map-" + field.key);
+      if (sel) sel.value = match;
+    }
+  });
   document.getElementById("gap-column-modal").classList.remove("hidden");
   document.getElementById("gap-column-modal").classList.add("flex");
 }
@@ -3382,14 +3454,16 @@ function confirmGapColumnMapping() {
 
 
 function processGapData() {
+  try {
   gapData = gapRawData.map(row => {
     const procTime = parseFloat(row[gapColumnMapping.processingTime]) || 0;
-    const toNumber = row[gapColumnMapping.to] || "";
+    const rawToNumber = row[gapColumnMapping.to] || "";
+    const toNumber = normalizePhoneNumber(rawToNumber);
     const ukValid = validateUKNumber(toNumber);
     return {
       time: row[gapColumnMapping.time] || "",
       service: row[gapColumnMapping.service] || "",
-      from: row[gapColumnMapping.from] || "",
+      from: normalizePhoneNumber(row[gapColumnMapping.from] || ""),
       to: toNumber,
       status: row[gapColumnMapping.status] || "",
       customer: row[gapColumnMapping.customer] || "",
@@ -3407,11 +3481,32 @@ function processGapData() {
   updateGapMetrics();
   renderGapTable();
   renderGapCharts();
-  detectGapAnomalies();
   document.getElementById("gap-upload-prompt").classList.add("hidden");
   document.getElementById("gap-dashboard").classList.remove("hidden");
   document.getElementById("gap-export-btn").disabled = false;
+  document.getElementById("gap-export-btn").classList.remove("opacity-50", "pointer-events-none");
+  document.getElementById("gap-settings-btn").disabled = false;
+  document.getElementById("gap-settings-btn").classList.remove("opacity-50", "pointer-events-none");
+  const _s = gapData.filter(d => d.isSigning).length;
+  const _v = gapData.filter(d => d.isVerify).length;
+  const _i = gapData.filter(d => !d.ukValid).length;
+  showToast(gapData.length + " records analyzed \u00b7 " + _s + " signing, " + _v + " verify" + (_i > 0 ? ", " + _i + " invalid" : ""));
   showToast("Data analyzed successfully!");
+  } catch(e) { console.error("processGapData error:", e); showToast("Error processing data: " + e.message, true); }
+}
+
+function normalizePhoneNumber(value) {
+  if (!value) return value;
+  if (/[Ee]\+/.test(value)) {
+    const num = Number(value);
+    if (!isNaN(num)) {
+      const full = num.toString();
+      return full.startsWith("+") ? full : "+" + full;
+    }
+  }
+  const stripped = value.replace(/[\s\-\(\)]/g, "");
+  if (/^44\d{9,10}$/.test(stripped)) return "+" + stripped;
+  return value;
 }
 
 function validateUKNumber(number) {
@@ -3422,14 +3517,15 @@ function validateUKNumber(number) {
   if (digits.length < 11 || digits.length > 13) return { valid: false, reason: "Invalid length" };
   const uniqueDigits = new Set(digits.slice(2));
   if (uniqueDigits.size === 1) return { valid: false, reason: "All digits identical" };
-  let isSequential = true;
-  for (let i = 3; i < digits.length; i++) {
-    if (parseInt(digits[i]) !== parseInt(digits[i-1]) + 1) { isSequential = false; break; }
+  const afterCode = digits.slice(2);
+  let maxRun = 1, run = 1;
+  for (let i = 1; i < afterCode.length; i++) {
+    if (parseInt(afterCode[i]) === parseInt(afterCode[i - 1]) + 1) { run++; if (run > maxRun) maxRun = run; }
+    else { run = 1; }
   }
-  if (isSequential && digits.length > 5) return { valid: false, reason: "Sequential digits detected" };
-  const afterCountryCode = digits.slice(3); // Skip +44 prefix (3 characters)
-  const validStarts = ["1", "2", "7"];
-  if (!validStarts.includes(afterCountryCode[0])) return { valid: false, reason: "Invalid UK number prefix" };
+  if (maxRun >= 5) return { valid: false, reason: "Sequential digits detected" };
+  const validStarts = ["1", "2", "3", "7", "8"];
+  if (!validStarts.includes(afterCode[0])) return { valid: false, reason: "Invalid UK number prefix" };
   return { valid: true, reason: "Valid" };
 }
 
@@ -3493,7 +3589,6 @@ function updateGapMetrics() {
   const gapPct = signing > 0 ? ((gap / signing) * 100).toFixed(1) : 0;
   const invalid = gapFilteredData.filter(d => !d.ukValid).length;
   const outliers = gapFilteredData.filter(d => d.processingTime > 100).length;
-  const anomalies = gapAnomalies ? gapAnomalies.length : 0;
   document.getElementById("gap-metric-total").textContent = total.toLocaleString();
   document.getElementById("gap-metric-signing").textContent = signing.toLocaleString();
   document.getElementById("gap-metric-verify").textContent = verify.toLocaleString();
@@ -3501,20 +3596,18 @@ function updateGapMetrics() {
   document.getElementById("gap-metric-gap-pct").textContent = gapPct + "%";
   document.getElementById("gap-metric-invalid").textContent = invalid.toLocaleString();
   document.getElementById("gap-metric-outliers").textContent = outliers.toLocaleString();
-  document.getElementById("gap-metric-anomalies").textContent = anomalies.toLocaleString();
   document.getElementById("gap-metric-total-desc").textContent = "in current view";
   document.getElementById("gap-metric-signing-desc").textContent = (signing > 0 ? ((signing/total)*100).toFixed(1) : 0) + "% of total";
   document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
   document.getElementById("gap-metric-gap-desc").textContent = gapPct > 10 ? "High discrepancy!" : "Within normal range";
   document.getElementById("gap-metric-invalid-desc").textContent = invalid > 0 ? ((invalid/total)*100).toFixed(1) + "% invalid" : "All valid";
   document.getElementById("gap-metric-outliers-desc").textContent = outliers > 0 ? "Needs investigation" : "Normal performance";
-  document.getElementById("gap-metric-anomalies-desc").textContent = anomalies > 0 ? "Review detected issues" : "No anomalies";
 }
 
 function renderGapTable() {
   const tableBody = document.getElementById("gap-table-body");
   if (!tableBody || gapFilteredData.length === 0) {
-    if (tableBody) tableBody.innerHTML = "<tr><td colspan='10' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
+    if (tableBody) tableBody.innerHTML = "<tr><td colspan='9' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
     return;
   }
   
@@ -3536,10 +3629,9 @@ function renderGapTable() {
   }
   
   tableBody.innerHTML = pageData.map(row => {
-    const anomalyFlags = row.anomalyFlags ? row.anomalyFlags.join(', ') : '';
-    return `<tr class="border-b border-slate-800 hover:bg-slate-800/50 ${row.anomalyFlags && row.anomalyFlags.length > 0 ? 'bg-red-900/20' : ''}">
+    return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
       <td class="py-3 px-4 text-slate-300">${row.time || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.serviceType || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.service || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.status || '-'}</td>
@@ -3547,15 +3639,15 @@ function renderGapTable() {
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4 text-slate-400 text-xs">${anomalyFlags || '-'}</td>
     </tr>`;
   }).join('');
   
   // Update pagination
   const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
-  document.getElementById("gap-pagination-info").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
-  document.getElementById("gap-pagination-prev").disabled = gapCurrentPage <= 1;
-  document.getElementById("gap-pagination-next").disabled = gapCurrentPage >= totalPages;
+  document.getElementById("gap-pagination-info").textContent = `Showing ${start + 1}-${Math.min(end, gapFilteredData.length)} of ${gapFilteredData.length}`;
+  document.getElementById("gap-page-indicator").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
+  document.getElementById("gap-prev-btn").disabled = gapCurrentPage <= 1;
+  document.getElementById("gap-next-btn").disabled = gapCurrentPage >= totalPages;
 }
 
 function renderGapCharts() {
@@ -3564,31 +3656,40 @@ function renderGapCharts() {
   gapFilteredData.forEach(row => {
     if (!row.time) return;
     const date = new Date(row.time);
-    const bucketKey = date.toISOString().slice(0, 13); // Hourly buckets
+    const bucketKey = date.toISOString().slice(0, 13);
     if (!timeBuckets[bucketKey]) {
-      timeBuckets[bucketKey] = { signing: 0, verify: 0, invalid: 0, gap: 0, processing: [] };
+      timeBuckets[bucketKey] = { signingValid: 0, signingInvalid: 0, verifyValid: 0, verifyInvalid: 0, gap: 0, processing: [] };
     }
-    if (row.isSigning) timeBuckets[bucketKey].signing++;
-    if (row.isVerify) timeBuckets[bucketKey].verify++;
-    if (!row.ukValid) timeBuckets[bucketKey].invalid++;
+    if (row.isSigning) {
+      if (row.ukValid) timeBuckets[bucketKey].signingValid++;
+      else timeBuckets[bucketKey].signingInvalid++;
+    }
+    if (row.isVerify) {
+      if (row.ukValid) timeBuckets[bucketKey].verifyValid++;
+      else timeBuckets[bucketKey].verifyInvalid++;
+    }
     timeBuckets[bucketKey].processing.push(row.processingTime);
   });
   
-  Object.keys(timeBuckets).forEach(key => {
-    timeBuckets[key].gap = Math.abs(timeBuckets[key].signing - timeBuckets[key].verify);
-  });
-  
   const labels = Object.keys(timeBuckets).sort();
-  const gaps = labels.map(k => timeBuckets[k].gap);
-  const invalid = labels.map(k => timeBuckets[k].invalid);
-  const signing = labels.map(k => timeBuckets[k].signing);
-  const verification = labels.map(k => timeBuckets[k].verify);
+  const displayLabels = labels.map(k => {
+    const d = new Date(k + ':00:00Z');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCHours() + ':00';
+  });
+  const signingValid = labels.map(k => timeBuckets[k].signingValid);
+  const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
+  const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
+  const verifyInvalid = labels.map(k => timeBuckets[k].verifyInvalid);
+  const gaps = labels.map(k => Math.abs((timeBuckets[k].signingValid + timeBuckets[k].signingInvalid) - (timeBuckets[k].verifyValid + timeBuckets[k].verifyInvalid)));
   const processing = labels.map(k => {
     const arr = timeBuckets[k].processing;
     return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
   });
   
-  gapChartData = { labels, gaps, invalid, signing, verification, processing };
+  const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
+  
+  gapChartData = { labels, gaps, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal };
   
   // Destroy existing charts
   Object.values(gapChartInstances).forEach(chart => {
@@ -3602,7 +3703,7 @@ function renderGapCharts() {
     gapChartInstances.gaps = new Chart(gapsCtx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels: displayLabels,
         datasets: [{
           label: 'Gap Count',
           data: gaps,
@@ -3632,10 +3733,10 @@ function renderGapCharts() {
     gapChartInstances.invalid = new Chart(invalidCtx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels: displayLabels,
         datasets: [{
           label: 'Invalid UK Numbers',
-          data: invalid,
+          data: invalidTotal,
           borderColor: '#f59e0b',
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
           fill: true,
@@ -3662,21 +3763,39 @@ function renderGapCharts() {
     gapChartInstances.volume = new Chart(volumeCtx, {
       type: 'bar',
       data: {
-        labels: labels,
+        labels: displayLabels,
         datasets: [
           {
-            label: 'Signing Requests',
-            data: signing,
+            label: 'Signing (Valid)',
+            data: signingValid,
             backgroundColor: 'rgba(59, 130, 246, 0.7)',
             borderColor: '#3b82f6',
-            borderWidth: 1
+            borderWidth: 1,
+            stack: 'signing'
           },
           {
-            label: 'Verification Requests',
-            data: verification,
+            label: 'Signing (Invalid)',
+            data: signingInvalid,
+            backgroundColor: 'rgba(245, 158, 11, 0.7)',
+            borderColor: '#f59e0b',
+            borderWidth: 1,
+            stack: 'signing'
+          },
+          {
+            label: 'Verification (Valid)',
+            data: verifyValid,
             backgroundColor: 'rgba(16, 185, 129, 0.7)',
             borderColor: '#10b981',
-            borderWidth: 1
+            borderWidth: 1,
+            stack: 'verify'
+          },
+          {
+            label: 'Verification (Invalid)',
+            data: verifyInvalid,
+            backgroundColor: 'rgba(245, 158, 11, 0.7)',
+            borderColor: '#f59e0b',
+            borderWidth: 1,
+            stack: 'verify'
           }
         ]
       },
@@ -3687,8 +3806,8 @@ function renderGapCharts() {
           legend: { display: true, labels: { color: '#94a3b8' } }
         },
         scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+          x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
         }
       }
     });
@@ -3700,7 +3819,7 @@ function renderGapCharts() {
     gapChartInstances.processing = new Chart(procCtx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels: displayLabels,
         datasets: [{
           label: 'Avg Processing Time (ms)',
           data: processing,
@@ -3741,181 +3860,8 @@ function renderGapCharts() {
   }
 }
 
-function detectGapAnomalies() {
-  gapAnomalies = [];
-  
-  if (gapFilteredData.length < 3) return;
-  
-  // Calculate statistics for gap detection
-  const timeBuckets = {};
-  gapFilteredData.forEach(row => {
-    if (!row.time) return;
-    const date = new Date(row.time);
-    const bucketKey = date.toISOString().slice(0, 13);
-    if (!timeBuckets[bucketKey]) {
-      timeBuckets[bucketKey] = { signing: 0, verify: 0, invalid: 0 };
-    }
-    if (row.isSigning) timeBuckets[bucketKey].signing++;
-    if (row.isVerify) timeBuckets[bucketKey].verify++;
-    if (!row.ukValid) timeBuckets[bucketKey].invalid++;
-  });
-  
-  const bucketKeys = Object.keys(timeBuckets).sort();
-  const gaps = bucketKeys.map(k => Math.abs(timeBuckets[k].signing - timeBuckets[k].verify));
-  const invalidCounts = bucketKeys.map(k => timeBuckets[k].invalid);
-  
-  // Calculate mean and std dev for gaps
-  const meanGap = gaps.reduce((a,b) => a+b, 0) / gaps.length;
-  const varianceGap = gaps.reduce((a,b) => a + Math.pow(b - meanGap, 2), 0) / gaps.length;
-  const stdDevGap = Math.sqrt(varianceGap);
-  
-  // Calculate mean and std dev for invalid numbers
-  const meanInvalid = invalidCounts.reduce((a,b) => a+b, 0) / invalidCounts.length;
-  const varianceInvalid = invalidCounts.reduce((a,b) => a + Math.pow(b - meanInvalid, 2), 0) / invalidCounts.length;
-  const stdDevInvalid = Math.sqrt(varianceInvalid);
-  
-  // Detect anomalies (sensitive mode: 1.5 std devs)
-  bucketKeys.forEach((key, idx) => {
-    const bucket = timeBuckets[key];
-    const gap = Math.abs(bucket.signing - bucket.verify);
-    const invalid = bucket.invalid;
-    
-    // Gap spike detection
-    if (stdDevGap > 0 && gap > meanGap + (1.5 * stdDevGap)) {
-      gapAnomalies.push({
-        type: 'Gap Spike',
-        time: key,
-        value: gap,
-        threshold: (meanGap + (1.5 * stdDevGap)).toFixed(1),
-        description: `Gap count ${gap} exceeds normal range (threshold: ${(meanGap + (1.5 * stdDevGap)).toFixed(1)})`
-      });
-      
-      // Flag related rows
-      gapFilteredData.forEach(row => {
-        if (row.time && row.time.startsWith(key)) {
-          if (!row.anomalyFlags) row.anomalyFlags = [];
-          row.anomalyFlags.push('Gap Spike');
-        }
-      });
-    }
-    
-    // Invalid number spike detection
-    if (stdDevInvalid > 0 && invalid > meanInvalid + (1.5 * stdDevInvalid)) {
-      gapAnomalies.push({
-        type: 'Invalid Number Spike',
-        time: key,
-        value: invalid,
-        threshold: (meanInvalid + (1.5 * stdDevInvalid)).toFixed(1),
-        description: `Invalid numbers ${invalid} exceeds normal range (threshold: ${(meanInvalid + (1.5 * stdDevInvalid)).toFixed(1)})`
-      });
-      
-      gapFilteredData.forEach(row => {
-        if (row.time && row.time.startsWith(key) && !row.ukValid) {
-          if (!row.anomalyFlags) row.anomalyFlags = [];
-          row.anomalyFlags.push('Invalid Spike');
-        }
-      });
-    }
-  });
-  
-  // Processing time outliers (>100ms)
-  gapFilteredData.forEach(row => {
-    if (row.processingTime > 100) {
-      gapAnomalies.push({
-        type: 'Processing Time Outlier',
-        time: row.time || 'Unknown',
-        value: row.processingTime,
-        threshold: '100',
-        description: `Processing time ${row.processingTime}ms exceeds 100ms threshold`
-      });
-      if (!row.anomalyFlags) row.anomalyFlags = [];
-      row.anomalyFlags.push('Slow Processing');
-    }
-  });
-  
-  // Update UI
-  const anomalyCount = gapAnomalies.length;
-  document.getElementById("gap-anomalies-count").textContent = anomalyCount;
-  document.getElementById("gap-anomalies-section").style.display = anomalyCount > 0 ? 'block' : 'none';
-  
-  if (anomalyCount > 0) {
-    const anomaliesList = document.getElementById("gap-anomalies-list");
-    anomaliesList.innerHTML = gapAnomalies.slice(0, 5).map(a => 
-      `<div class="p-3 bg-red-900/20 border border-red-800/50 rounded-lg mb-2">
-        <div class="flex items-center justify-between">
-          <span class="text-red-400 font-semibold text-sm">${a.type}</span>
-          <span class="text-slate-400 text-xs">${a.time}</span>
-        </div>
-        <p class="text-slate-300 text-xs mt-1">${a.description}</p>
-      </div>`
-    ).join('');
-    
-    if (anomalyCount > 5) {
-      anomaliesList.innerHTML += `<div class="text-slate-400 text-xs text-center mt-2">...and ${anomalyCount - 5} more anomalies. Refine filters to see details.</div>`;
-    }
-  }
-}
 
-function exportGapData(format) {
-  const modal = document.getElementById('gap-export-modal');
-  if (modal) modal.style.display = 'none';
-  
-  const dataToExport = window.gapExportAllData ? gapData : gapFilteredData;
-  
-  if (format === 'csv') {
-    if (dataToExport.length === 0) {
-      showToast('No data to export', 'error');
-      return;
-    }
-    
-    const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Reason', 'Processing (ms)', 'Customer', 'Source IP', 'Call ID', 'Trace ID', 'UK Valid', 'Anomalies'];
-    const csvRows = [headers.join(',')];
-    
-    dataToExport.forEach(row => {
-      const csvRow = [
-        row.time || '',
-        row.serviceType || '',
-        row.from || '',
-        row.to || '',
-        row.status || '',
-        row.reason || '',
-        row.processingTime || '',
-        row.customer || '',
-        row.sourceIP || '',
-        row.callId || '',
-        row.traceId || '',
-        row.ukValid ? 'Valid' : 'Invalid',
-        row.anomalyFlags ? row.anomalyFlags.join('; ') : ''
-      ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
-      csvRows.push(csvRow);
-    });
-    
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `gap_analyzer_export_${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-    showToast('CSV exported successfully', 'success');
-    
-  } else if (format === 'json') {
-    const jsonContent = JSON.stringify({
-      exportDate: new Date().toISOString(),
-      totalRecords: dataToExport.length,
-      filters: window.gapExportAllData ? 'All Data' : 'Filtered Results',
-      data: dataToExport
-    }, null, 2);
-    
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `gap_analyzer_export_${new Date().toISOString().slice(0,10)}.json`;
-    link.click();
-    showToast('JSON exported successfully', 'success');
-  }
-}
-
-function showGapExportModal() {
+function openGapExportModal() {
   const modal = document.getElementById('gap-export-modal');
   if (modal) modal.style.display = 'flex';
 }
@@ -3925,12 +3871,57 @@ function closeGapExportModal() {
   if (modal) modal.style.display = 'none';
 }
 
-function setGapExportOption(allData) {
-  window.gapExportAllData = allData;
+function confirmGapExport(scope) {
+  window.gapExportAllData = (scope === 'all');
   closeGapExportModal();
-  setTimeout(() => {
-    exportGapData(document.getElementById('gap-export-format').value || 'csv');
-  }, 100);
+  setTimeout(exportGapData, 100);
+}
+
+function exportGapData() {
+  const dataToExport = window.gapExportAllData ? gapData : gapFilteredData;
+  
+  if (dataToExport.length === 0) {
+    showToast('No data to export', true);
+    return;
+  }
+  
+  const total = dataToExport.length;
+  const signing = dataToExport.filter(d => d.isSigning).length;
+  const verify = dataToExport.filter(d => d.isVerify).length;
+  const gap = Math.abs(signing - verify);
+  const invalid = dataToExport.filter(d => !d.ukValid).length;
+  const outliers = dataToExport.filter(d => d.processingTime > 100).length;
+  
+  const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid'];
+  const csvRows = [
+    'Total Records,Signing,Verification,Gap,Invalid UK Numbers,Processing Time Outliers',
+    [total, signing, verify, gap, invalid, outliers].join(','),
+    '',
+    headers.join(',')
+  ];
+  
+  dataToExport.forEach(row => {
+    const csvRow = [
+      row.time || '',
+      row.service || '',
+      row.from || '',
+      row.to || '',
+      row.status || '',
+      row.customer || '',
+      row.sourceIP || '',
+      row.processingTime || '',
+      row.ukValid ? 'Valid' : 'Invalid'
+    ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+    csvRows.push(csvRow);
+  });
+  
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `gap_analyzer_export_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  showToast('CSV exported \u00b7 ' + total + ' records');
 }
 
 function handleGapSort(column) {
@@ -3957,6 +3948,23 @@ function changeGapRowsPerPage(value) {
   gapRowsPerPage = parseInt(value) || 25;
   gapCurrentPage = 1;
   renderGapTable();
+}
+
+function drillDownGap(type) {
+  var serviceFilter = document.getElementById('gap-filter-service');
+  var validationFilter = document.getElementById('gap-filter-validation');
+  var procMin = document.getElementById('gap-filter-proc-min');
+  var procMax = document.getElementById('gap-filter-proc-max');
+  serviceFilter.value = 'all';
+  validationFilter.value = 'all';
+  procMin.value = '';
+  procMax.value = '';
+  if (type === 'signing') { serviceFilter.value = 'signing'; }
+  else if (type === 'verify') { serviceFilter.value = 'verify'; }
+  else if (type === 'invalid') { validationFilter.value = 'invalid'; }
+  else if (type === 'outliers') { procMin.value = '100'; }
+  applyGapFilters();
+  document.getElementById('gap-dashboard').scrollIntoView({ behavior: 'smooth' });
 }
 
 
