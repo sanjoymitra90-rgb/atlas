@@ -3373,14 +3373,17 @@ let gapChartData = { labels: [], gaps: [], signingValid: [], signingInvalid: [],
 let gapChartInstances = {};
 
 function parseGapCSV(text) {
-  if (!text) return [];
+  if (!text) return { headers: [], rows: [], errors: [] };
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rows = [];
+  const errors = [];
+  let lineNum = 1;
   let current = [];
   let field = '';
   let i = 0;
   let inQuoted = false;
   let quoteSeen = false;
+  let rowStartLine = 1;
   while (i < text.length) {
     const ch = text[i];
     if (quoteSeen) {
@@ -3399,6 +3402,7 @@ function parseGapCSV(text) {
         field = '';
         inQuoted = false;
         quoteSeen = false;
+        lineNum++;
         if (i + 1 < text.length && text[i + 1] === '\n') i++;
       } else if (ch === '\n') {
         current.push(field.trim());
@@ -3407,6 +3411,7 @@ function parseGapCSV(text) {
         field = '';
         inQuoted = false;
         quoteSeen = false;
+        lineNum++;
       } else {
         inQuoted = true;
         quoteSeen = false;
@@ -3427,14 +3432,20 @@ function parseGapCSV(text) {
       } else if (ch === '\r') {
         current.push(field.trim());
         if (current.length > 0 && current.some(f => f !== '')) rows.push(current);
+        else if (current.length > 0) errors.push({ line: rowStartLine, reason: 'empty row' });
         current = [];
         field = '';
+        lineNum++;
+        rowStartLine = lineNum;
         if (i + 1 < text.length && text[i + 1] === '\n') i++;
       } else if (ch === '\n') {
         current.push(field.trim());
         if (current.length > 0 && current.some(f => f !== '')) rows.push(current);
+        else if (current.length > 0) errors.push({ line: rowStartLine, reason: 'empty row' });
         current = [];
         field = '';
+        lineNum++;
+        rowStartLine = lineNum;
       } else {
         field += ch;
       }
@@ -3444,10 +3455,16 @@ function parseGapCSV(text) {
   if (field.length > 0 || current.length > 0) {
     current.push(field.trim());
     if (current.length > 0 && current.some(f => f !== '')) rows.push(current);
+    else if (current.length > 0) errors.push({ line: rowStartLine, reason: 'empty row' });
   }
-  if (rows.length === 0) return [];
+  if (rows.length === 0) return { headers: [], rows: [], errors };
   const maxCols = rows.reduce((m, r) => Math.max(m, r.length), 0);
-  return rows.map(r => { while (r.length < maxCols) r.push(''); return r; });
+  rows.forEach((r, idx) => {
+    const origLen = r.length;
+    while (r.length < maxCols) r.push('');
+    if (origLen < maxCols) errors.push({ line: idx + 1, reason: `short row (${origLen}/${maxCols} columns)` });
+  });
+  return { headers: rows[0], rows: rows.slice(1), errors };
 }
 
 function readGapFile(file) {
@@ -3456,15 +3473,15 @@ function readGapFile(file) {
   reader.onload = function(e) {
     try {
       const text = e.target.result;
-      const rows = parseGapCSV(text);
-      if (rows.length < 2) { showToast('CSV file appears to be empty or invalid.', true); return; }
-      gapRawHeaders = rows[0];
-      gapRawData = [];
-      for (let i = 1; i < rows.length; i++) {
+      const result = parseGapCSV(text);
+      if (result.rows.length < 1 && result.headers.length < 2) { showToast('CSV file appears to be empty or invalid.', true); return; }
+      gapRawHeaders = result.headers;
+      gapRawData = result.rows.map(r => {
         const row = {};
-        gapRawHeaders.forEach((header, idx) => { row[header] = rows[i][idx] || ''; });
-        gapRawData.push(row);
-      }
+        gapRawHeaders.forEach((header, idx) => { row[header] = r[idx] || ''; });
+        return row;
+      });
+      if (result.errors.length > 0) window.gapParseErrors = result.errors;
       if (gapRawData.length === 0) { showToast('No data rows found in CSV file.', true); return; }
       openGapSettings(gapRawHeaders);
     } catch (err) { console.error('CSV parse error:', err); showToast('Failed to parse CSV file.', true); }
@@ -3555,6 +3572,7 @@ function confirmGapColumnMapping() {
 
 function processGapData() {
   try {
+  window.gapParseErrors = [];
   gapData = gapRawData.map(row => {
     const procTime = parseFloat(row[gapColumnMapping.processingTime]) || 0;
     const rawToNumber = row[gapColumnMapping.to] || "";
@@ -3591,7 +3609,11 @@ function processGapData() {
   const _s = gapData.filter(d => d.isSigning).length;
   const _v = gapData.filter(d => d.isVerify).length;
   const _i = gapData.filter(d => !d.ukValid).length;
-  showToast(gapData.length + " records analyzed \u00b7 " + _s + " signing, " + _v + " verify" + (_i > 0 ? ", " + _i + " invalid" : ""));
+  const _e = (window.gapParseErrors || []).length;
+  let msg = gapData.length + " records analyzed \u00b7 " + _s + " signing, " + _v + " verify";
+  if (_i > 0) msg += ", " + _i + " invalid";
+  if (_e > 0) msg += " \u00b7 " + _e + " skipped";
+  showToast(msg);
   } catch(e) { console.error("processGapData error:", e); showToast("Error processing data: " + e.message, true); }
 }
 
