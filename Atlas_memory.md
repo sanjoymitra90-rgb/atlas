@@ -156,7 +156,7 @@ Every notable decision made during development. If you are unsure whether a beha
 35. **Sort-at-render pattern** — `renderGapTable()` sorts `[...gapFilteredData]` (shallow copy); source array is never mutated.
 36. **Shared upload path** — both file picker and drag-and-drop call `readGapFile(file)` then `handleGapCSVUpload(text)`.
 37. **Drag-and-drop upload zone** — violet glow feedback on drag, CSV MIME/extension validation, both picker and drop feed into the same parser.
-38. **Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. Pure 10-digit string → epoch seconds (×1000); pure 13-digit string → epoch ms; otherwise `new Date()`. Rows with invalid timestamps remain in `gapFilteredData` (count in tiles, appear in table with amber icon) but are excluded from time-bucketed charts. Invalid timestamps always sort to the bottom of the table regardless of sort direction.
+38. **Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. Pure 10-digit string → epoch seconds (×1000); pure 13-digit string → epoch ms; otherwise `new Date()`. Rows with invalid timestamps remain in `gapFilteredData` (count in tiles, appear in table with amber icon). In charts, invalid-time rows are assigned to an explicit **"Unknown"** bucket (always last), never excluded — chart bucket totals must equal tile totals. Invalid timestamps always sort to the bottom of the table regardless of sort direction.
 39. **Signed directional gap** — Gap Count tile shows signed value (`+3`, `−2`, `0`) with dynamic caption: positive → "missing verifications" (red), negative → "unsigned verifications" (amber), zero → "balanced". Gaps Over Time chart is a bar chart: red bars above zero, amber below, with a dashed slate zero baseline via the annotation plugin.
 40. **Invalid-reason breakdown panel** — full-width slim panel below the metrics grid, visible only when filtered invalid count > 0. Shows clickable chips (e.g. `sequential run ×3`) derived from `gapReasonBucket()` — a display-layer keyword mapping over existing `ukValidationReason` strings. Chips set `gapInvalidReason` global + UK-validation filter to "Invalid"; clicking active chip clears. `resetGapFilters()` and manual validation-dropdown changes also clear it.
 41. **Epoch 10/13-digit handling** — EDR exports sometimes emit epoch seconds (10 digits) or epoch milliseconds (13 digits). Both are detected by regex and converted to ms timestamps, avoiding `new Date(numericString)` ambiguity.
@@ -260,11 +260,11 @@ Every notable decision made during development. If you are unsure whether a beha
 - `from` numbers are normalized but never validated (they are assumed to be internal/valid).
 - Per-row results: `ukValid` (bool) + `ukValidationReason` (string). Rendered as green "Valid" / red "Invalid" pill.
 
-### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render — only timeValid rows bucketed)
+### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows in "Unknown" bucket, always last)
 1. Gaps Over Time — signed bar chart (signing − verify per hour); red above zero, amber below; dashed zero baseline via annotation plugin.
 2. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid).
 3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks.
-4. Processing Time Distribution — violet line (per-hour average) with a 100ms dashed threshold annotation (plugin loaded).
+4. Processing Time Distribution — violet line (per-hour average) with a 100ms dashed threshold annotation (plugin loaded); y-axis `suggestedMax: 100` so the line is visible when averages fall below 100ms.
 
 ### Table & export
 - 9 sortable columns; default sort time desc; pagination 25/50/100 (default 25).
@@ -321,6 +321,11 @@ Every notable decision made during development. If you are unsure whether a beha
 - **Task 1: Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. 10-digit → epoch seconds, 13-digit → epoch ms, otherwise `new Date()`. Invalid timestamps: counted in tiles, excluded from time-bucketed charts, amber icon in table, sort to bottom. Summary toast appends "· N unparseable timestamp(s)".
 - **Task 2: Signed directional gap** — Gap Count tile shows signed value with dynamic caption (positive = "missing verifications", negative = "unsigned verifications", zero = "balanced"). Gaps Over Time converted from line to bar chart: red above zero, amber below, dashed zero baseline via annotation plugin. Subtitle added.
 - **Task 3: Invalid-reason breakdown** — `gapReasonBucket()` maps `ukValidationReason` strings to six buckets via keyword matching. Full-width panel below metrics grid with clickable chips; sets `gapInvalidReason` global for filtering. Export CSV includes breakdown line. Help drawer updated.
+
+### Phase 2A hotfixes
+- **H3: Unknown time bucket** — invalid-time rows now go to an explicit "Unknown" bucket (always last) in all four charts instead of being excluded. Chart bucket totals must equal tile totals.
+- **H4: 100ms threshold visibility** — Processing Time chart y-axis `suggestedMax: 100` ensures the dashed annotation line is visible when all averages fall below 100ms.
+- **H5: Net vs. per-hour labeling** — Gap Count tile caption appends "net" (e.g. "−1 net · unsigned verifications"); Gaps Over Time subtitle prefixed with "Per hour:".
 
 ## 12. Known Limitations & Gotchas
 

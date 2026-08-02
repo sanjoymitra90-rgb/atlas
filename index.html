@@ -858,7 +858,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-1"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
-          <p class="text-[10px] text-slate-500 mb-4">Positive = missing verifications &middot; Negative = unsigned verifications</p>
+          <p class="text-[10px] text-slate-500 mb-4">Per hour: Positive = missing verifications &middot; Negative = unsigned verifications</p>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-gaps"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
@@ -3768,10 +3768,10 @@ function updateGapMetrics() {
   document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
   const gapTile = document.getElementById("gap-metric-gap").closest('.bg-slate-900\\/50');
   if (signedGap > 0) {
-    document.getElementById("gap-metric-gap-desc").textContent = "missing verifications";
+    document.getElementById("gap-metric-gap-desc").textContent = signedGap + " net \u00b7 missing verifications";
     if (gapTile) { gapTile.classList.remove('hover:border-amber-500/50'); gapTile.classList.add('hover:border-red-500/50'); }
   } else if (signedGap < 0) {
-    document.getElementById("gap-metric-gap-desc").textContent = "unsigned verifications";
+    document.getElementById("gap-metric-gap-desc").textContent = signedGap + " net \u00b7 unsigned verifications";
     if (gapTile) { gapTile.classList.remove('hover:border-red-500/50'); gapTile.classList.add('hover:border-amber-500/50'); }
   } else {
     document.getElementById("gap-metric-gap-desc").textContent = "balanced";
@@ -3861,9 +3861,13 @@ function renderGapTable() {
 function renderGapCharts() {
   const timeBuckets = {};
   gapFilteredData.forEach(row => {
-    if (!row.timeValid || !row.timestamp) return;
-    const d = new Date(row.timestamp);
-    const bucketKey = d.toISOString().slice(0, 13);
+    let bucketKey;
+    if (!row.timeValid || !row.timestamp) {
+      bucketKey = '__unknown__';
+    } else {
+      const d = new Date(row.timestamp);
+      bucketKey = d.toISOString().slice(0, 13);
+    }
     if (!timeBuckets[bucketKey]) {
       timeBuckets[bucketKey] = { signingValid: 0, signingInvalid: 0, verifyValid: 0, verifyInvalid: 0, processing: [] };
     }
@@ -3878,8 +3882,10 @@ function renderGapCharts() {
     timeBuckets[bucketKey].processing.push(row.processingTime);
   });
   
-  const labels = Object.keys(timeBuckets).sort();
+  const knownKeys = Object.keys(timeBuckets).filter(k => k !== '__unknown__').sort();
+  const labels = timeBuckets['__unknown__'] ? knownKeys.concat(['__unknown__']) : knownKeys;
   const displayLabels = labels.map(k => {
+    if (k === '__unknown__') return 'Unknown';
     const d = new Date(k + ':00:00Z');
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCHours() + ':00';
@@ -4050,26 +4056,27 @@ function renderGapCharts() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } }
+          legend: { display: true, labels: { color: '#94a3b8' } },
+          annotation: {
+            annotations: {
+              line1: {
+                type: 'line',
+                yMin: 100,
+                yMax: 100,
+                borderColor: '#ef4444',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                label: { content: '100ms Threshold', enabled: true, position: 'end' }
+              }
+            }
+          }
         },
         scales: {
           x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
           y: { 
             ticks: { color: '#64748b' }, 
             grid: { color: '#1e293b' },
-            annotation: {
-              annotations: {
-                line1: {
-                  type: 'line',
-                  yMin: 100,
-                  yMax: 100,
-                  borderColor: '#ef4444',
-                  borderWidth: 2,
-                  borderDash: [5, 5],
-                  label: { content: '100ms Threshold', enabled: true, position: 'end' }
-                }
-              }
-            }
+            suggestedMax: 100
           }
         }
       }
