@@ -1,0 +1,24 @@
+{
+  "name": "qwen-test-atlas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanjoymitra90-rgb/qwen-test-atlas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sanjoymitra90-rgb/qwen-test-atlas/issues"
+  },
+  "homepage": "https://github.com/sanjoymitra90-rgb/qwen-test-atlas#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}

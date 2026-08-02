@@ -105,6 +105,9 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | 1358–1790 | Onboarding logic (Gantt engine, financials) |
 | 1792–3366 | Help drawer logic, Optimizer logic (constants, maps, coverage algorithm, import/export) |
 | 3368–4203 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
+| — | `playwright.config.js` — Playwright e2e config |
+| — | `e2e/helpers.js` — test helpers (openGapAnalyzer, uploadAndAnalyze, tileText) |
+| — | `e2e/gap.spec.js` — Gap Analyzer e2e specs |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -365,11 +368,19 @@ Every notable decision made during development. If you are unsure whether a beha
 - **Task 4: Configurable pairing window** — number input in Settings modal; `handleGapPairWindowChange()` re-runs `pairGapCalls()` and re-renders panel + table. Persists for session.
 - **Task 5: Export + help** — CSV export includes pairStatus, pairId, timeToVerify columns + pairing summary line. Help drawer gains Call Pairing section (heuristic explained, algorithm, statuses, window). Dashboard Metrics section updated to reference pairing panel.
 
+### Playwright e2e testing setup
+- Added `data-testid` attributes to 17 elements in `index.html` (gateway launch, upload zone, privacy note, file input, analyze button, settings button/modal, threshold input, 7 metric tile values, service filter, filtered strip, table, bucket chip, reset button).
+- Scaffolded `playwright.config.js` (chromium, 1440×900, headless, list reporter).
+- Created `e2e/helpers.js` (openGapAnalyzer, uploadAndAnalyze, tileText).
+- Created `e2e/gap.spec.js` with 5 specs: P2.5 privacy, core tiles, P2.4 filtered strip, P2.6 threshold, P2.3 bucket drill-through.
+- Selector fix: privacy note assertion changed from "never leaves" to "never sent" to match actual HTML text.
+- All 5 tests pass. Test suite is dev tooling alongside the single-file app.
+
 ## 12. Known Limitations & Gotchas
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling.
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)
