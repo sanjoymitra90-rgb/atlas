@@ -30,7 +30,7 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
     const input = page.getByTestId('gap-group-toggle');
     const track = page.locator('.gap-switch-track');
     await expect(track).toBeVisible();
-    await expect(input).toHaveAttribute('class', /sr-only/);
+    await expect(input).toHaveAttribute('class', /gap-switch-input/);
     // Before toggle: knob at default position
     const beforeTransform = await track.evaluate(el => getComputedStyle(el, '::after').transform);
     // Click track to toggle on
