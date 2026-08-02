@@ -152,7 +152,7 @@ Every notable decision made during development. If you are unsure whether a beha
 31. **Descriptive toasts** — e.g. `"12 records analyzed · 6 signing, 6 verify"` and `"CSV exported · 12 records"` instead of generic confirmations.
 32. **9-column aligned table** with native `title` tooltip on UK Valid (custom hover divs clip inside `overflow-hidden` tables).
 33. **RFC-4180 single-pass CSV parser** — handles quoted commas, quoted newlines, CRLF, BOM, `""` escape, empty rows, and short-row padding. Returns `{headers, rows, errors, meta}`.
-34. **Case-insensitive service classification** — `isSigning`/`isVerify` derived from lowercased service value; display string preserved as-is.
+34. **Case-insensitive service classification** — `isSigning` derived via `svc.includes('signing')`, `isVerify` via `svc.includes('verif')` (stem match covers verify/verification/verified); display string preserved as-is.
 35. **Sort-at-render pattern** — `renderGapTable()` sorts `[...gapFilteredData]` (shallow copy); source array is never mutated.
 36. **Shared upload path** — both file picker and drag-and-drop call `readGapFile(file)` then `handleGapCSVUpload(text)`.
 37. **Drag-and-drop upload zone** — violet glow feedback on drag, CSV MIME/extension validation, both picker and drop feed into the same parser.
@@ -238,7 +238,7 @@ Every notable decision made during development. If you are unsure whether a beha
 ### Pipeline
 1. `handleGapCSVUpload` or drag-and-drop → calls `readGapFile(file)` → `parseGapCSV(text)` (single-pass state machine: BOM strip, quoted commas/newlines, CRLF, empty rows, short-row padding). Returns `{headers, rows, errors, meta}`.
 2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to.
-3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verify")` on lowercased value (display string preserved), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast.
+3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast.
 4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max. Metrics/table recompute from `gapFilteredData`.
 5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset.
 
@@ -299,6 +299,9 @@ Every notable decision made during development. If you are unsure whether a beha
 - **T5: Non-mutating sort** — `renderGapTable()` sorts `[...gapFilteredData]` (shallow copy) instead of mutating `gapFilteredData` in place.
 - **T6: Drag-and-drop upload** — upload zone accepts drag-and-drop with violet glow visual feedback. Both picker and drop call `readGapFile()` → `handleGapCSVUpload()`. CSV MIME/extension validation added.
 - **T7: Skip link fix** — `showModule()` assigns `id="main-content"` on the active module element and removes it from others. All module roots have `tabindex="-1"`. `role="main"` removed from gateway.
+
+### Phase 1 hotfixes
+- **H1: Verification predicate widened** — `isVerify` changed from `svc.includes('verify')` to `svc.includes('verif')` (stem match). `'verification'.includes('verify')` is false (`"ication"` ≠ `"y"`); `'verification'.includes('verif')` is true. Fixes `Verification` service value being uncounted.
 
 ## 12. Known Limitations & Gotchas
 
