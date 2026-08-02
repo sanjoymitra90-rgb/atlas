@@ -70,7 +70,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 - **Configurable thresholds** — Settings modal: processing-time threshold (default 100ms) and pairing window (default 1000ms). Both live-update on change.
 - **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, processing-time min/max, and **pair status** (Paired / Signed not verified / Verified not signed / Unpairable); one-click **Reset All**. Chart drill-through sets a **bucket filter**.
 - **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time, Invalid Numbers Over Time, Signing vs Verification Volume, Processing Time Distribution. All charts are **clickable** for drill-through.
-- **Data table** — 10 sortable columns (including Pair Status), pagination (25/50/100 per page), showing/indicator controls.
+- **Data table** — 10 sortable columns (including Pair Status), pagination (25/50/100 per page), showing/indicator controls. Paired pills display pair ID (e.g. `P3 · Paired`). Hover a row to cross-highlight its partner (violet ring) and dim others; off-page partners noted in tooltip. **Group by pair** sliding switch groups rows by pair for contiguous rendering with luminance zebra banding. Page-size label switches to "Groups per page" when grouped.
 - **Export** — modal with **Filtered** vs **All** scope; CSV includes metrics summary, invalid-reason breakdown, pairing summary, and full data rows with pair status/ID/time-to-verify columns.
 
 ## 3. Tech Stack (CDN, No Build)
@@ -109,6 +109,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | — | `e2e/helpers.js` — test helpers (openGapAnalyzer, uploadAndAnalyze, tileText) |
 | — | `e2e/gap.spec.js` — Gap Analyzer e2e specs (P2.3–P2.6) |
 | — | `e2e/gap-phase3.spec.js` — Phase 3 event pairing e2e specs (6 specs) |
+| — | `e2e/gap-phase4.spec.js` — Phase 4 layout + pair legibility + banding + switch e2e specs (9 specs) |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -188,6 +189,10 @@ Every notable decision made during development. If you are unsure whether a beha
 55. **Unpairable rows** — rows with `timeValid === false` that are signing or verify are marked `pairStatus = 'unpairable'`. They cannot participate in pairing (no timestamp to compare).
 56. **Pair Status filter** — dropdown in the filter bar; `applyGapFilters()` checks `pairFilter`. `resetGapFilters()` and `drillDownGap()` clear it. `drillDownPair(status)` sets the filter directly.
 57. **Median convention** — `timeToVerifyMedian` uses the upper-middle value for even-count samples (e.g. `[400,500,600,1500]` → `600`, not `550`). This is the "ceil" median, not the standard statistical median (average of the two middle values). Chosen because pairing is last-in-wins and verification times are discrete integer milliseconds; the upper-middle avoids averaging a near-miss outlier into the median.
+58. **Group-by-pair** — a render-layer over `gapFilteredData`. Toggled by a switch in the table header. When on, rows are grouped by pair ID (paired rows share a group, orphans are solo). Groups are paginated (page size applies to groups, not rows); indicator reads `A–B of G groups (R rows)`. The page-size label switches from "Rows per page" to "Groups per page" (with tooltip explaining what a group is). Sorting while grouped sorts groups by the representative row's column value (representative = signing row if present, else first row). Toggling resets `gapCurrentPage = 1`.
+59. **Banding (luminance zebra + seams)** — Groups alternate between transparent and `rgba(148,163,184,0.05)` (`gap-group-alt` class). Each group's first row (except the very first) gets a seam (`border-top: 1px solid rgba(71,85,85,0.55)` via `gap-group-seam`). No coloured spines — row banding alone provides structure. Banding is presentation-only; export unchanged.
+60. **Group-by-pair switch** — visually-hidden checkbox (`sr-only`, never visible) driving a styled track+knob (`gap-switch-track` + `::after` pseudo-element). Knob slides via `translateX(16px)` on `:checked`; track turns violet. Focus-visible ring on keyboard tab. Native checkbox never rendered as a visible control.
+60. **Hover cross-highlight** — event delegation on `tbody` using `mouseover`/`mouseout`. Hovering a paired row adds `gap-pair-highlight` to its partner and `gap-pair-dim` to all other rows. If the partner is not on the current page, no dim is applied; the pill tooltip shows `(partner on page N)`. Orphan rows do nothing on hover.
 
 ## 6. Code Conventions (required for new code)
 
@@ -269,6 +274,11 @@ Every notable decision made during development. If you are unsure whether a beha
 6. `drillDownPair(status)` — sets `gapPairFilter` to the given status (or toggles off). Clears other filters. Scrolls to table.
 7. `gapReasonBucket(reason)` — display-layer keyword mapping from `ukValidationReason` strings to six buckets: `empty`, `not +44`, `wrong length`, `identical digits`, `sequential run`, `bad prefix`. Anything unmatched → `other`.
 8. `gapInvalidReason` — global set by breakdown-panel chip clicks; consulted in `applyGapFilters()` to filter rows by reason bucket. Cleared by `resetGapFilters()`, `drillDownGap()`, and manual validation-dropdown changes.
+9. **`row._gapIdx`** — assigned once in `processGapData()` as the row's index in `gapData`. Stable across renders; used for orphan group keys (`g-o-{_gapIdx}`) and partner page lookups.
+10. **`data-pair-group`** — attribute on every `<tr>` in grouped mode. Paired rows → `"g-" + pairId`; orphan rows → `"g-o-" + row._gapIdx`. Used by tests and banding logic.
+11. **Representative-row rule** — when sorting groups, the representative is the row with `isSigning === true` if present, else the group's first row. The verify leg never drives sort order.
+12. **Banding** — `gap-group-alt` class applies `rgba(148,163,184,0.05)` zebra on alternating groups; `gap-group-seam` applies `border-top` on first row of each group (except the first). No coloured spines. Group-by-pair switch uses `gap-switch-input sr-only` (visually hidden checkbox) + `gap-switch-track` (styled track) with `::after` pseudo-element knob that slides via `translateX(16px)` on `:checked`. Track turns violet when checked; focus-visible ring for keyboard access.
+13. **Hover classes** — `gap-pair-highlight` (violet ring + raised bg) and `gap-pair-dim` (opacity 0.45). Applied via `mouseover`/`mouseout` event delegation on `tbody`. `initGapHoverHighlight()` is called once in `processGapData()`.
 
 ### UK validation (exact rules — do not change without user sign-off)
 - `normalizePhoneNumber(value)`: `E+` scientific → full integer; `/^44\d{9,10}$/` → prepend `+`; strip spaces/dashes/parens.
@@ -389,11 +399,36 @@ Every notable decision made during development. If you are unsure whether a beha
 ### Pairing window calibration
 - Pairing window calibrated against real EDR (41 calls / 82 events): 500ms = 49.1% (resolution artifact), 1000ms = 100%. Default 1000ms confirmed; no longer provisional.
 
+### Phase 4 — Layout, pair legibility, median clarity
+- **Task 0**: Verified help prefix (already 1,2,3,7,8), privacy text (already synced), median convention (already documented). All pre-existing from earlier sessions.
+- **Task 1**: Widened all three module workspaces to `max-w-[1680px]` (Optimizer: was `max-w-6xl`, Onboarding: was `max-w-[1600px]`, Gap Analyzer: was `max-w-7xl`). Gateway card grid left centered.
+- **Task 2**: Added `title` tooltip and `signing → verification handoff` caption to the time-to-verify tile.
+- **Task 3**: Paired pills now show `P{N} · Paired` with `data-pair-id="{pairId}"`. Orphan pills unchanged.
+- **Task 4**: Hover cross-highlight via `mouseover`/`mouseout` delegation on `tbody`. Partner row gets `gap-pair-highlight`, others get `gap-pair-dim`. Off-page partner shows `(partner on page N)` in tooltip.
+- **Task 5**: Group-by-pair toggle (`gapGroupMode`) with `data-pair-group` keys. Group pagination (`Showing A–B of G groups (R rows)`), representative-row sort, Okabe–Ito banding (8 hues + neutral orphans).
+- **Task 6**: Help drawer Data Table section updated. Memory doc §2.4, §5.58–60, §9.9–13 updated.
+- **Task 7**: `e2e/gap-phase4.spec.js` with 6 specs: workspace width, TTV tooltip, pair ID pills, grouping (9 groups), grouped sort monotonicity, hover highlight. All 17 tests pass.
+
+### Banding visual rework (dark-theme tuning)
+- Removed per-group hue-tinted row backgrounds. Replaced with luminance zebra (`gap-group-alt` on alternating groups) + seam (`gap-group-seam` on first row of each group).
+- Paired spines now use `GAP_GROUP_PALETTE` inline `border-left-color`; orphan spines use `#64748b` slate.
+- Hover highlight updated: `outline: 1px solid rgba(167,139,250,0.7)` + `background: rgba(139,92,246,0.10)` (no bright fills).
+- Added banding visual spec to `e2e/gap-phase4.spec.js`: asserts palette spine colors for paired rows, slate for orphans, alternating `gap-group-alt`, adjacent-paired-different-colors. All 18 tests pass.
+
+### Page-size label honesty in group mode
+- Wrapped "Rows per page" label in `data-testid="gap-pagesize-label"` span. `toggleGapGroupMode` switches text to "Groups per page:" (with tooltip) when on, reverts to "Rows per page:" when off.
+- Added Playwright spec asserting label text toggles correctly. All 19 tests pass.
+
+### Switch rework + spine removal
+- Rebuilt "Group by pair" as a real sliding switch: `sr-only` checkbox + `gap-switch-track` with `::after` knob that slides via `translateX(16px)` on `:checked`. Track turns violet when on; focus-visible ring for keyboard. Deleted old non-sliding toggle markup.
+- Removed all left-border spines: deleted `GAP_GROUP_PALETTE`, `.gap-spine` class, and inline `style="border-left-color:..."` from `<tr>`. Zebra (`gap-group-alt`) + seams (`gap-group-seam`) remain.
+- Rewrote banding Playwright spec: asserts no inline `border-left-color`, alt-zebra alternation, 9 groups with correct sizes, switch knob slides. All 20 tests pass.
+
 ## 12. Known Limitations & Gotchas
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6 and Phase 3 pairing (11 specs total).
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, and Phase 4 layout/pair legibility + banding + page-size label + switch (20 specs total).
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)

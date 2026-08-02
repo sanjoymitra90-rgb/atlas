@@ -302,6 +302,22 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 .help-callout.success { border-left-color: #10b981; }
 .callout-title { font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
 
+/* Pair hover cross-highlight */
+tr.gap-pair-highlight { outline: 1px solid rgba(167,139,250,0.7); background: rgba(139,92,246,0.10) !important; }
+tr.gap-pair-dim { opacity: 0.45; }
+
+/* Group-by banding: luminance zebra + seams */
+.gap-group-alt { background: rgba(148,163,184,0.05); }
+.gap-group-seam { border-top: 1px solid rgba(71,85,85,0.55); }
+
+/* Group-by-pair switch */
+.gap-switch-track { position: relative; display: inline-block; width: 36px; height: 20px;
+  border-radius: 9999px; background: #334155; transition: background-color .2s ease; }
+.gap-switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: 9999px; background: #e2e8f0; transition: transform .2s ease; }
+.gap-switch-input:checked + .gap-switch-track { background: #8b5cf6; }
+.gap-switch-input:checked + .gap-switch-track::after { transform: translateX(16px); }
+.gap-switch-input:focus-visible + .gap-switch-track { outline: 2px solid #a78bfa; outline-offset: 2px; }
 </style>
 
 <!-- ARIA Live Region for Screen Reader Announcements -->
@@ -408,7 +424,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('optimizer')"><i class="fas fa-book-open text-emerald-400"></i><span class="hidden sm:inline">Guide</span></button>
     </div>
   </header>
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+  <main class="max-w-[1680px] mx-auto px-4 sm:px-6 py-8">
     <div class="flex items-center justify-center mb-10 px-4 overflow-x-auto pb-2">
       <div class="flex items-center gap-0 w-full min-w-[300px] sm:min-w-0 sm:max-w-2xl">
         <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(1)" id="step-ind-1"><div class="step-dot active"><i class="fas fa-server text-sm"></i></div><span class="text-xs font-medium accent step-text">Current Footprint</span></div>
@@ -694,7 +710,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
     </div>
   </div>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1">
+  <main class="max-w-[1680px] mx-auto px-4 sm:px-6 py-8 flex-1" data-testid="gap-workspace">
     <!-- Upload Prompt (shown when no data loaded) -->
     <div id="gap-upload-prompt" class="text-center py-20" data-testid="gap-upload-prompt">
       <div id="gap-drop-zone" class="w-full max-w-lg mx-auto rounded-2xl border-2 border-dashed border-slate-700 p-12 transition-all cursor-pointer hover:border-violet-500/60 hover:bg-violet-500/5"
@@ -900,8 +916,9 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
             <div class="text-xs text-slate-400 mt-1">Unpairable</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
-            <div class="text-lg font-bold text-white" id="gap-pair-ttv" data-testid="gap-pair-ttv">-</div>
+            <div class="text-lg font-bold text-white" id="gap-pair-ttv" data-testid="gap-pair-ttv" title="Milliseconds between each signing and its matched verification. Median = a typical call; p95 = the slowest 5%. Use this to calibrate the pairing window in Settings.">-</div>
             <div class="text-xs text-slate-400 mt-1">Time to verify</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">signing &rarr; verification handoff</div>
           </div>
         </div>
         <div class="text-xs text-slate-500 bg-slate-800/30 rounded-lg px-3 py-2" id="gap-pair-correlation" data-testid="gap-pair-correlation"></div>
@@ -939,12 +956,18 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <div class="p-5 border-b border-slate-800 flex items-center justify-between flex-wrap gap-4">
           <h3 class="text-sm font-semibold text-white"><i class="fas fa-table text-violet-400 mr-2"></i>Call Data</h3>
           <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400">Rows per page:</span>
+            <span class="text-xs text-slate-400" id="gap-pagesize-label" data-testid="gap-pagesize-label">Rows per page:</span>
             <select id="gap-rows-per-page" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" onchange="changeGapRowsPerPage(this.value)">
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
             </select>
+            <label class="flex items-center gap-2 ml-3 cursor-pointer select-none">
+              <input type="checkbox" id="gap-group-toggle" data-testid="gap-group-toggle"
+                     class="gap-switch-input sr-only" onchange="toggleGapGroupMode()" aria-label="Group by pair">
+              <span class="gap-switch-track" aria-hidden="true"></span>
+              <span class="text-xs text-slate-400">Group by pair</span>
+            </label>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -1028,7 +1051,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
     </div>
   </header>
   
-  <main class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
     <!-- Top Ribbon Dashboard -->
     <div class="glass rounded-2xl p-5 mb-6 shadow-xl border border-slate-700/60 flex flex-col lg:flex-row gap-6 justify-between items-center bg-gradient-to-br from-slate-900/90 to-slate-800/80">
@@ -1337,6 +1360,11 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       <section class="help-section" id="gap-table">
         <h3><i class="fas fa-table text-amber-400"></i> Data Table</h3>
         <p>The paginated table shows individual call records with a <strong>Pair</strong> column indicating match status. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, customer, destination, processing time range, or pair status.</p>
+        <ul>
+          <li><strong>Pair ID</strong> &mdash; paired pills display their pair ID (e.g. <code>P3 · Paired</code>); orphan pills show status text only.</li>
+          <li><strong>Hover highlight</strong> &mdash; hovering a paired row highlights its partner (violet ring) and dims other rows. If the partner is on another page, the pill tooltip notes <em>(partner on page N)</em>.</li>
+          <li><strong>Group by pair</strong> &mdash; a sliding switch next to "Rows per page" groups rows by pair. Paired rows render contiguously with a subtle alternating band; orphans render as single-row bands. Groups are paginated (the indicator shows <em>A–B of G groups (R rows)</em>) and sorted by the signing row's column value. The page-size label switches to "Groups per page" while grouped.</li>
+        </ul>
       </section>
 
       <section class="help-section" id="gap-pairing">
@@ -3454,6 +3482,7 @@ let gapInvalidReason = '';
 let gapSlowThreshold = 100;
 let gapBucketFilter = null;
 let gapBucketOrder = [];
+let gapGroupMode = false;
 let gapPairWindow = 1000;
 let gapPairSummary = {};
 let gapPairFilter = null;
@@ -3700,6 +3729,7 @@ function processGapData() {
       bucketKey: timeValid && timestamp ? new Date(timestamp).toISOString().slice(0, 13) : '__unknown__'
     };
   });
+  gapData.forEach((row, i) => { row._gapIdx = i; });
   gapFilteredData = [...gapData];
   gapCurrentPage = 1;
   pairGapCalls();
@@ -3714,6 +3744,7 @@ function processGapData() {
   document.getElementById("gap-export-btn").classList.remove("opacity-50", "pointer-events-none");
   document.getElementById("gap-settings-btn").disabled = false;
   document.getElementById("gap-settings-btn").classList.remove("opacity-50", "pointer-events-none");
+  initGapHoverHighlight();
   const _s = gapData.filter(d => d.isSigning).length;
   const _v = gapData.filter(d => d.isVerify).length;
   const _i = gapData.filter(d => !d.ukValid).length;
@@ -4104,28 +4135,99 @@ function renderGapTable() {
     if (tableBody) tableBody.innerHTML = "<tr><td colspan='10' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
     return;
   }
-  
+
   let sorted = [...gapFilteredData];
-  if (gapSortColumn) {
-    sorted.sort((a, b) => {
-      if (!a.timeValid && b.timeValid) return 1;
-      if (a.timeValid && !b.timeValid) return -1;
-      let aVal = a[gapSortColumn];
-      let bVal = b[gapSortColumn];
-      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-      if (aVal < bVal) return gapSortAscending ? -1 : 1;
-      if (aVal > bVal) return gapSortAscending ? 1 : -1;
-      return 0;
+
+  if (gapGroupMode) {
+    // Build groups: paired rows share a group, orphans are solo
+    const groupMap = {};
+    const groupOrder = [];
+    sorted.forEach(row => {
+      const key = row.pairStatus === 'paired' ? 'g-' + row.pairId : 'g-o-' + row._gapIdx;
+      if (!groupMap[key]) { groupMap[key] = []; groupOrder.push(key); }
+      groupMap[key].push(row);
     });
-  }
-  
-  const start = (gapCurrentPage - 1) * gapRowsPerPage;
-  const end = start + gapRowsPerPage;
-  const pageData = sorted.slice(start, end);
-  
-  tableBody.innerHTML = pageData.map(row => {
-    return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
+
+    // Sort groups by representative row's column value
+    if (gapSortColumn) {
+      const pairStatusOrder = { paired: 0, unverified: 1, unsigned: 2, unpairable: 3 };
+      groupOrder.sort((a, b) => {
+        const gA = groupMap[a], gB = groupMap[b];
+        const repA = gA.find(r => r.isSigning) || gA[0];
+        const repB = gB.find(r => r.isSigning) || gB[0];
+        // Pair column sorts by status-bucket order
+        if (gapSortColumn === 'pairStatus') {
+          const oA = pairStatusOrder[repA.pairStatus] ?? 99;
+          const oB = pairStatusOrder[repB.pairStatus] ?? 99;
+          return gapSortAscending ? oA - oB : oB - oA;
+        }
+        let aVal = repA[gapSortColumn];
+        let bVal = repB[gapSortColumn];
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+        if (aVal < bVal) return gapSortAscending ? -1 : 1;
+        if (aVal > bVal) return gapSortAscending ? 1 : -1;
+        return 0;
+      });
+    }
+
+    // Flatten groups in order
+    const flat = [];
+    groupOrder.forEach(key => { groupMap[key].forEach(r => flat.push(r)); });
+
+    const totalGroups = groupOrder.length;
+    const totalPages = Math.ceil(totalGroups / gapRowsPerPage);
+    const start = (gapCurrentPage - 1) * gapRowsPerPage;
+    const end = start + gapRowsPerPage;
+    const pageGroups = groupOrder.slice(start, end);
+    const pageData = [];
+    pageGroups.forEach(key => { groupMap[key].forEach(r => pageData.push(r)); });
+
+    // Compute partner page numbers for off-page partners
+    const rowPageMap = {};
+    let pgIdx = 0;
+    for (let gi = 0; gi < groupOrder.length; gi++) {
+      const grp = groupMap[groupOrder[gi]];
+      const pageNum = Math.floor(gi / gapRowsPerPage) + 1;
+      grp.forEach(r => { rowPageMap[r._gapIdx] = pageNum; });
+    }
+
+    // Count rows on this page
+    const pageRowCount = pageData.length;
+
+    // Build group membership map for banding
+    const rowGroupIdx = {};
+    pageGroups.forEach((key, gi) => {
+      groupMap[key].forEach(r => { rowGroupIdx[r._gapIdx] = gi; });
+    });
+    const rowIsFirstInGroup = {};
+    pageGroups.forEach(key => {
+      const rows = groupMap[key];
+      if (rows.length > 0) rowIsFirstInGroup[rows[0]._gapIdx] = true;
+    });
+
+    tableBody.innerHTML = pageData.map(row => {
+      const groupKey = row.pairStatus === 'paired' ? 'g-' + row.pairId : 'g-o-' + row._gapIdx;
+      const gi = rowGroupIdx[row._gapIdx] || 0;
+      const isAlt = gi % 2 === 1;
+      const isFirst = rowIsFirstInGroup[row._gapIdx] && gi > 0;
+      const isPairGroup = row.pairStatus === 'paired';
+      let trClasses = 'border-b border-slate-800 hover:bg-slate-800/50';
+      if (isAlt) trClasses += ' gap-group-alt';
+      if (isFirst) trClasses += ' gap-group-seam';
+      // Partner page note for paired pills
+      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
+      if (row.pairStatus === 'paired') {
+        const partnerRows = sorted.filter(r => r.pairId === row.pairId && r._gapIdx !== row._gapIdx);
+        if (partnerRows.length > 0) {
+          const partnerOnPage = partnerRows.some(r => pageData.some(p => p._gapIdx === r._gapIdx));
+          if (!partnerOnPage) {
+            const partnerPage = rowPageMap[partnerRows[0]._gapIdx] || '?';
+            pillTitle += ' (partner on page ' + partnerPage + ')';
+          }
+        }
+      }
+      return `<tr class="${trClasses}" data-pair-group="${groupKey}">
       <td class="py-3 px-4 text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
       <td class="py-3 px-4 text-slate-300">${row.service || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
@@ -4135,16 +4237,55 @@ function renderGapTable() {
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? 'Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
+      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${pillTitle}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
     </tr>`;
-  }).join('');
-  
-  // Update pagination
-  const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
-  document.getElementById("gap-pagination-info").textContent = `Showing ${start + 1}-${Math.min(end, gapFilteredData.length)} of ${gapFilteredData.length}`;
-  document.getElementById("gap-page-indicator").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
-  document.getElementById("gap-prev-btn").disabled = gapCurrentPage <= 1;
-  document.getElementById("gap-next-btn").disabled = gapCurrentPage >= totalPages;
+    }).join('');
+
+    document.getElementById("gap-pagination-info").textContent = `Showing ${start + 1}\u2013${Math.min(end, totalGroups)} of ${totalGroups} groups (${pageRowCount} rows)`;
+    document.getElementById("gap-page-indicator").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
+    document.getElementById("gap-prev-btn").disabled = gapCurrentPage <= 1;
+    document.getElementById("gap-next-btn").disabled = gapCurrentPage >= totalPages;
+  } else {
+    // Flat mode (current behaviour)
+    if (gapSortColumn) {
+      sorted.sort((a, b) => {
+        if (!a.timeValid && b.timeValid) return 1;
+        if (a.timeValid && !b.timeValid) return -1;
+        let aVal = a[gapSortColumn];
+        let bVal = b[gapSortColumn];
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+        if (aVal < bVal) return gapSortAscending ? -1 : 1;
+        if (aVal > bVal) return gapSortAscending ? 1 : -1;
+        return 0;
+      });
+    }
+
+    const start = (gapCurrentPage - 1) * gapRowsPerPage;
+    const end = start + gapRowsPerPage;
+    const pageData = sorted.slice(start, end);
+
+    tableBody.innerHTML = pageData.map(row => {
+      return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
+      <td class="py-3 px-4 text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
+      <td class="py-3 px-4 text-slate-300">${row.service || '-'}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.status || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.customer || '-'}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
+      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
+    </tr>`;
+    }).join('');
+
+    const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
+    document.getElementById("gap-pagination-info").textContent = `Showing ${start + 1}-${Math.min(end, gapFilteredData.length)} of ${gapFilteredData.length}`;
+    document.getElementById("gap-page-indicator").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
+    document.getElementById("gap-prev-btn").disabled = gapCurrentPage <= 1;
+    document.getElementById("gap-next-btn").disabled = gapCurrentPage >= totalPages;
+  }
 }
 
 function renderGapCharts() {
@@ -4487,6 +4628,61 @@ function changeGapRowsPerPage(value) {
   gapRowsPerPage = parseInt(value) || 25;
   gapCurrentPage = 1;
   renderGapTable();
+}
+
+function toggleGapGroupMode() {
+  const input = document.getElementById('gap-group-toggle');
+  const checked = input ? input.checked : false;
+  gapGroupMode = checked;
+  gapCurrentPage = 1;
+  const label = document.getElementById('gap-pagesize-label');
+  if (label) {
+    label.textContent = checked ? 'Groups per page:' : 'Rows per page:';
+    label.title = checked ? 'A group is one call \u2014 a signing+verification pair \u2014 or one unpaired row.' : '';
+  }
+  renderGapTable();
+}
+
+function initGapHoverHighlight() {
+  const table = document.querySelector('[data-testid="gap-table"]');
+  if (!table) return;
+  const tbody = table.querySelector('tbody');
+  tbody.addEventListener('mouseover', function(e) {
+    const row = e.target.closest('tr');
+    if (!row) return;
+    const pill = row.querySelector('[data-pair-id]');
+    if (!pill) return;
+    const pairId = pill.getAttribute('data-pair-id');
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const partner = allRows.find(r => r !== row && r.querySelector('[data-pair-id="' + pairId + '"]'));
+    if (partner) {
+      partner.classList.add('gap-pair-highlight');
+      allRows.forEach(r => { if (r !== row && r !== partner) r.classList.add('gap-pair-dim'); });
+    }
+    if (!partner) {
+      const pillTitle = pill.getAttribute('title') || '';
+      if (!/\(partner on page/.test(pillTitle)) {
+        const sorted = [...gapFilteredData];
+        const pageSize = gapRowsPerPage;
+        const partnerRow = sorted.find(r => r.pairId === pairId && r._gapIdx !== row._gapIdx);
+        if (partnerRow) {
+          let partnerPage = 1;
+          if (gapGroupMode) {
+            const gm = {}, go = [];
+            sorted.forEach(r => { const k = r.pairStatus === 'paired' ? 'g-' + r.pairId : 'g-o-' + r._gapIdx; if (!gm[k]) { gm[k] = []; go.push(k); } gm[k].push(r); });
+            go.forEach((k, gi) => { const pg = Math.floor(gi / pageSize) + 1; gm[k].forEach(r => { if (r._gapIdx === partnerRow._gapIdx) partnerPage = pg; }); });
+          } else {
+            if (gapSortColumn) { sorted.sort((a, b) => { let av = a[gapSortColumn], bv = b[gapSortColumn]; if (typeof av === 'string') av = av.toLowerCase(); if (typeof bv === 'string') bv = bv.toLowerCase(); return av < bv ? (gapSortAscending ? -1 : 1) : av > bv ? (gapSortAscending ? 1 : -1) : 0; }); }
+            sorted.forEach((r, i) => { if (r._gapIdx === partnerRow._gapIdx) partnerPage = Math.floor(i / pageSize) + 1; });
+          }
+          pill.setAttribute('title', pillTitle + ' (partner on page ' + partnerPage + ')');
+        }
+      }
+    }
+  });
+  tbody.addEventListener('mouseout', function() {
+    tbody.querySelectorAll('tr').forEach(r => { r.classList.remove('gap-pair-highlight', 'gap-pair-dim'); });
+  });
 }
 
 function drillDownGap(type) {
