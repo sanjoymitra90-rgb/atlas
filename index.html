@@ -634,9 +634,15 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       </div>
       <div class="p-6 space-y-4">
         <p class="text-slate-300 text-sm mb-4">Select which columns from your CSV correspond to each required field:</p>
-        <div class="flex items-center gap-3 bg-slate-800/50 rounded-lg px-4 py-3">
-          <label class="text-xs text-slate-400 whitespace-nowrap">Processing time threshold (ms)</label>
-          <input type="number" id="gap-slow-threshold" min="1" value="100" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="handleGapThresholdChange(this.value)">
+        <div class="flex items-center gap-4 bg-slate-800/50 rounded-lg px-4 py-3">
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-slate-400 whitespace-nowrap">Processing time threshold (ms)</label>
+            <input type="number" id="gap-slow-threshold" min="1" value="100" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="handleGapThresholdChange(this.value)">
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-slate-400 whitespace-nowrap">Pairing window (ms)</label>
+            <input type="number" id="gap-pair-window" min="1" value="1000" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="handleGapPairWindowChange(this.value)">
+          </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gap-column-mappings">
           <!-- Mappings will be populated dynamically -->
@@ -769,6 +775,16 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
               <input type="number" id="gap-filter-proc-max" placeholder="Max" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
             </div>
           </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Pair Status</label>
+            <select id="gap-filter-pair" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+              <option value="all">All Pair Statuses</option>
+              <option value="paired">Paired</option>
+              <option value="unverified">Signed not verified</option>
+              <option value="unsigned">Verified not signed</option>
+              <option value="unpairable">Unpairable</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -858,6 +874,39 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         </div>
       </div>
 
+      <!-- Call Pairing Panel -->
+      <div id="gap-pair-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-5 mt-4">
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="text-sm font-semibold text-white"><i class="fas fa-link text-violet-400 mr-2"></i>Call Pairing</h4>
+          <span id="gap-pair-window-label" class="text-xs text-slate-500"></span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
+          <div class="bg-slate-800/50 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-white" id="gap-pair-rate">-</div>
+            <div class="text-xs text-slate-400 mt-1" id="gap-pair-rate-desc">-</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-red-500/50 border border-transparent transition-all" onclick="drillDownPair('unverified')">
+            <div class="text-2xl font-bold text-red-400" id="gap-pair-unverified">0</div>
+            <div class="text-xs text-slate-400 mt-1" id="gap-pair-unverified-desc">-</div>
+            <div class="text-[10px] text-red-400/60 mt-0.5">Signed &middot; not verified</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-amber-500/50 border border-transparent transition-all" onclick="drillDownPair('unsigned')">
+            <div class="text-2xl font-bold text-amber-400" id="gap-pair-unsigned">0</div>
+            <div class="text-xs text-slate-400 mt-1" id="gap-pair-unsigned-desc">-</div>
+            <div class="text-[10px] text-amber-400/60 mt-0.5">Verified &middot; not signed</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-slate-500/50 border border-transparent transition-all" onclick="drillDownPair('unpairable')">
+            <div class="text-2xl font-bold text-slate-400" id="gap-pair-unpairable">0</div>
+            <div class="text-xs text-slate-400 mt-1">Unpairable</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-xl p-3 text-center">
+            <div class="text-lg font-bold text-white" id="gap-pair-ttv">-</div>
+            <div class="text-xs text-slate-400 mt-1">Time to verify</div>
+          </div>
+        </div>
+        <div class="text-xs text-slate-500 bg-slate-800/30 rounded-lg px-3 py-2" id="gap-pair-correlation"></div>
+      </div>
+
       <!-- Invalid UK Numbers Breakdown -->
       <div id="gap-invalid-reason-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mt-4">
         <h4 class="text-xs font-semibold text-slate-400 mb-3"><i class="fas fa-layer-group text-amber-400 mr-1"></i>Invalid UK Numbers &mdash; breakdown</h4>
@@ -913,6 +962,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider relative" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, or 7), and rejects test/placeholder numbers with sequential or repeated digits.">
                   UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400"></i>
                 </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('pairStatus')">Pair <i class="fas fa-sort text-xs ml-1"></i></th>
               </tr>
             </thead>
             <tbody id="gap-table-body" class="divide-y divide-slate-800">
@@ -1280,12 +1330,24 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the processing-time threshold (configurable in Settings, default 100ms).</li>
         </ul>
+        <p>Below the metric tiles, the <strong>Call Pairing</strong> panel shows match-rate statistics, unverified/unsigned counts, and time-to-verify percentiles. Click the red/amber/gray blocks to filter the table. The pairing panel is global (whole dataset) and does not recompute on filter changes.</p>
         <p>Click any metric card to filter the data table. Click again or use <strong>Reset Filters</strong> to clear.</p>
       </section>
 
       <section class="help-section" id="gap-table">
         <h3><i class="fas fa-table text-amber-400"></i> Data Table</h3>
-        <p>The paginated table shows individual call records. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, customer, destination, or processing time range.</p>
+        <p>The paginated table shows individual call records with a <strong>Pair</strong> column indicating match status. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, customer, destination, processing time range, or pair status.</p>
+      </section>
+
+      <section class="help-section" id="gap-pairing">
+        <h3><i class="fas fa-link text-violet-400"></i> Call Pairing</h3>
+        <p>The Call Pairing panel matches signing requests to their corresponding verification requests using a heuristic: same <strong>from</strong> and <strong>to</strong> numbers within a directional time window (configurable in Settings, default 1000ms).</p>
+        <ul>
+          <li><strong>Algorithm</strong> &mdash; greedy stream match, most-recent signing wins (last-in-wins for retries). Signing rows are queued; each verification pops the most recent unmatched signing with the same from+to if within the window.</li>
+          <li><strong>Pair statuses:</strong> <em>Paired</em> (green) = signing matched to a verification; <em>Signed &middot; not verified</em> (red) = signing with no verification in the window; <em>Verified &middot; not signed</em> (amber) = verification with no preceding signing in the window; <em>Unpairable</em> (gray) = missing or invalid timestamp.</li>
+          <li><strong>Match rate</strong> = paired outcomes / (paired + unverified + unsigned). The time-to-verify median and P95 help calibrate the window.</li>
+          <li><strong>Global panel</strong> &mdash; the pairing panel shows whole-dataset stats and does not change with table filters.</li>
+        </ul>
       </section>
 
       <section class="help-section" id="gap-charts">
@@ -3392,6 +3454,9 @@ let gapInvalidReason = '';
 let gapSlowThreshold = 100;
 let gapBucketFilter = null;
 let gapBucketOrder = [];
+let gapPairWindow = 1000;
+let gapPairSummary = {};
+let gapPairFilter = null;
 
 function parseGapCSV(text) {
   if (!text) return { headers: [], rows: [], errors: [] };
@@ -3637,6 +3702,8 @@ function processGapData() {
   });
   gapFilteredData = [...gapData];
   gapCurrentPage = 1;
+  pairGapCalls();
+  renderGapPairPanel();
   populateGapFilterDropdowns();
   updateGapMetrics();
   renderGapTable();
@@ -3725,6 +3792,7 @@ function applyGapFilters() {
   const ipFilter = document.getElementById("gap-filter-ip").value.toLowerCase();
   const procMin = parseFloat(document.getElementById("gap-filter-proc-min").value) || null;
   const procMax = parseFloat(document.getElementById("gap-filter-proc-max").value) || null;
+  const pairFilter = document.getElementById("gap-filter-pair").value;
   gapFilteredData = gapData.filter(row => {
     if (serviceFilter === "signing" && !row.isSigning) return false;
     if (serviceFilter === "verify" && !row.isVerify) return false;
@@ -3733,6 +3801,7 @@ function applyGapFilters() {
     if (gapInvalidReason && row.ukValid) return false;
     if (gapInvalidReason && gapReasonBucket(row.ukValidationReason) !== gapInvalidReason) return false;
     if (gapBucketFilter && row.bucketKey !== gapBucketFilter) return false;
+    if (pairFilter !== 'all' && row.pairStatus !== pairFilter) return false;
     if (fromFilter && !row.from.toLowerCase().includes(fromFilter)) return false;
     if (toFilter && !row.to.toLowerCase().includes(toFilter)) return false;
     if (statusFilter !== "all" && row.status !== statusFilter) return false;
@@ -3750,6 +3819,7 @@ function applyGapFilters() {
 function resetGapFilters() {
   gapInvalidReason = '';
   gapBucketFilter = null;
+  gapPairFilter = null;
   renderGapBucketChip();
   document.getElementById("gap-filter-service").value = "all";
   document.getElementById("gap-filter-validation").value = "all";
@@ -3760,6 +3830,8 @@ function resetGapFilters() {
   document.getElementById("gap-filter-ip").value = "";
   document.getElementById("gap-filter-proc-min").value = "";
   document.getElementById("gap-filter-proc-max").value = "";
+  const pf = document.getElementById("gap-filter-pair");
+  if (pf) pf.value = "all";
   applyGapFilters();
 }
 
@@ -3869,6 +3941,17 @@ function handleGapThresholdChange(val) {
   }
 }
 
+function handleGapPairWindowChange(val) {
+  const n = parseInt(val, 10);
+  if (isNaN(n) || n < 1) return;
+  gapPairWindow = n;
+  if (gapData.length > 0) {
+    pairGapCalls();
+    renderGapPairPanel();
+    renderGapTable();
+  }
+}
+
 function toggleGapBucket(key) {
   if (gapBucketFilter === key) {
     gapBucketFilter = null;
@@ -3898,10 +3981,127 @@ function renderGapBucketChip() {
   }
 }
 
+function pairGapCalls() {
+  gapData.forEach(row => {
+    row.pairStatus = 'unpairable';
+    row.pairId = null;
+    row.timeToVerify = null;
+  });
+  const pairable = gapData.filter(r => r.timeValid && (r.isSigning || r.isVerify));
+  pairable.sort((a, b) => {
+    if (a.timestamp !== b.timestamp) return a.timestamp - b.timestamp;
+    if (a.isSigning && !b.isSigning) return -1;
+    if (!a.isSigning && b.isSigning) return 1;
+    return 0;
+  });
+  const unmatched = {};
+  let pairCount = 0;
+  pairable.forEach(row => {
+    const key = row.from + '|' + row.to;
+    if (!unmatched[key]) unmatched[key] = [];
+    if (row.isSigning) {
+      unmatched[key].push(row);
+    } else {
+      const stack = unmatched[key];
+      if (stack.length > 0) {
+        const last = stack[stack.length - 1];
+        if (row.timestamp - last.timestamp <= gapPairWindow) {
+          stack.pop();
+          pairCount++;
+          const pid = 'P' + pairCount;
+          last.pairStatus = 'paired';
+          last.pairId = pid;
+          last.timeToVerify = row.timestamp - last.timestamp;
+          row.pairStatus = 'paired';
+          row.pairId = pid;
+          row.timeToVerify = row.timestamp - last.timestamp;
+          return;
+        }
+      }
+      row.pairStatus = 'unsigned';
+    }
+  });
+  Object.values(unmatched).forEach(stack => {
+    stack.forEach(row => { row.pairStatus = 'unverified'; });
+  });
+  const paired = gapData.filter(r => r.pairStatus === 'paired');
+  const pairedPairs = paired.length / 2;
+  const unverified = gapData.filter(r => r.pairStatus === 'unverified').length;
+  const unsigned = gapData.filter(r => r.pairStatus === 'unsigned').length;
+  const unpairable = gapData.filter(r => r.pairStatus === 'unpairable').length;
+  const outcomes = pairedPairs + unverified + unsigned;
+  const ttv = paired.filter(r => r.isVerify).map(r => r.timeToVerify).sort((a, b) => a - b);
+  const median = ttv.length > 0 ? ttv[Math.floor(ttv.length / 2)] : 0;
+  const p95Idx = Math.ceil(ttv.length * 0.95) - 1;
+  const p95 = ttv.length > 0 ? ttv[Math.max(0, p95Idx)] : 0;
+  const signingPairs = paired.filter(r => r.isSigning).length;
+  const verifyPairs = paired.filter(r => r.isVerify).length;
+  const invalidUnverified = gapData.filter(r => r.pairStatus === 'unverified' && !r.ukValid).length;
+  const invalidPairs = gapData.filter(r => r.pairStatus === 'paired' && r.isSigning && !r.ukValid).length;
+  gapPairSummary = {
+    pairedPairs: Math.round(pairedPairs),
+    unverified, unsigned, unpairable,
+    matchRate: outcomes > 0 ? ((pairedPairs / outcomes) * 100).toFixed(1) : '0.0',
+    matchRateNum: outcomes > 0 ? (pairedPairs / outcomes) * 100 : 0,
+    matchRateDenom: Math.round(outcomes),
+    timeToVerifyMedian: median,
+    timeToVerifyP95: p95,
+    signingPairs, verifyPairs,
+    invalidUnverified, invalidPairs
+  };
+}
+
+function drillDownPair(status) {
+  gapPairFilter = (gapPairFilter === status) ? null : status;
+  gapInvalidReason = '';
+  gapBucketFilter = null;
+  renderGapBucketChip();
+  document.getElementById('gap-filter-service').value = 'all';
+  document.getElementById('gap-filter-validation').value = 'all';
+  document.getElementById('gap-filter-from').value = '';
+  document.getElementById('gap-filter-to').value = '';
+  document.getElementById('gap-filter-status').value = 'all';
+  document.getElementById('gap-filter-customer').value = 'all';
+  document.getElementById('gap-filter-ip').value = '';
+  document.getElementById('gap-filter-proc-min').value = '';
+  document.getElementById('gap-filter-proc-max').value = '';
+  const pairFilter = document.getElementById('gap-filter-pair');
+  if (pairFilter) pairFilter.value = gapPairFilter || 'all';
+  applyGapFilters();
+  renderGapPairPanel();
+  document.getElementById('gap-dashboard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderGapPairPanel() {
+  const panel = document.getElementById('gap-pair-panel');
+  if (!panel) return;
+  const s = gapPairSummary;
+  if (!s.pairedPairs && !s.unverified && !s.unsigned && !s.unpairable) {
+    panel.classList.add('hidden');
+    return;
+  }
+  panel.classList.remove('hidden');
+  document.getElementById('gap-pair-rate').textContent = s.matchRate + '%';
+  document.getElementById('gap-pair-rate-desc').textContent = s.pairedPairs + ' of ' + s.matchRateDenom + ' call outcomes paired';
+  document.getElementById('gap-pair-unverified').textContent = s.unverified;
+  const uvPct = (s.signingPairs + s.unverified) > 0 ? ((s.unverified / (s.signingPairs + s.unverified)) * 100).toFixed(0) : '0';
+  document.getElementById('gap-pair-unverified-desc').textContent = uvPct + '% of signings';
+  document.getElementById('gap-pair-unsigned').textContent = s.unsigned;
+  const usPct = (s.verifyPairs + s.unsigned) > 0 ? ((s.unsigned / (s.verifyPairs + s.unsigned)) * 100).toFixed(0) : '0';
+  document.getElementById('gap-pair-unsigned-desc').textContent = usPct + '% of verifications';
+  document.getElementById('gap-pair-unpairable').textContent = s.unpairable;
+  document.getElementById('gap-pair-ttv').textContent = 'median ' + s.timeToVerifyMedian + 'ms \u00b7 p95 ' + s.timeToVerifyP95 + 'ms';
+  const corrLine = document.getElementById('gap-pair-correlation');
+  if (corrLine) {
+    corrLine.innerHTML = 'Of ' + s.unverified + ' signed-but-not-verified, ' + s.invalidUnverified + ' had an invalid destination \u00b7 of ' + s.pairedPairs + ' pairs, ' + s.invalidPairs + ' had an invalid destination';
+  }
+  document.getElementById('gap-pair-window-label').textContent = 'window ' + gapPairWindow + 'ms \u00b7 configurable in Settings';
+}
+
 function renderGapTable() {
   const tableBody = document.getElementById("gap-table-body");
   if (!tableBody || gapFilteredData.length === 0) {
-    if (tableBody) tableBody.innerHTML = "<tr><td colspan='9' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
+    if (tableBody) tableBody.innerHTML = "<tr><td colspan='10' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
     return;
   }
   
@@ -3935,6 +4135,7 @@ function renderGapTable() {
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? 'Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
     </tr>`;
   }).join('');
   
@@ -4217,18 +4418,21 @@ function exportGapData() {
   const verify = dataToExport.filter(d => d.isVerify).length;
   const gap = Math.abs(signing - verify);
   const invalid = dataToExport.filter(d => !d.ukValid).length;
-  const outliers = dataToExport.filter(d => d.processingTime > 100).length;
+  const outliers = dataToExport.filter(d => d.processingTime > gapSlowThreshold).length;
+  const ps = gapPairSummary;
   
-  const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid'];
+  const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid', 'Pair Status', 'Pair ID', 'Time to Verify (ms)'];
   const invalidData = dataToExport.filter(d => !d.ukValid);
   const reasonCounts = {};
   invalidData.forEach(d => { const b = gapReasonBucket(d.ukValidationReason); reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
   const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
+  const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
   const csvRows = [
     'Total Records,Signing,Verification,Gap,Invalid UK Numbers,Processing Time Outliers',
     [total, signing, verify, gap, invalid, outliers].join(','),
     '',
     ...(breakdownLine ? [breakdownLine, ''] : []),
+    ...(pairLine ? [pairLine, ''] : []),
     headers.join(',')
   ];
   
@@ -4242,7 +4446,10 @@ function exportGapData() {
       row.customer || '',
       row.sourceIP || '',
       row.processingTime || '',
-      row.ukValid ? 'Valid' : 'Invalid'
+      row.ukValid ? 'Valid' : 'Invalid',
+      row.pairStatus || '',
+      row.pairId || '',
+      row.timeToVerify != null ? row.timeToVerify : ''
     ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
     csvRows.push(csvRow);
   });
@@ -4285,19 +4492,26 @@ function changeGapRowsPerPage(value) {
 function drillDownGap(type) {
   gapInvalidReason = '';
   gapBucketFilter = null;
+  gapPairFilter = null;
   renderGapBucketChip();
   var serviceFilter = document.getElementById('gap-filter-service');
   var validationFilter = document.getElementById('gap-filter-validation');
   var procMin = document.getElementById('gap-filter-proc-min');
   var procMax = document.getElementById('gap-filter-proc-max');
+  var pairFilter = document.getElementById('gap-filter-pair');
   serviceFilter.value = 'all';
   validationFilter.value = 'all';
   procMin.value = '';
   procMax.value = '';
+  if (pairFilter) pairFilter.value = 'all';
   if (type === 'signing') { serviceFilter.value = 'signing'; }
   else if (type === 'verify') { serviceFilter.value = 'verify'; }
   else if (type === 'invalid') { validationFilter.value = 'invalid'; }
   else if (type === 'outliers') { procMin.value = String(gapSlowThreshold); }
+  else if (type === 'paired') { if (pairFilter) pairFilter.value = 'paired'; }
+  else if (type === 'unverified') { if (pairFilter) pairFilter.value = 'unverified'; }
+  else if (type === 'unsigned') { if (pairFilter) pairFilter.value = 'unsigned'; }
+  else if (type === 'unpairable') { if (pairFilter) pairFilter.value = 'unpairable'; }
   applyGapFilters();
   document.getElementById('gap-dashboard').scrollIntoView({ behavior: 'smooth' });
 }

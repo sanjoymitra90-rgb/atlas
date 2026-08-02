@@ -65,12 +65,13 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 - **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required. Upload area includes a **privacy note** ("All processing is local. Your data never leaves your browser.").
 - **UK number validation** — every destination number is normalized (scientific notation and Excel `+`-stripping recovered) and validated against E.164 structural rules; results surfaced as a per-row Valid/Invalid pill plus an **Invalid UK Numbers** metric.
-- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: positive = signed but not verified, negative = verified but not signed), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**: they reset filters and apply the matching one, scrolling to the table. When filters are active, a **filtered-view strip** appears above metrics showing per-metric global (unfiltered) counts with "N of M" labels and tooltips. Below the tiles, an **Invalid UK Numbers breakdown** panel shows clickable reason chips (e.g. `sequential run ×3`) that filter to matching rows; hidden when invalid count is 0.
-- **Configurable slow-request threshold** — Settings modal includes a number input for the processing-time threshold (default 100ms). Changing it instantly updates the Slow Requests tile label, the Processing Time chart annotation line + `suggestedMax`, and re-renders all data.
-- **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, and processing-time min/max; one-click **Reset All**. Chart drill-through sets a **bucket filter** (time bucket) shown as a removable chip in the filter bar.
-- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time (signed bars: red above zero, amber below, dashed zero baseline), Invalid Numbers Over Time, Signing vs Verification Volume (stacked bars, valid/invalid segmented per service), Processing Time Distribution (with configurable threshold line). All charts are **clickable** — clicking a bar/point filters the table to that time bucket via a chip indicator.
-- **Data table** — 9 sortable columns, pagination (25/50/100 per page), showing/indicator controls.
-- **Export** — modal with **Filtered** vs **All** scope; CSV includes a metrics summary block followed by the full quoted data rows.
+- **Call Pairing** — heuristic per-call matching: signing → verification on `(from, to)` key within a directional time window (default 1000ms, configurable in Settings). Greedy last-in-wins algorithm. Panel shows match rate, unverified/unsigned counts, time-to-verify median + P95, and invalid cross-tabs. Global (whole dataset, not filtered).
+- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**. Below the tiles: **Call Pairing** panel + **Invalid UK Numbers breakdown** panel with clickable reason chips.
+- **Configurable thresholds** — Settings modal: processing-time threshold (default 100ms) and pairing window (default 1000ms). Both live-update on change.
+- **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, processing-time min/max, and **pair status** (Paired / Signed not verified / Verified not signed / Unpairable); one-click **Reset All**. Chart drill-through sets a **bucket filter**.
+- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time, Invalid Numbers Over Time, Signing vs Verification Volume, Processing Time Distribution. All charts are **clickable** for drill-through.
+- **Data table** — 10 sortable columns (including Pair Status), pagination (25/50/100 per page), showing/indicator controls.
+- **Export** — modal with **Filtered** vs **All** scope; CSV includes metrics summary, invalid-reason breakdown, pairing summary, and full data rows with pair status/ID/time-to-verify columns.
 
 ## 3. Tech Stack (CDN, No Build)
 
@@ -176,6 +177,13 @@ Every notable decision made during development. If you are unsure whether a beha
 50. **Chart → table drill-through** — each of the four charts has `onClick: chartClickHandler` which resolves the clicked x-index to a time bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it; a removable chip in the filter bar shows the active bucket. `resetGapFilters()`, `drillDownGap()`, and `resetGapMetrics()` clear the bucket filter. Each row stores `bucketKey` (ISO hour string or `'__unknown__'`).
 51. **`row.bucketKey`** — derived in `processGapData()` from `row.timestamp` via `new Date(timestamp).toISOString().slice(0, 13)` when `timeValid` is true; `'__unknown__'` otherwise. Used by chart drill-through and bucket filtering.
 
+**Phase 3:**
+52. **Greedy most-recent-match pairing** — no correlation ID in EDR, so pairing is heuristic: match verification to signing on `(from, to)` key within a directional time window. Stream is sorted by timestamp (signings before verifications at equal timestamps); each verification pops the most recent unmatched signing with the same key if within `gapPairWindow`. This is the "last-in-wins on retries" rule — a retry signing pushes onto the stack, and the verification matches the most recent one.
+53. **Pairing window default 1000ms** — each operation has a 100ms SLA; typical signing→verification handoff is under 500ms (PM domain input). Window covers P99 tail of the handoff distribution (queueing spikes and retries create right-skew). False-pair risk at 1000ms is negligible (same caller + same destination recurs within 1s only in retry storms). The pairing panel's time-to-verify median + P95 is the calibration instrument; the PM will set the production default from observed P99 on real exports.
+54. **Global pairing panel** — computed from `gapData` (full dataset), not `gapFilteredData`. A signing and its verification may be in different filter buckets. Panel does not recompute on filter changes. Documented exception to §5.24 (metrics on filtered data).
+55. **Unpairable rows** — rows with `timeValid === false` that are signing or verify are marked `pairStatus = 'unpairable'`. They cannot participate in pairing (no timestamp to compare).
+56. **Pair Status filter** — dropdown in the filter bar; `applyGapFilters()` checks `pairFilter`. `resetGapFilters()` and `drillDownGap()` clear it. `drillDownPair(status)` sets the filter directly.
+
 ## 6. Code Conventions (required for new code)
 
 - **Style:** 2-space indent, single quotes preferred, semicolons everywhere, no `// comments` unless the user asks (existing code has some; new code should keep them minimal).
@@ -249,12 +257,13 @@ Every notable decision made during development. If you are unsure whether a beha
 
 ### Pipeline
 1. `handleGapCSVUpload` or drag-and-drop → calls `readGapFile(file)` → `parseGapCSV(text)` (single-pass state machine: BOM strip, quoted commas/newlines, CRLF, empty rows, short-row padding). Returns `{headers, rows, errors, meta}`.
-2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to.
-3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), derive `row.bucketKey` (ISO hour or `'__unknown__'`), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast (includes unparseable-timestamp count when > 0).
-4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max, **bucket key** (set by chart drill-through via `gapBucketFilter`). Metrics/table recompute from `gapFilteredData`.
-5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset. Clears `gapInvalidReason` and `gapBucketFilter`.
-6. `gapReasonBucket(reason)` — display-layer keyword mapping from `ukValidationReason` strings to six buckets: `empty`, `not +44`, `wrong length`, `identical digits`, `sequential run`, `bad prefix`. Anything unmatched → `other`.
-7. `gapInvalidReason` — global set by breakdown-panel chip clicks; consulted in `applyGapFilters()` to filter rows by reason bucket. Cleared by `resetGapFilters()`, `drillDownGap()`, and manual validation-dropdown changes.
+2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to. Also includes processing-time threshold and pairing window inputs.
+3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), derive `row.bucketKey` (ISO hour or `'__unknown__'`), run `pairGapCalls()` (assigns `row.pairStatus`, `row.pairId`, `row.timeToVerify`), compute `gapPairSummary`, populate filter dropdowns, metrics, pairing panel, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast.
+4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max, bucket key (chart drill-through), **pair status** (pairing drill-through). Metrics/table recompute from `gapFilteredData`. Pairing panel is global (from `gapPairSummary`).
+5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset. Clears `gapInvalidReason`, `gapBucketFilter`, `gapPairFilter`.
+6. `drillDownPair(status)` — sets `gapPairFilter` to the given status (or toggles off). Clears other filters. Scrolls to table.
+7. `gapReasonBucket(reason)` — display-layer keyword mapping from `ukValidationReason` strings to six buckets: `empty`, `not +44`, `wrong length`, `identical digits`, `sequential run`, `bad prefix`. Anything unmatched → `other`.
+8. `gapInvalidReason` — global set by breakdown-panel chip clicks; consulted in `applyGapFilters()` to filter rows by reason bucket. Cleared by `resetGapFilters()`, `drillDownGap()`, and manual validation-dropdown changes.
 
 ### UK validation (exact rules — do not change without user sign-off)
 - `normalizePhoneNumber(value)`: `E+` scientific → full integer; `/^44\d{9,10}$/` → prepend `+`; strip spaces/dashes/parens.
@@ -275,8 +284,9 @@ Every notable decision made during development. If you are unsure whether a beha
 4. Processing Time Distribution — violet line (per-hour average) with configurable threshold annotation (default 100ms); y-axis `suggestedMax: gapSlowThreshold` ensures the line is visible when averages fall below threshold. Click filters table to that bucket.
 
 ### Table & export
-- 9 sortable columns; default sort time desc; pagination 25/50/100 (default 25).
-- Export: modal (Filtered/All) → CSV with metrics summary block + invalid-reason breakdown line (when invalid > 0) + quoted data rows; filename `gap_analyzer_export_YYYY-MM-DD.csv`.
+- 10 sortable columns (Time, Service, From, To, Status, Customer, Source IP, Proc. Time, UK Valid, Pair); default sort time desc; pagination 25/50/100 (default 25).
+- Pair column renders green "Paired" / red "Signed · not verified" / amber "Verified · not signed" / gray "Unpairable" pills with tooltips.
+- Export: modal (Filtered/All) → CSV with metrics summary block + invalid-reason breakdown line (when invalid > 0) + pairing summary line + quoted data rows including pair status, pair ID, and time-to-verify columns; filename `gap_analyzer_export_YYYY-MM-DD.csv`.
 
 ## 10. Global Components
 
@@ -345,6 +355,15 @@ Every notable decision made during development. If you are unsure whether a beha
 
 ### Phase 2B hotfix
 - **H8: drillDownGap outliers uses threshold** — `drillDownGap('outliers')` set `procMin.value = '100'` (hardcoded). Changed to `procMin.value = String(gapSlowThreshold)` so the drill-down respects the user-configured threshold.
+- **H9: Settings button root cause** — `openGapSettings()` called with no arguments from the button's `onclick`; `headers.find()` on `undefined` threw TypeError before the modal opened. Fixed by adding `if (!headers) headers = gapRawHeaders;` fallback at function entry.
+
+### Phase 3 — Event Pairing
+- **Task 0: Settings button fix** — root cause: HTML `onclick="openGapSettings()"` passed no arguments; JS `headers.find()` on `undefined` crashed before modal `classList` toggle. Fixed with `gapRawHeaders` fallback.
+- **Task 1: pairGapCalls engine** — greedy stream matching on `(from, to)` key within `gapPairWindow` (default 1000ms). Assigns `row.pairStatus` (paired/unverified/unsigned/unpairable), `row.pairId` (P1, P2…), `row.timeToVerify` (ms). Computes `gapPairSummary` (match rate, counts, median/P95, invalid cross-tabs). Runs on full `gapData`, not filtered subset.
+- **Task 2: Call Pairing panel** — full-width panel below metric tiles with 5 stat blocks (match rate, unverified, unsigned, unpairable, time-to-verify) + correlation line. Clickable blocks via `drillDownPair(status)`. Global (not filtered).
+- **Task 3: Table Pair column** — 10th column with colored pills (green/red/amber/gray) and tooltips. Pair Status dropdown filter added to filter bar. `applyGapFilters()` checks it; `resetGapFilters()` and `drillDownGap()` clear it.
+- **Task 4: Configurable pairing window** — number input in Settings modal; `handleGapPairWindowChange()` re-runs `pairGapCalls()` and re-renders panel + table. Persists for session.
+- **Task 5: Export + help** — CSV export includes pairStatus, pairId, timeToVerify columns + pairing summary line. Help drawer gains Call Pairing section (heuristic explained, algorithm, statuses, window). Dashboard Metrics section updated to reference pairing panel.
 
 ## 12. Known Limitations & Gotchas
 
