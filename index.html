@@ -858,7 +858,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-1"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
-          <p class="text-[10px] text-slate-500 mb-4">Per hour: Positive = missing verifications &middot; Negative = unsigned verifications</p>
+          <p class="text-[10px] text-slate-500 mb-4">Per hour: Positive = signed but not verified &middot; Negative = verified but not signed</p>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-gaps"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
@@ -1266,7 +1266,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <ul>
           <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
-          <li><strong>Gap Count</strong> &mdash; signed difference (signing &minus; verification), shown as a net value across the dataset. Positive = more signings than verifications (missing verifications); negative = more verifications than signings (unsigned verifications). The Gaps Over Time chart breaks the same calculation down per hour.</li>
+          <li><strong>Gap Count</strong> &mdash; signed difference (signing &minus; verification), shown as a net value across the dataset. Positive = signed but not verified; negative = verified but not signed. The Gaps Over Time chart breaks the same calculation down per hour.</li>
           <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the 100 ms processing-time threshold.</li>
         </ul>
@@ -1282,7 +1282,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <h3><i class="fas fa-chart-bar text-pink-400"></i> Visualizations</h3>
         <p>Below the table you will find:</p>
         <ul>
-          <li><strong>Gaps Over Time</strong> &mdash; signed bar chart per time bucket. Red bars above zero = missing verifications; amber bars below zero = unsigned verifications; a dashed zero baseline is shown.</li>
+          <li><strong>Gaps Over Time</strong> &mdash; signed bar chart per time bucket. Red bars above zero = signed but not verified; amber bars below zero = verified but not signed; a dashed zero baseline is shown.</li>
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
           <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket, with a dashed 100ms threshold line.</li>
@@ -3768,10 +3768,10 @@ function updateGapMetrics() {
   document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
   const gapTile = document.getElementById("gap-metric-gap").closest('.bg-slate-900\\/50');
   if (signedGap > 0) {
-    document.getElementById("gap-metric-gap-desc").textContent = signedGap + " net \u00b7 missing verifications";
+    document.getElementById("gap-metric-gap-desc").textContent = '+' + signedGap + ' net \u00b7 signed but not verified';
     if (gapTile) { gapTile.classList.remove('hover:border-amber-500/50'); gapTile.classList.add('hover:border-red-500/50'); }
   } else if (signedGap < 0) {
-    document.getElementById("gap-metric-gap-desc").textContent = signedGap + " net \u00b7 unsigned verifications";
+    document.getElementById("gap-metric-gap-desc").textContent = '\u2212' + Math.abs(signedGap) + ' net \u00b7 verified but not signed';
     if (gapTile) { gapTile.classList.remove('hover:border-red-500/50'); gapTile.classList.add('hover:border-amber-500/50'); }
   } else {
     document.getElementById("gap-metric-gap-desc").textContent = "balanced";
@@ -3929,6 +3929,16 @@ function renderGapCharts() {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const v = ctx.parsed.y;
+                if (v > 0) return '+' + v + ' \u00b7 signed but not verified';
+                if (v < 0) return '\u2212' + Math.abs(v) + ' \u00b7 verified but not signed';
+                return '0 \u00b7 balanced';
+              }
+            }
+          },
           annotation: {
             annotations: {
               zeroLine: {
