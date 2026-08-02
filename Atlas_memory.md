@@ -65,9 +65,9 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 - **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required.
 - **UK number validation** — every destination number is normalized (scientific notation and Excel `+`-stripping recovered) and validated against E.164 structural rules; results surfaced as a per-row Valid/Invalid pill plus an **Invalid UK Numbers** metric.
-- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count, Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms). Tiles are **click-to-drill-down**: they reset filters and apply the matching one, scrolling to the table.
+- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: positive = missing verifications, negative = unsigned verifications), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms). Tiles are **click-to-drill-down**: they reset filters and apply the matching one, scrolling to the table. Below the tiles, an **Invalid UK Numbers breakdown** panel shows clickable reason chips (e.g. `sequential run ×3`) that filter to matching rows; hidden when invalid count is 0.
 - **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, and processing-time min/max; one-click **Reset All**.
-- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time, Invalid Numbers Over Time, Signing vs Verification Volume (stacked bars, valid/invalid segmented per service), Processing Time Distribution.
+- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time (signed bars: red above zero, amber below, dashed zero baseline), Invalid Numbers Over Time, Signing vs Verification Volume (stacked bars, valid/invalid segmented per service), Processing Time Distribution.
 - **Data table** — 9 sortable columns, pagination (25/50/100 per page), showing/indicator controls.
 - **Export** — modal with **Filtered** vs **All** scope; CSV includes a metrics summary block followed by the full quoted data rows.
 
@@ -156,13 +156,17 @@ Every notable decision made during development. If you are unsure whether a beha
 35. **Sort-at-render pattern** — `renderGapTable()` sorts `[...gapFilteredData]` (shallow copy); source array is never mutated.
 36. **Shared upload path** — both file picker and drag-and-drop call `readGapFile(file)` then `handleGapCSVUpload(text)`.
 37. **Drag-and-drop upload zone** — violet glow feedback on drag, CSV MIME/extension validation, both picker and drop feed into the same parser.
+38. **Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. Pure 10-digit string → epoch seconds (×1000); pure 13-digit string → epoch ms; otherwise `new Date()`. Rows with invalid timestamps remain in `gapFilteredData` (count in tiles, appear in table with amber icon) but are excluded from time-bucketed charts. Invalid timestamps always sort to the bottom of the table regardless of sort direction.
+39. **Signed directional gap** — Gap Count tile shows signed value (`+3`, `−2`, `0`) with dynamic caption: positive → "missing verifications" (red), negative → "unsigned verifications" (amber), zero → "balanced". Gaps Over Time chart is a bar chart: red bars above zero, amber below, with a dashed slate zero baseline via the annotation plugin.
+40. **Invalid-reason breakdown panel** — full-width slim panel below the metrics grid, visible only when filtered invalid count > 0. Shows clickable chips (e.g. `sequential run ×3`) derived from `gapReasonBucket()` — a display-layer keyword mapping over existing `ukValidationReason` strings. Chips set `gapInvalidReason` global + UK-validation filter to "Invalid"; clicking active chip clears. `resetGapFilters()` and manual validation-dropdown changes also clear it.
+41. **Epoch 10/13-digit handling** — EDR exports sometimes emit epoch seconds (10 digits) or epoch milliseconds (13 digits). Both are detected by regex and converted to ms timestamps, avoiding `new Date(numericString)` ambiguity.
 
 **Global:**
-38. **ARIA live region + skip link + module-change announcements** — accessibility built in from the start.
-39. **Single shared toast + single help drawer with 3 tabs** — one component instance, reused everywhere.
-40. **Client Proposal PDF masks internal margins** — the financial section shows only the customer price; internal cost and blended rate never appear. Invoicing language states 50% kickoff / 50% Go-Live. Marked **BETA** with a warning banner.
-41. **3-section proposal toggles** — infra strategy / implementation timeline / financial quote can be included independently; the infra section is generated headlessly (`generateHeadlessAnalysis()`) so it works without visiting the dashboard.
-42. **Dark theme only**, single design language (slate-900 surfaces, slate-800 borders, glass panels).
+42. **ARIA live region + skip link + module-change announcements** — accessibility built in from the start.
+43. **Single shared toast + single help drawer with 3 tabs** — one component instance, reused everywhere.
+44. **Client Proposal PDF masks internal margins** — the financial section shows only the customer price; internal cost and blended rate never appear. Invoicing language states 50% kickoff / 50% Go-Live. Marked **BETA** with a warning banner.
+45. **3-section proposal toggles** — infra strategy / implementation timeline / financial quote can be included independently; the infra section is generated headlessly (`generateHeadlessAnalysis()`) so it works without visiting the dashboard.
+46. **Dark theme only**, single design language (slate-900 surfaces, slate-800 borders, glass panels).
 
 ## 6. Code Conventions (required for new code)
 
@@ -238,9 +242,11 @@ Every notable decision made during development. If you are unsure whether a beha
 ### Pipeline
 1. `handleGapCSVUpload` or drag-and-drop → calls `readGapFile(file)` → `parseGapCSV(text)` (single-pass state machine: BOM strip, quoted commas/newlines, CRLF, empty rows, short-row padding). Returns `{headers, rows, errors, meta}`.
 2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to.
-3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast.
+3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast (includes unparseable-timestamp count when > 0).
 4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max. Metrics/table recompute from `gapFilteredData`.
-5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset.
+5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset. Clears `gapInvalidReason`.
+6. `gapReasonBucket(reason)` — display-layer keyword mapping from `ukValidationReason` strings to six buckets: `empty`, `not +44`, `wrong length`, `identical digits`, `sequential run`, `bad prefix`. Anything unmatched → `other`.
+7. `gapInvalidReason` — global set by breakdown-panel chip clicks; consulted in `applyGapFilters()` to filter rows by reason bucket. Cleared by `resetGapFilters()`, `drillDownGap()`, and manual validation-dropdown changes.
 
 ### UK validation (exact rules — do not change without user sign-off)
 - `normalizePhoneNumber(value)`: `E+` scientific → full integer; `/^44\d{9,10}$/` → prepend `+`; strip spaces/dashes/parens.
@@ -254,15 +260,15 @@ Every notable decision made during development. If you are unsure whether a beha
 - `from` numbers are normalized but never validated (they are assumed to be internal/valid).
 - Per-row results: `ukValid` (bool) + `ukValidationReason` (string). Rendered as green "Valid" / red "Invalid" pill.
 
-### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render)
-1. Gaps Over Time — red line (|signing − verify| per hour).
+### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render — only timeValid rows bucketed)
+1. Gaps Over Time — signed bar chart (signing − verify per hour); red above zero, amber below; dashed zero baseline via annotation plugin.
 2. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid).
 3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks.
 4. Processing Time Distribution — violet line (per-hour average) with a 100ms dashed threshold annotation (plugin loaded).
 
 ### Table & export
 - 9 sortable columns; default sort time desc; pagination 25/50/100 (default 25).
-- Export: modal (Filtered/All) → CSV with metrics summary block + quoted data rows; filename `gap_analyzer_export_YYYY-MM-DD.csv`.
+- Export: modal (Filtered/All) → CSV with metrics summary block + invalid-reason breakdown line (when invalid > 0) + quoted data rows; filename `gap_analyzer_export_YYYY-MM-DD.csv`.
 
 ## 10. Global Components
 
@@ -302,6 +308,19 @@ Every notable decision made during development. If you are unsure whether a beha
 
 ### Phase 1 hotfixes
 - **H1: Verification predicate widened** — `isVerify` changed from `svc.includes('verify')` to `svc.includes('verif')` (stem match). `'verification'.includes('verify')` is false (`"ication"` ≠ `"y"`); `'verification'.includes('verif')` is true. Fixes `Verification` service value being uncounted.
+
+### Phase 1 documentation cleanup (D1–D3)
+- **D1:** §5 Global decisions renumbered 38–42 (collision with Phase 1 Gap decisions 33–37 resolved).
+- **D2:** Stale "Fix the chart annotation" recipe removed from §13 (plugin now loaded).
+- **D3:** §4 file-map ranges rewritten from actual line numbers (1–305 through 3361–4095).
+
+### Phase 1 F1 (parse errors)
+- `parseGapCSV` returns `{headers, rows, errors}`. Errors collected for empty rows and short-row padding. Count surfaced in summary toast as "· N skipped" when > 0.
+
+### Phase 2A — Diagnostic Foundations
+- **Task 1: Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. 10-digit → epoch seconds, 13-digit → epoch ms, otherwise `new Date()`. Invalid timestamps: counted in tiles, excluded from time-bucketed charts, amber icon in table, sort to bottom. Summary toast appends "· N unparseable timestamp(s)".
+- **Task 2: Signed directional gap** — Gap Count tile shows signed value with dynamic caption (positive = "missing verifications", negative = "unsigned verifications", zero = "balanced"). Gaps Over Time converted from line to bar chart: red above zero, amber below, dashed zero baseline via annotation plugin. Subtitle added.
+- **Task 3: Invalid-reason breakdown** — `gapReasonBucket()` maps `ukValidationReason` strings to six buckets via keyword matching. Full-width panel below metrics grid with clickable chips; sets `gapInvalidReason` global for filtering. Export CSV includes breakdown line. Help drawer updated.
 
 ## 12. Known Limitations & Gotchas
 

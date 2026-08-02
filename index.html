@@ -726,7 +726,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">UK Validation Status</label>
-            <select id="gap-filter-validation" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+            <select id="gap-filter-validation" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="gapInvalidReason=''; applyGapFilters()">
               <option value="all">All Numbers</option>
               <option value="valid">Valid UK Numbers</option>
               <option value="invalid">Invalid UK Numbers</option>
@@ -848,10 +848,17 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         </div>
       </div>
 
+      <!-- Invalid UK Numbers Breakdown -->
+      <div id="gap-invalid-reason-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mt-4">
+        <h4 class="text-xs font-semibold text-slate-400 mb-3"><i class="fas fa-layer-group text-amber-400 mr-1"></i>Invalid UK Numbers &mdash; breakdown</h4>
+        <div class="gap-reason-chips flex flex-wrap gap-2"></div>
+      </div>
+
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
+          <h3 class="text-sm font-semibold text-white mb-1"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
+          <p class="text-[10px] text-slate-500 mb-4">Positive = missing verifications &middot; Negative = unsigned verifications</p>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-gaps"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
@@ -1260,7 +1267,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
           <li><strong>Gap (Missing)</strong> &mdash; absolute difference between signing and verification counts.</li>
-          <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation.</li>
+          <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the 100 ms processing-time threshold.</li>
         </ul>
         <p>Click any metric card to filter the data table. Click again or use <strong>Reset Filters</strong> to clear.</p>
@@ -1275,7 +1282,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <h3><i class="fas fa-chart-bar text-pink-400"></i> Visualizations</h3>
         <p>Below the table you will find:</p>
         <ul>
-          <li><strong>Gaps Over Time</strong> &mdash; line chart of the signing-vs-verification gap per time bucket.</li>
+          <li><strong>Gaps Over Time</strong> &mdash; signed bar chart per time bucket. Red bars above zero = missing verifications; amber bars below zero = unsigned verifications; a dashed zero baseline is shown.</li>
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
           <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket.</li>
@@ -3371,6 +3378,7 @@ let gapSortColumn = "time";
 let gapSortAscending = false;
 let gapChartData = { labels: [], gaps: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [] };
 let gapChartInstances = {};
+let gapInvalidReason = '';
 
 function parseGapCSV(text) {
   if (!text) return { headers: [], rows: [], errors: [] };
@@ -3579,6 +3587,22 @@ function processGapData() {
     const toNumber = normalizePhoneNumber(rawToNumber);
     const ukValid = validateUKNumber(toNumber);
     const svc = (row[gapColumnMapping.service] || '').toLowerCase();
+    const rawTime = row[gapColumnMapping.time] || '';
+    let timestamp = null;
+    let timeValid = false;
+    if (rawTime) {
+      const trimmed = rawTime.trim();
+      if (/^\d{10}$/.test(trimmed)) {
+        timestamp = parseInt(trimmed, 10) * 1000;
+        timeValid = true;
+      } else if (/^\d{13}$/.test(trimmed)) {
+        timestamp = parseInt(trimmed, 10);
+        timeValid = true;
+      } else {
+        const d = new Date(trimmed);
+        if (!isNaN(d.getTime())) { timestamp = d.getTime(); timeValid = true; }
+      }
+    }
     return {
       time: row[gapColumnMapping.time] || "",
       service: row[gapColumnMapping.service] || "",
@@ -3591,7 +3615,9 @@ function processGapData() {
       ukValid: ukValid.valid,
       ukValidationReason: ukValid.reason,
       isSigning: svc.includes('signing'),
-      isVerify: svc.includes('verif')
+      isVerify: svc.includes('verif'),
+      timestamp: timestamp,
+      timeValid: timeValid
     };
   });
   gapFilteredData = [...gapData];
@@ -3610,9 +3636,11 @@ function processGapData() {
   const _v = gapData.filter(d => d.isVerify).length;
   const _i = gapData.filter(d => !d.ukValid).length;
   const _e = (window.gapParseErrors || []).length;
+  const _ut = gapData.filter(d => !d.timeValid).length;
   let msg = gapData.length + " records analyzed \u00b7 " + _s + " signing, " + _v + " verify";
   if (_i > 0) msg += ", " + _i + " invalid";
   if (_e > 0) msg += " \u00b7 " + _e + " skipped";
+  if (_ut > 0) msg += " \u00b7 " + _ut + " unparseable timestamp(s)";
   showToast(msg);
   } catch(e) { console.error("processGapData error:", e); showToast("Error processing data: " + e.message, true); }
 }
@@ -3651,6 +3679,18 @@ function validateUKNumber(number) {
   return { valid: true, reason: "Valid" };
 }
 
+function gapReasonBucket(reason) {
+  if (!reason || reason === 'Valid') return 'other';
+  const r = reason.toLowerCase();
+  if (r === 'empty number') return 'empty';
+  if (r.includes('start with +44') || r.includes('+44')) return 'not +44';
+  if (r.includes('length')) return 'wrong length';
+  if (r.includes('identical')) return 'identical digits';
+  if (r.includes('sequential')) return 'sequential run';
+  if (r.includes('prefix')) return 'bad prefix';
+  return 'other';
+}
+
 function populateGapFilterDropdowns() {
   const statuses = [...new Set(gapData.map(d => d.status))].filter(Boolean).sort();
   const customers = [...new Set(gapData.map(d => d.customer))].filter(Boolean).sort();
@@ -3675,6 +3715,8 @@ function applyGapFilters() {
     if (serviceFilter === "verify" && !row.isVerify) return false;
     if (validationFilter === "valid" && !row.ukValid) return false;
     if (validationFilter === "invalid" && row.ukValid) return false;
+    if (gapInvalidReason && row.ukValid) return false;
+    if (gapInvalidReason && gapReasonBucket(row.ukValidationReason) !== gapInvalidReason) return false;
     if (fromFilter && !row.from.toLowerCase().includes(fromFilter)) return false;
     if (toFilter && !row.to.toLowerCase().includes(toFilter)) return false;
     if (statusFilter !== "all" && row.status !== statusFilter) return false;
@@ -3690,6 +3732,7 @@ function applyGapFilters() {
 }
 
 function resetGapFilters() {
+  gapInvalidReason = '';
   document.getElementById("gap-filter-service").value = "all";
   document.getElementById("gap-filter-validation").value = "all";
   document.getElementById("gap-filter-from").value = "";
@@ -3707,23 +3750,64 @@ function updateGapMetrics() {
   const total = gapFilteredData.length;
   const signing = gapFilteredData.filter(d => d.isSigning).length;
   const verify = gapFilteredData.filter(d => d.isVerify).length;
-  const gap = Math.abs(signing - verify);
+  const signedGap = signing - verify;
+  const gap = Math.abs(signedGap);
   const gapPct = signing > 0 ? ((gap / signing) * 100).toFixed(1) : 0;
   const invalid = gapFilteredData.filter(d => !d.ukValid).length;
   const outliers = gapFilteredData.filter(d => d.processingTime > 100).length;
   document.getElementById("gap-metric-total").textContent = total.toLocaleString();
   document.getElementById("gap-metric-signing").textContent = signing.toLocaleString();
   document.getElementById("gap-metric-verify").textContent = verify.toLocaleString();
-  document.getElementById("gap-metric-gap").textContent = gap.toLocaleString();
+  const gapSign = signedGap > 0 ? '+' : (signedGap < 0 ? '\u2212' : '');
+  document.getElementById("gap-metric-gap").textContent = gapSign + gap.toLocaleString();
   document.getElementById("gap-metric-gap-pct").textContent = gapPct + "%";
   document.getElementById("gap-metric-invalid").textContent = invalid.toLocaleString();
   document.getElementById("gap-metric-outliers").textContent = outliers.toLocaleString();
   document.getElementById("gap-metric-total-desc").textContent = "in current view";
   document.getElementById("gap-metric-signing-desc").textContent = (signing > 0 ? ((signing/total)*100).toFixed(1) : 0) + "% of total";
   document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
-  document.getElementById("gap-metric-gap-desc").textContent = gapPct > 10 ? "High discrepancy!" : "Within normal range";
+  const gapTile = document.getElementById("gap-metric-gap").closest('.bg-slate-900\\/50');
+  if (signedGap > 0) {
+    document.getElementById("gap-metric-gap-desc").textContent = "missing verifications";
+    if (gapTile) { gapTile.classList.remove('hover:border-amber-500/50'); gapTile.classList.add('hover:border-red-500/50'); }
+  } else if (signedGap < 0) {
+    document.getElementById("gap-metric-gap-desc").textContent = "unsigned verifications";
+    if (gapTile) { gapTile.classList.remove('hover:border-red-500/50'); gapTile.classList.add('hover:border-amber-500/50'); }
+  } else {
+    document.getElementById("gap-metric-gap-desc").textContent = "balanced";
+    if (gapTile) { gapTile.classList.remove('hover:border-red-500/50', 'hover:border-amber-500/50'); gapTile.classList.add('hover:border-violet-500/50'); }
+  }
   document.getElementById("gap-metric-invalid-desc").textContent = invalid > 0 ? ((invalid/total)*100).toFixed(1) + "% invalid" : "All valid";
   document.getElementById("gap-metric-outliers-desc").textContent = outliers > 0 ? "Needs investigation" : "Normal performance";
+  const invalidData = gapFilteredData.filter(d => !d.ukValid);
+  const reasonCounts = {};
+  invalidData.forEach(d => { const b = gapReasonBucket(d.ukValidationReason); reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
+  const reasonLabels = { 'empty': 'empty', 'not +44': 'not +44', 'wrong length': 'wrong length', 'identical digits': 'identical digits', 'sequential run': 'sequential run', 'bad prefix': 'bad prefix', 'other': 'other' };
+  const panel = document.getElementById('gap-invalid-reason-panel');
+  if (panel) {
+    const chips = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]);
+    if (chips.length > 0) {
+      panel.classList.remove('hidden');
+      panel.querySelector('.gap-reason-chips').innerHTML = chips.map(([reason, count]) => {
+        const active = gapInvalidReason === reason;
+        return '<button class="px-3 py-1 rounded-full text-xs font-medium transition-all ' + (active ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700') + '" onclick="toggleGapInvalidReason(\'' + reason + '\')">' + (reasonLabels[reason] || reason) + ' \u00d7' + count + '</button>';
+      }).join('');
+    } else {
+      panel.classList.add('hidden');
+    }
+  }
+}
+
+function toggleGapInvalidReason(reason) {
+  if (gapInvalidReason === reason) {
+    gapInvalidReason = '';
+    document.getElementById('gap-filter-validation').value = 'all';
+  } else {
+    gapInvalidReason = reason;
+    document.getElementById('gap-filter-validation').value = 'invalid';
+  }
+  applyGapFilters();
+  document.getElementById('gap-dashboard').scrollIntoView({ behavior: 'smooth' });
 }
 
 function renderGapTable() {
@@ -3736,6 +3820,8 @@ function renderGapTable() {
   let sorted = [...gapFilteredData];
   if (gapSortColumn) {
     sorted.sort((a, b) => {
+      if (!a.timeValid && b.timeValid) return 1;
+      if (a.timeValid && !b.timeValid) return -1;
       let aVal = a[gapSortColumn];
       let bVal = b[gapSortColumn];
       if (typeof aVal === 'string') aVal = aVal.toLowerCase();
@@ -3752,7 +3838,7 @@ function renderGapTable() {
   
   tableBody.innerHTML = pageData.map(row => {
     return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
-      <td class="py-3 px-4 text-slate-300">${row.time || '-'}</td>
+      <td class="py-3 px-4 text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
       <td class="py-3 px-4 text-slate-300">${row.service || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
@@ -3773,14 +3859,13 @@ function renderGapTable() {
 }
 
 function renderGapCharts() {
-  // Prepare time-bucketed data
   const timeBuckets = {};
   gapFilteredData.forEach(row => {
-    if (!row.time) return;
-    const date = new Date(row.time);
-    const bucketKey = date.toISOString().slice(0, 13);
+    if (!row.timeValid || !row.timestamp) return;
+    const d = new Date(row.timestamp);
+    const bucketKey = d.toISOString().slice(0, 13);
     if (!timeBuckets[bucketKey]) {
-      timeBuckets[bucketKey] = { signingValid: 0, signingInvalid: 0, verifyValid: 0, verifyInvalid: 0, gap: 0, processing: [] };
+      timeBuckets[bucketKey] = { signingValid: 0, signingInvalid: 0, verifyValid: 0, verifyInvalid: 0, processing: [] };
     }
     if (row.isSigning) {
       if (row.ukValid) timeBuckets[bucketKey].signingValid++;
@@ -3803,7 +3888,8 @@ function renderGapCharts() {
   const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
   const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
   const verifyInvalid = labels.map(k => timeBuckets[k].verifyInvalid);
-  const gaps = labels.map(k => Math.abs((timeBuckets[k].signingValid + timeBuckets[k].signingInvalid) - (timeBuckets[k].verifyValid + timeBuckets[k].verifyInvalid)));
+  const signedGaps = labels.map(k => (timeBuckets[k].signingValid + timeBuckets[k].signingInvalid) - (timeBuckets[k].verifyValid + timeBuckets[k].verifyInvalid));
+  const gapColors = signedGaps.map(v => v > 0 ? '#ef4444' : (v < 0 ? '#f59e0b' : 'rgba(100,116,139,0.3)'));
   const processing = labels.map(k => {
     const arr = timeBuckets[k].processing;
     return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
@@ -3811,35 +3897,44 @@ function renderGapCharts() {
   
   const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
   
-  gapChartData = { labels, gaps, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal };
+  gapChartData = { labels, signedGaps, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal };
   
-  // Destroy existing charts
   Object.values(gapChartInstances).forEach(chart => {
     if (chart) chart.destroy();
   });
   gapChartInstances = {};
   
-  // Gaps Over Time Chart
   const gapsCtx = document.getElementById('gap-chart-gaps');
   if (gapsCtx) {
     gapChartInstances.gaps = new Chart(gapsCtx, {
-      type: 'line',
+      type: 'bar',
       data: {
         labels: displayLabels,
         datasets: [{
-          label: 'Gap Count',
-          data: gaps,
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          fill: true,
-          tension: 0.4
+          label: 'Gap (signed)',
+          data: signedGaps,
+          backgroundColor: gapColors,
+          borderColor: gapColors,
+          borderWidth: 1
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } }
+          legend: { display: false },
+          annotation: {
+            annotations: {
+              zeroLine: {
+                type: 'line',
+                yMin: 0,
+                yMax: 0,
+                borderColor: '#64748b',
+                borderWidth: 1,
+                borderDash: [5, 5]
+              }
+            }
+          }
         },
         scales: {
           x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
@@ -4015,10 +4110,15 @@ function exportGapData() {
   const outliers = dataToExport.filter(d => d.processingTime > 100).length;
   
   const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid'];
+  const invalidData = dataToExport.filter(d => !d.ukValid);
+  const reasonCounts = {};
+  invalidData.forEach(d => { const b = gapReasonBucket(d.ukValidationReason); reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
+  const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
   const csvRows = [
     'Total Records,Signing,Verification,Gap,Invalid UK Numbers,Processing Time Outliers',
     [total, signing, verify, gap, invalid, outliers].join(','),
     '',
+    ...(breakdownLine ? [breakdownLine, ''] : []),
     headers.join(',')
   ];
   
@@ -4073,6 +4173,7 @@ function changeGapRowsPerPage(value) {
 }
 
 function drillDownGap(type) {
+  gapInvalidReason = '';
   var serviceFilter = document.getElementById('gap-filter-service');
   var validationFilter = document.getElementById('gap-filter-validation');
   var procMin = document.getElementById('gap-filter-proc-min');
