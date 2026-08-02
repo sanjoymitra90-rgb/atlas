@@ -1266,7 +1266,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <ul>
           <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
-          <li><strong>Gap (Missing)</strong> &mdash; absolute difference between signing and verification counts.</li>
+          <li><strong>Gap Count</strong> &mdash; signed difference (signing &minus; verification), shown as a net value across the dataset. Positive = more signings than verifications (missing verifications); negative = more verifications than signings (unsigned verifications). The Gaps Over Time chart breaks the same calculation down per hour.</li>
           <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the 100 ms processing-time threshold.</li>
         </ul>
@@ -1285,7 +1285,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <li><strong>Gaps Over Time</strong> &mdash; signed bar chart per time bucket. Red bars above zero = missing verifications; amber bars below zero = unsigned verifications; a dashed zero baseline is shown.</li>
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
-          <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket.</li>
+          <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket, with a dashed 100ms threshold line.</li>
         </ul>
       </section>
 

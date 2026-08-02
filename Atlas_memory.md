@@ -87,7 +87,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 ## 4. Architecture & File Map
 
-`index.html` (~4,095 lines) is organized in this order:
+`index.html` (~4,203 lines) is organized in this order:
 
 | Lines (approx) | Content |
 |---|---|
@@ -95,14 +95,14 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | 307–313 | ARIA live region, skip link |
 | 315–374 | **Gateway module** HTML |
 | 376–587 | **Optimizer module** HTML (step wizard 1–4) |
-| 589–926 | **Gap Analyzer module** HTML (modals, filters, metrics, charts, table) |
-| 928–1059 | **Onboarding module** HTML (ribbon, Gantt container) |
-| 1061–1141 | Global: help FAB, toast, proposal modal, confirm-reset modal |
-| 1143–1297 | Help drawer (3 tabs: optimizer / onboarding / gap) |
-| 1299–1349 | Script: navigation & module state |
-| 1351–1783 | Onboarding logic (Gantt engine, financials) |
-| 1785–3359 | Help drawer logic, Optimizer logic (constants, maps, coverage algorithm, import/export) |
-| 3361–4095 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
+| 589–926 | **Gap Analyzer module** HTML (modals, filters, metrics, charts, table, breakdown panel) |
+| 935–1066 | **Onboarding module** HTML (ribbon, Gantt container) |
+| 1068–1148 | Global: help FAB, toast, proposal modal, confirm-reset modal |
+| 1241–1303 | Help drawer (3 tabs: optimizer / onboarding / gap) |
+| 1306–1356 | Script: navigation & module state |
+| 1358–1790 | Onboarding logic (Gantt engine, financials) |
+| 1792–3366 | Help drawer logic, Optimizer logic (constants, maps, coverage algorithm, import/export) |
+| 3368–4203 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -326,6 +326,7 @@ Every notable decision made during development. If you are unsure whether a beha
 - **H3: Unknown time bucket** — invalid-time rows now go to an explicit "Unknown" bucket (always last) in all four charts instead of being excluded. Chart bucket totals must equal tile totals.
 - **H4: 100ms threshold visibility** — Processing Time chart y-axis `suggestedMax: 100` ensures the dashed annotation line is visible when all averages fall below 100ms.
 - **H5: Net vs. per-hour labeling** — Gap Count tile caption appends "net" (e.g. "−1 net · unsigned verifications"); Gaps Over Time subtitle prefixed with "Per hour:".
+- **H6: Help-text sync** — Gap Analyzer help drawer's Dashboard Metrics section updated: "Gap (Missing)" → "Gap Count" with signed description and per-hour chart reference; Processing Time Distribution entry appends threshold-line mention.
 
 ## 12. Known Limitations & Gotchas
 
