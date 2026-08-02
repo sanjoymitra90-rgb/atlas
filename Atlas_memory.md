@@ -172,7 +172,7 @@ Every notable decision made during development. If you are unsure whether a beha
 **Phase 2B:**
 47. **Privacy messaging on upload** — a `fa-shield-halved` line appears below the upload drop-zone: "All processing is local. Your data never leaves your browser." Addresses data-sensitivity concerns without adding complexity.
 48. **Filtered-view indicator** — when any filter is active, a slim strip appears above the metrics grid showing global (unfiltered) values as "N of M" with tooltips, plus a Reset Filters button. Metrics tiles, charts, and table continue to show filtered values. Global values are computed in `updateGapMetrics()` by counting against `gapData` (full dataset) when `isFiltered` is true.
-49. **Configurable slow threshold** — `gapSlowThreshold` global (default 100) set via a number input in the Settings modal. `handleGapThresholdChange()` updates the tile label, Processing Time chart annotation (`yMin`/`yMax`), `suggestedMax`, and re-renders all data. Annotation label dynamically shows `"{threshold}ms Threshold"`.
+49. **Configurable slow threshold** — `gapSlowThreshold` global (default 100) set via a number input in the Settings modal. `handleGapThresholdChange()` updates the tile label, Processing Time chart annotation (`yMin`/`yMax`), `suggestedMax`, and re-renders all data. Annotation label dynamically shows `"{threshold}ms Threshold"`. `drillDownGap('outliers')` uses `gapSlowThreshold` for `procMin` (not hardcoded).
 50. **Chart → table drill-through** — each of the four charts has `onClick: chartClickHandler` which resolves the clicked x-index to a time bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it; a removable chip in the filter bar shows the active bucket. `resetGapFilters()`, `drillDownGap()`, and `resetGapMetrics()` clear the bucket filter. Each row stores `bucketKey` (ISO hour string or `'__unknown__'`).
 51. **`row.bucketKey`** — derived in `processGapData()` from `row.timestamp` via `new Date(timestamp).toISOString().slice(0, 13)` when `timeValid` is true; `'__unknown__'` otherwise. Used by chart drill-through and bucket filtering.
 
@@ -342,6 +342,9 @@ Every notable decision made during development. If you are unsure whether a beha
 - **P2.4: Filtered-view indicator** — when any filter is active, a slim strip (`gap-filtered-strip`) appears above the metrics grid showing global (unfiltered) counts per metric as "N of M" with `title` tooltips, plus a Reset Filters button. Global values computed in `updateGapMetrics()` by counting against `gapData` when `isFiltered` is true. Strip hidden when no filters active.
 - **P2.6: Configurable slow threshold** — `gapSlowThreshold` global (default 100), number input in Settings modal, `handleGapThresholdChange()` updates tile label, chart annotation line + `suggestedMax`, and re-renders data. Annotation label dynamically shows `"{threshold}ms Threshold"`.
 - **P2.3: Chart → table drill-through** — `row.bucketKey` derived in `processGapData()` (ISO hour or `'__unknown__'`). `gapBucketOrder` stores label order. All four charts gain `onClick: chartClickHandler` resolving x-index → bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it. Removable chip in filter bar shows active bucket. `resetGapFilters()`, `drillDownGap()`, `resetGapMetrics()` clear bucket filter.
+
+### Phase 2B hotfix
+- **H8: drillDownGap outliers uses threshold** — `drillDownGap('outliers')` set `procMin.value = '100'` (hardcoded). Changed to `procMin.value = String(gapSlowThreshold)` so the drill-down respects the user-configured threshold.
 
 ## 12. Known Limitations & Gotchas
 
