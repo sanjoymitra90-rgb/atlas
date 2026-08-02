@@ -63,11 +63,12 @@ A scoping + quoting workspace built around an interactive DHTMLX Gantt:
 
 An EDR call-data analysis tool with validation, filtering, visualization, and export:
 
-- **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required.
+- **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required. Upload area includes a **privacy note** ("All processing is local. Your data never leaves your browser.").
 - **UK number validation** — every destination number is normalized (scientific notation and Excel `+`-stripping recovered) and validated against E.164 structural rules; results surfaced as a per-row Valid/Invalid pill plus an **Invalid UK Numbers** metric.
-- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: positive = signed but not verified, negative = verified but not signed), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms). Tiles are **click-to-drill-down**: they reset filters and apply the matching one, scrolling to the table. Below the tiles, an **Invalid UK Numbers breakdown** panel shows clickable reason chips (e.g. `sequential run ×3`) that filter to matching rows; hidden when invalid count is 0.
-- **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, and processing-time min/max; one-click **Reset All**.
-- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time (signed bars: red above zero, amber below, dashed zero baseline), Invalid Numbers Over Time, Signing vs Verification Volume (stacked bars, valid/invalid segmented per service), Processing Time Distribution.
+- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: positive = signed but not verified, negative = verified but not signed), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**: they reset filters and apply the matching one, scrolling to the table. When filters are active, a **filtered-view strip** appears above metrics showing per-metric global (unfiltered) counts with "N of M" labels and tooltips. Below the tiles, an **Invalid UK Numbers breakdown** panel shows clickable reason chips (e.g. `sequential run ×3`) that filter to matching rows; hidden when invalid count is 0.
+- **Configurable slow-request threshold** — Settings modal includes a number input for the processing-time threshold (default 100ms). Changing it instantly updates the Slow Requests tile label, the Processing Time chart annotation line + `suggestedMax`, and re-renders all data.
+- **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, and processing-time min/max; one-click **Reset All**. Chart drill-through sets a **bucket filter** (time bucket) shown as a removable chip in the filter bar.
+- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time (signed bars: red above zero, amber below, dashed zero baseline), Invalid Numbers Over Time, Signing vs Verification Volume (stacked bars, valid/invalid segmented per service), Processing Time Distribution (with configurable threshold line). All charts are **clickable** — clicking a bar/point filters the table to that time bucket via a chip indicator.
 - **Data table** — 9 sortable columns, pagination (25/50/100 per page), showing/indicator controls.
 - **Export** — modal with **Filtered** vs **All** scope; CSV includes a metrics summary block followed by the full quoted data rows.
 
@@ -142,8 +143,8 @@ Every notable decision made during development. If you are unsure whether a beha
 21. **Scientific-notation recovery** — Excel renders long numbers as `4.47305E+11`; the parser converts them back to full integers (precision permitting).
 22. **Excel `+` stripping recovery** — numbers like `447305409280` (Excel dropped the `+`) are re-prefixed via `/^44\d{9,10}$/`.
 23. **Auto column mapping** — keyword matching per field (time→`time/timestamp/date`, to→`to/destination/called`, etc.); dropdowns pre-select on open.
-24. **Metrics computed on FILTERED data** — every tile (Total, Signing, Verify, Gap, Gap%, Invalid, Slow >100ms) reflects the current filter state, not the raw dataset.
-25. **Drill-down tiles** — clicking a metric card resets all filters, applies the matching filter (signing/verify/invalid/outliers), and smooth-scrolls to the table. Total = plain reset.
+24. **Metrics computed on FILTERED data** — every tile (Total, Signing, Verify, Gap, Gap%, Invalid, Slow) reflects the current filter state, not the raw dataset. When filters are active, a filtered-view strip shows global (unfiltered) counts.
+25. **Drill-down tiles** — clicking a metric card resets all filters, applies the matching filter (signing/verify/invalid/outliers), and smooth-scrolls to the table. Total = plain reset. Also clears `gapInvalidReason` and `gapBucketFilter`.
 26. **Humanized chart labels** — x-axis formatted `Jul 31, 19:00` (UTC), not ISO timestamps. Hourly UTC buckets via `toISOString().slice(0, 13)`.
 27. **Stacked volume chart** — separate stacks for Signing and Verify (`stack: 'signing'` / `stack: 'verify'` + `stacked: true`), each internally stacked Valid (blue/green) over Invalid (orange) — lets you read valid vs invalid volume per service in one bar.
 28. **Export CSV with metrics summary block** — the export file begins with a summary row (Total, Signing, Verification, Gap, Invalid, Outliers) followed by a blank line and the full data table. Rows are properly quoted/escaped.
@@ -167,6 +168,13 @@ Every notable decision made during development. If you are unsure whether a beha
 44. **Client Proposal PDF masks internal margins** — the financial section shows only the customer price; internal cost and blended rate never appear. Invoicing language states 50% kickoff / 50% Go-Live. Marked **BETA** with a warning banner.
 45. **3-section proposal toggles** — infra strategy / implementation timeline / financial quote can be included independently; the infra section is generated headlessly (`generateHeadlessAnalysis()`) so it works without visiting the dashboard.
 46. **Dark theme only**, single design language (slate-900 surfaces, slate-800 borders, glass panels).
+
+**Phase 2B:**
+47. **Privacy messaging on upload** — a `fa-shield-halved` line appears below the upload drop-zone: "All processing is local. Your data never leaves your browser." Addresses data-sensitivity concerns without adding complexity.
+48. **Filtered-view indicator** — when any filter is active, a slim strip appears above the metrics grid showing global (unfiltered) values as "N of M" with tooltips, plus a Reset Filters button. Metrics tiles, charts, and table continue to show filtered values. Global values are computed in `updateGapMetrics()` by counting against `gapData` (full dataset) when `isFiltered` is true.
+49. **Configurable slow threshold** — `gapSlowThreshold` global (default 100) set via a number input in the Settings modal. `handleGapThresholdChange()` updates the tile label, Processing Time chart annotation (`yMin`/`yMax`), `suggestedMax`, and re-renders all data. Annotation label dynamically shows `"{threshold}ms Threshold"`.
+50. **Chart → table drill-through** — each of the four charts has `onClick: chartClickHandler` which resolves the clicked x-index to a time bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it; a removable chip in the filter bar shows the active bucket. `resetGapFilters()`, `drillDownGap()`, and `resetGapMetrics()` clear the bucket filter. Each row stores `bucketKey` (ISO hour string or `'__unknown__'`).
+51. **`row.bucketKey`** — derived in `processGapData()` from `row.timestamp` via `new Date(timestamp).toISOString().slice(0, 13)` when `timeValid` is true; `'__unknown__'` otherwise. Used by chart drill-through and bucket filtering.
 
 ## 6. Code Conventions (required for new code)
 
@@ -242,9 +250,9 @@ Every notable decision made during development. If you are unsure whether a beha
 ### Pipeline
 1. `handleGapCSVUpload` or drag-and-drop → calls `readGapFile(file)` → `parseGapCSV(text)` (single-pass state machine: BOM strip, quoted commas/newlines, CRLF, empty rows, short-row padding). Returns `{headers, rows, errors, meta}`.
 2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to.
-3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast (includes unparseable-timestamp count when > 0).
-4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max. Metrics/table recompute from `gapFilteredData`.
-5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset. Clears `gapInvalidReason`.
+3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), derive `row.bucketKey` (ISO hour or `'__unknown__'`), populate filter dropdowns, metrics, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast (includes unparseable-timestamp count when > 0).
+4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max, **bucket key** (set by chart drill-through via `gapBucketFilter`). Metrics/table recompute from `gapFilteredData`.
+5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset. Clears `gapInvalidReason` and `gapBucketFilter`.
 6. `gapReasonBucket(reason)` — display-layer keyword mapping from `ukValidationReason` strings to six buckets: `empty`, `not +44`, `wrong length`, `identical digits`, `sequential run`, `bad prefix`. Anything unmatched → `other`.
 7. `gapInvalidReason` — global set by breakdown-panel chip clicks; consulted in `applyGapFilters()` to filter rows by reason bucket. Cleared by `resetGapFilters()`, `drillDownGap()`, and manual validation-dropdown changes.
 
@@ -260,11 +268,11 @@ Every notable decision made during development. If you are unsure whether a beha
 - `from` numbers are normalized but never validated (they are assumed to be internal/valid).
 - Per-row results: `ukValid` (bool) + `ukValidationReason` (string). Rendered as green "Valid" / red "Invalid" pill.
 
-### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows in "Unknown" bucket, always last)
-1. Gaps Over Time — signed bar chart (signing − verify per hour); red above zero, amber below; dashed zero baseline via annotation plugin.
-2. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid).
-3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks.
-4. Processing Time Distribution — violet line (per-hour average) with a 100ms dashed threshold annotation (plugin loaded); y-axis `suggestedMax: 100` so the line is visible when averages fall below 100ms.
+### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows in "Unknown" bucket, always last; all charts are clickable for drill-through)
+1. Gaps Over Time — signed bar chart (signing − verify per hour); red above zero, amber below; dashed zero baseline via annotation plugin. Click filters table to that bucket.
+2. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid). Click filters table to that bucket.
+3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks. Click filters table to that bucket.
+4. Processing Time Distribution — violet line (per-hour average) with configurable threshold annotation (default 100ms); y-axis `suggestedMax: gapSlowThreshold` ensures the line is visible when averages fall below threshold. Click filters table to that bucket.
 
 ### Table & export
 - 9 sortable columns; default sort time desc; pagination 25/50/100 (default 25).
@@ -328,6 +336,12 @@ Every notable decision made during development. If you are unsure whether a beha
 - **H5: Net vs. per-hour labeling** — Gap Count tile caption appends "net" (e.g. "−1 net · unsigned verifications"); Gaps Over Time subtitle prefixed with "Per hour:".
 - **H6: Help-text sync** — Gap Analyzer help drawer's Dashboard Metrics section updated: "Gap (Missing)" → "Gap Count" with signed description and per-hour chart reference; Processing Time Distribution entry appends threshold-line mention.
 - **H7: Directional tooltip labels + vocabulary alignment** — Gaps Over Time chart gains `tooltip.callbacks.label` formatting by sign: "+N · signed but not verified" / "−N · verified but not signed" / "0 · balanced". Tile caption, subtitle, and help drawer Visualizations section aligned to the same phrasing (replacing "missing verifications"/"unsigned verifications").
+
+### Phase 2B — Exploration Polish
+- **P2.5: Privacy messaging** — shield icon + "All processing is local. Your data never leaves your browser." text added below the upload drop-zone in the Gap Analyzer module.
+- **P2.4: Filtered-view indicator** — when any filter is active, a slim strip (`gap-filtered-strip`) appears above the metrics grid showing global (unfiltered) counts per metric as "N of M" with `title` tooltips, plus a Reset Filters button. Global values computed in `updateGapMetrics()` by counting against `gapData` when `isFiltered` is true. Strip hidden when no filters active.
+- **P2.6: Configurable slow threshold** — `gapSlowThreshold` global (default 100), number input in Settings modal, `handleGapThresholdChange()` updates tile label, chart annotation line + `suggestedMax`, and re-renders data. Annotation label dynamically shows `"{threshold}ms Threshold"`.
+- **P2.3: Chart → table drill-through** — `row.bucketKey` derived in `processGapData()` (ISO hour or `'__unknown__'`). `gapBucketOrder` stores label order. All four charts gain `onClick: chartClickHandler` resolving x-index → bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it. Removable chip in filter bar shows active bucket. `resetGapFilters()`, `drillDownGap()`, `resetGapMetrics()` clear bucket filter.
 
 ## 12. Known Limitations & Gotchas
 

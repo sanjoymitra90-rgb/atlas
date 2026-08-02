@@ -634,6 +634,10 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       </div>
       <div class="p-6 space-y-4">
         <p class="text-slate-300 text-sm mb-4">Select which columns from your CSV correspond to each required field:</p>
+        <div class="flex items-center gap-3 bg-slate-800/50 rounded-lg px-4 py-3">
+          <label class="text-xs text-slate-400 whitespace-nowrap">Processing time threshold (ms)</label>
+          <input type="number" id="gap-slow-threshold" min="1" value="100" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="handleGapThresholdChange(this.value)">
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gap-column-mappings">
           <!-- Mappings will be populated dynamically -->
         </div>
@@ -703,6 +707,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <p class="text-xs text-slate-500 mt-4">or drag and drop a CSV file here</p>
       </div>
       <p class="text-xs text-slate-500 mt-4">Supported format: CSV with columns for Time, Service, From, To, Status, etc.</p>
+      <p class="text-xs text-slate-500 mt-2"><i class="fas fa-shield-halved text-emerald-500 mr-1"></i>Private by design &mdash; your call data is processed entirely in this browser and never sent to a server.</p>
     </div>
 
     <!-- Dashboard (shown when data is loaded) -->
@@ -715,6 +720,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
             <i class="fas fa-undo mr-1"></i>Reset All
           </button>
         </div>
+        <div id="gap-bucket-chip" class="hidden mb-3 px-3 py-1.5 bg-violet-500/10 border border-violet-500/30 rounded-lg inline-flex items-center gap-2"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label class="block text-xs text-slate-400 mb-1">Service Type</label>
@@ -767,6 +773,10 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
       </div>
 
       <!-- Metrics Cards -->
+      <div id="gap-filtered-strip" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 flex items-center justify-between text-xs">
+        <span class="text-amber-300"><i class="fas fa-filter mr-1"></i>Filtered view &mdash; <span id="gap-filtered-count"></span> &middot; tiles reflect active filters</span>
+        <button class="text-amber-400 hover:text-amber-300 font-medium" onclick="resetGapFilters()"><i class="fas fa-undo mr-1"></i>Reset</button>
+      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownGap('total')">
           <div class="flex items-center justify-between mb-3">
@@ -1268,7 +1278,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
           <li><strong>Gap Count</strong> &mdash; signed difference (signing &minus; verification), shown as a net value across the dataset. Positive = signed but not verified; negative = verified but not signed. The Gaps Over Time chart breaks the same calculation down per hour.</li>
           <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
-          <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the 100 ms processing-time threshold.</li>
+          <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the processing-time threshold (configurable in Settings, default 100ms).</li>
         </ul>
         <p>Click any metric card to filter the data table. Click again or use <strong>Reset Filters</strong> to clear.</p>
       </section>
@@ -3379,6 +3389,9 @@ let gapSortAscending = false;
 let gapChartData = { labels: [], gaps: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [] };
 let gapChartInstances = {};
 let gapInvalidReason = '';
+let gapSlowThreshold = 100;
+let gapBucketFilter = null;
+let gapBucketOrder = [];
 
 function parseGapCSV(text) {
   if (!text) return { headers: [], rows: [], errors: [] };
@@ -3617,7 +3630,8 @@ function processGapData() {
       isSigning: svc.includes('signing'),
       isVerify: svc.includes('verif'),
       timestamp: timestamp,
-      timeValid: timeValid
+      timeValid: timeValid,
+      bucketKey: timeValid && timestamp ? new Date(timestamp).toISOString().slice(0, 13) : '__unknown__'
     };
   });
   gapFilteredData = [...gapData];
@@ -3717,6 +3731,7 @@ function applyGapFilters() {
     if (validationFilter === "invalid" && row.ukValid) return false;
     if (gapInvalidReason && row.ukValid) return false;
     if (gapInvalidReason && gapReasonBucket(row.ukValidationReason) !== gapInvalidReason) return false;
+    if (gapBucketFilter && row.bucketKey !== gapBucketFilter) return false;
     if (fromFilter && !row.from.toLowerCase().includes(fromFilter)) return false;
     if (toFilter && !row.to.toLowerCase().includes(toFilter)) return false;
     if (statusFilter !== "all" && row.status !== statusFilter) return false;
@@ -3733,6 +3748,8 @@ function applyGapFilters() {
 
 function resetGapFilters() {
   gapInvalidReason = '';
+  gapBucketFilter = null;
+  renderGapBucketChip();
   document.getElementById("gap-filter-service").value = "all";
   document.getElementById("gap-filter-validation").value = "all";
   document.getElementById("gap-filter-from").value = "";
@@ -3747,6 +3764,25 @@ function resetGapFilters() {
 
 
 function updateGapMetrics() {
+  const isFiltered = gapFilteredData.length < gapData.length;
+  const strip = document.getElementById('gap-filtered-strip');
+  const stripCount = document.getElementById('gap-filtered-count');
+  if (strip) {
+    if (isFiltered) {
+      strip.classList.remove('hidden');
+      if (stripCount) stripCount.textContent = 'showing ' + gapFilteredData.length + ' of ' + gapData.length + ' records';
+    } else {
+      strip.classList.add('hidden');
+    }
+  }
+  const globalTotal = gapData.length;
+  const globalSigning = gapData.filter(d => d.isSigning).length;
+  const globalVerify = gapData.filter(d => d.isVerify).length;
+  const globalSignedGap = globalSigning - globalVerify;
+  const globalGap = Math.abs(globalSignedGap);
+  const globalGapPct = globalSigning > 0 ? ((globalGap / globalSigning) * 100).toFixed(1) : 0;
+  const globalInvalid = gapData.filter(d => !d.ukValid).length;
+  const globalOutliers = gapData.filter(d => d.processingTime > gapSlowThreshold).length;
   const total = gapFilteredData.length;
   const signing = gapFilteredData.filter(d => d.isSigning).length;
   const verify = gapFilteredData.filter(d => d.isVerify).length;
@@ -3754,7 +3790,7 @@ function updateGapMetrics() {
   const gap = Math.abs(signedGap);
   const gapPct = signing > 0 ? ((gap / signing) * 100).toFixed(1) : 0;
   const invalid = gapFilteredData.filter(d => !d.ukValid).length;
-  const outliers = gapFilteredData.filter(d => d.processingTime > 100).length;
+  const outliers = gapFilteredData.filter(d => d.processingTime > gapSlowThreshold).length;
   document.getElementById("gap-metric-total").textContent = total.toLocaleString();
   document.getElementById("gap-metric-signing").textContent = signing.toLocaleString();
   document.getElementById("gap-metric-verify").textContent = verify.toLocaleString();
@@ -3763,6 +3799,16 @@ function updateGapMetrics() {
   document.getElementById("gap-metric-gap-pct").textContent = gapPct + "%";
   document.getElementById("gap-metric-invalid").textContent = invalid.toLocaleString();
   document.getElementById("gap-metric-outliers").textContent = outliers.toLocaleString();
+  const tileIds = ['gap-metric-total','gap-metric-signing','gap-metric-verify','gap-metric-gap','gap-metric-gap-pct','gap-metric-invalid','gap-metric-outliers'];
+  const globalVals = [globalTotal, globalSigning, globalVerify, globalGap, globalGapPct + '%', globalInvalid, globalOutliers];
+  tileIds.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const tile = el.closest('.bg-slate-900\\/50');
+      if (isFiltered && tile) tile.setAttribute('title', 'Unfiltered: ' + globalVals[i]);
+      else if (tile) tile.removeAttribute('title');
+    }
+  });
   document.getElementById("gap-metric-total-desc").textContent = "in current view";
   document.getElementById("gap-metric-signing-desc").textContent = (signing > 0 ? ((signing/total)*100).toFixed(1) : 0) + "% of total";
   document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
@@ -3808,6 +3854,47 @@ function toggleGapInvalidReason(reason) {
   }
   applyGapFilters();
   document.getElementById('gap-dashboard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function handleGapThresholdChange(val) {
+  const n = parseInt(val, 10);
+  if (isNaN(n) || n < 1) return;
+  gapSlowThreshold = n;
+  document.getElementById('gap-metric-outliers').closest('.bg-slate-900\\/50').querySelector('.text-xs.text-slate-400').textContent = 'Slow Requests (>' + n + 'ms)';
+  if (gapData.length > 0) {
+    updateGapMetrics();
+    renderGapTable();
+    renderGapCharts();
+  }
+}
+
+function toggleGapBucket(key) {
+  if (gapBucketFilter === key) {
+    gapBucketFilter = null;
+  } else {
+    gapBucketFilter = key;
+  }
+  applyGapFilters();
+  renderGapBucketChip();
+}
+
+function chartClickHandler(evt, elements, chart) {
+  if (!elements || !elements.length) return;
+  const idx = elements[0].index;
+  const key = gapBucketOrder[idx];
+  if (key) toggleGapBucket(key);
+}
+
+function renderGapBucketChip() {
+  const chip = document.getElementById('gap-bucket-chip');
+  if (!chip) return;
+  if (gapBucketFilter) {
+    const label = gapBucketFilter === '__unknown__' ? 'Unknown time' : gapBucketFilter.replace('T', ' ').replace(':00:00Z', ':00');
+    chip.classList.remove('hidden');
+    chip.innerHTML = '<span class="text-xs text-violet-300"><i class="fas fa-clock mr-1"></i>Time bucket: ' + label + '</span> <button class="ml-2 text-violet-400 hover:text-violet-200" onclick="toggleGapBucket(null)"><i class="fas fa-times"></i></button>';
+  } else {
+    chip.classList.add('hidden');
+  }
 }
 
 function renderGapTable() {
@@ -3884,6 +3971,7 @@ function renderGapCharts() {
   
   const knownKeys = Object.keys(timeBuckets).filter(k => k !== '__unknown__').sort();
   const labels = timeBuckets['__unknown__'] ? knownKeys.concat(['__unknown__']) : knownKeys;
+  gapBucketOrder = labels;
   const displayLabels = labels.map(k => {
     if (k === '__unknown__') return 'Unknown';
     const d = new Date(k + ':00:00Z');
@@ -3927,6 +4015,7 @@ function renderGapCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: chartClickHandler,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -3979,6 +4068,7 @@ function renderGapCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: chartClickHandler,
         plugins: {
           legend: { display: true, labels: { color: '#94a3b8' } }
         },
@@ -4035,6 +4125,7 @@ function renderGapCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: chartClickHandler,
         plugins: {
           legend: { display: true, labels: { color: '#94a3b8' } }
         },
@@ -4065,18 +4156,19 @@ function renderGapCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: chartClickHandler,
         plugins: {
           legend: { display: true, labels: { color: '#94a3b8' } },
           annotation: {
             annotations: {
               line1: {
                 type: 'line',
-                yMin: 100,
-                yMax: 100,
+                yMin: gapSlowThreshold,
+                yMax: gapSlowThreshold,
                 borderColor: '#ef4444',
                 borderWidth: 2,
                 borderDash: [5, 5],
-                label: { content: '100ms Threshold', enabled: true, position: 'end' }
+                label: { content: gapSlowThreshold + 'ms Threshold', enabled: true, position: 'end' }
               }
             }
           }
@@ -4086,7 +4178,7 @@ function renderGapCharts() {
           y: { 
             ticks: { color: '#64748b' }, 
             grid: { color: '#1e293b' },
-            suggestedMax: 100
+            suggestedMax: gapSlowThreshold
           }
         }
       }
@@ -4191,6 +4283,8 @@ function changeGapRowsPerPage(value) {
 
 function drillDownGap(type) {
   gapInvalidReason = '';
+  gapBucketFilter = null;
+  renderGapBucketChip();
   var serviceFilter = document.getElementById('gap-filter-service');
   var validationFilter = document.getElementById('gap-filter-validation');
   var procMin = document.getElementById('gap-filter-proc-min');
