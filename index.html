@@ -641,7 +641,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
           </div>
           <div class="flex items-center gap-2">
             <label class="text-xs text-slate-400 whitespace-nowrap">Pairing window (ms)</label>
-            <input type="number" id="gap-pair-window" min="1" value="1000" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="handleGapPairWindowChange(this.value)">
+            <input type="number" id="gap-pair-window" min="1" value="1000" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" data-testid="gap-pair-window-input" onchange="handleGapPairWindowChange(this.value)">
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gap-column-mappings">
@@ -882,29 +882,29 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
-            <div class="text-2xl font-bold text-white" id="gap-pair-rate">-</div>
+            <div class="text-2xl font-bold text-white" id="gap-pair-rate" data-testid="gap-pair-matchrate">-</div>
             <div class="text-xs text-slate-400 mt-1" id="gap-pair-rate-desc">-</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-red-500/50 border border-transparent transition-all" onclick="drillDownPair('unverified')">
-            <div class="text-2xl font-bold text-red-400" id="gap-pair-unverified">0</div>
+            <div class="text-2xl font-bold text-red-400" id="gap-pair-unverified" data-testid="gap-pair-unverified">0</div>
             <div class="text-xs text-slate-400 mt-1" id="gap-pair-unverified-desc">-</div>
             <div class="text-[10px] text-red-400/60 mt-0.5">Signed &middot; not verified</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-amber-500/50 border border-transparent transition-all" onclick="drillDownPair('unsigned')">
-            <div class="text-2xl font-bold text-amber-400" id="gap-pair-unsigned">0</div>
+            <div class="text-2xl font-bold text-amber-400" id="gap-pair-unsigned" data-testid="gap-pair-unsigned">0</div>
             <div class="text-xs text-slate-400 mt-1" id="gap-pair-unsigned-desc">-</div>
             <div class="text-[10px] text-amber-400/60 mt-0.5">Verified &middot; not signed</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-slate-500/50 border border-transparent transition-all" onclick="drillDownPair('unpairable')">
-            <div class="text-2xl font-bold text-slate-400" id="gap-pair-unpairable">0</div>
+            <div class="text-2xl font-bold text-slate-400" id="gap-pair-unpairable" data-testid="gap-pair-unpairable">0</div>
             <div class="text-xs text-slate-400 mt-1">Unpairable</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
-            <div class="text-lg font-bold text-white" id="gap-pair-ttv">-</div>
+            <div class="text-lg font-bold text-white" id="gap-pair-ttv" data-testid="gap-pair-ttv">-</div>
             <div class="text-xs text-slate-400 mt-1">Time to verify</div>
           </div>
         </div>
-        <div class="text-xs text-slate-500 bg-slate-800/30 rounded-lg px-3 py-2" id="gap-pair-correlation"></div>
+        <div class="text-xs text-slate-500 bg-slate-800/30 rounded-lg px-3 py-2" id="gap-pair-correlation" data-testid="gap-pair-correlation"></div>
       </div>
 
       <!-- Invalid UK Numbers Breakdown -->
@@ -959,7 +959,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('sourceIP')">Source IP <i class="fas fa-sort text-xs ml-1"></i></th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('processingTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider relative" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, or 7), and rejects test/placeholder numbers with sequential or repeated digits.">
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider relative" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, 3, 7, or 8), and rejects test/placeholder numbers with sequential or repeated digits.">
                   UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400"></i>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('pairStatus')">Pair <i class="fas fa-sort text-xs ml-1"></i></th>
@@ -1367,7 +1367,7 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
         <ul>
           <li><strong>Format</strong> &mdash; must start with <code>+44</code>. Scientific notation (e.g., <code>4.47305E+11</code>) is auto-converted. The <code>+</code> prefix stripped by Excel is restored automatically.</li>
           <li><strong>Length</strong> &mdash; total digits must be 11–13 (including country code).</li>
-          <li><strong>Prefix</strong> &mdash; first digit after <code>+44</code> must be <b>1</b>, <b>2</b>, or <b>7</b> (the only allocated UK prefixes).</li>
+          <li><strong>Prefix</strong> &mdash; first digit after <code>+44</code> must be <b>1</b>, <b>2</b>, <b>3</b>, <b>7</b>, or <b>8</b>.</li>
           <li><strong>Pattern</strong> &mdash; rejects numbers with all identical digits or runs of 5+ sequential digits (e.g., <code>+447123456789</code>).</li>
         </ul>
       </section>
@@ -4135,7 +4135,7 @@ function renderGapTable() {
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? 'Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
+      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? 'Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
     </tr>`;
   }).join('');
   
