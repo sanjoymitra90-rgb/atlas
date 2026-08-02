@@ -3517,6 +3517,7 @@ function handleGapCSVUpload(event) {
 }
 
 function openGapSettings(headers) {
+  if (!headers) headers = gapRawHeaders;
   const mappingsContainer = document.getElementById("gap-column-mappings");
   const fields = [
     { key: "time", label: "Time Column", icon: "fa-clock" },
