@@ -87,23 +87,22 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 ## 4. Architecture & File Map
 
-`index.html` (~4,061 lines) is organized in this order:
+`index.html` (~4,095 lines) is organized in this order:
 
 | Lines (approx) | Content |
 |---|---|
-| 1–310 | Head: CDN links, `<style>` block (all custom CSS classes) |
-| 306–312 | ARIA live region, skip link |
-| 314–373 | **Gateway module** HTML |
-| 375–586 | **Optimizer module** HTML (step wizard 1–4) |
-| 588–918 | **Gap Analyzer module** HTML (modals, filters, metrics, charts, table) |
-| 920–1051 | **Onboarding module** HTML (ribbon, Gantt container) |
-| 1053–1133 | Global: help FAB, toast, proposal modal, confirm-reset modal |
-| 1135–1289 | Help drawer (3 tabs: optimizer / onboarding / gap) |
-| 1291–1328 | Script: navigation & module state |
-| 1330–1702 | Onboarding logic (Gantt engine, financials) |
-| 1704–1762 | Help drawer logic |
-| 1764–3338 | Optimizer logic (constants, maps, coverage algorithm, import/export) |
-| 3340–3969 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
+| 1–305 | Head: CDN links, `<style>` block (all custom CSS classes) |
+| 307–313 | ARIA live region, skip link |
+| 315–374 | **Gateway module** HTML |
+| 376–587 | **Optimizer module** HTML (step wizard 1–4) |
+| 589–926 | **Gap Analyzer module** HTML (modals, filters, metrics, charts, table) |
+| 928–1059 | **Onboarding module** HTML (ribbon, Gantt container) |
+| 1061–1141 | Global: help FAB, toast, proposal modal, confirm-reset modal |
+| 1143–1297 | Help drawer (3 tabs: optimizer / onboarding / gap) |
+| 1299–1349 | Script: navigation & module state |
+| 1351–1783 | Onboarding logic (Gantt engine, financials) |
+| 1785–3359 | Help drawer logic, Optimizer logic (constants, maps, coverage algorithm, import/export) |
+| 3361–4095 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -159,11 +158,11 @@ Every notable decision made during development. If you are unsure whether a beha
 37. **Drag-and-drop upload zone** — violet glow feedback on drag, CSV MIME/extension validation, both picker and drop feed into the same parser.
 
 **Global:**
-33. **ARIA live region + skip link + module-change announcements** — accessibility built in from the start.
-34. **Single shared toast + single help drawer with 3 tabs** — one component instance, reused everywhere.
-35. **Client Proposal PDF masks internal margins** — the financial section shows only the customer price; internal cost and blended rate never appear. Invoicing language states 50% kickoff / 50% Go-Live. Marked **BETA** with a warning banner.
-36. **3-section proposal toggles** — infra strategy / implementation timeline / financial quote can be included independently; the infra section is generated headlessly (`generateHeadlessAnalysis()`) so it works without visiting the dashboard.
-37. **Dark theme only**, single design language (slate-900 surfaces, slate-800 borders, glass panels).
+38. **ARIA live region + skip link + module-change announcements** — accessibility built in from the start.
+39. **Single shared toast + single help drawer with 3 tabs** — one component instance, reused everywhere.
+40. **Client Proposal PDF masks internal margins** — the financial section shows only the customer price; internal cost and blended rate never appear. Invoicing language states 50% kickoff / 50% Go-Live. Marked **BETA** with a warning banner.
+41. **3-section proposal toggles** — infra strategy / implementation timeline / financial quote can be included independently; the infra section is generated headlessly (`generateHeadlessAnalysis()`) so it works without visiting the dashboard.
+42. **Dark theme only**, single design language (slate-900 surfaces, slate-800 borders, glass panels).
 
 ## 6. Code Conventions (required for new code)
 
@@ -316,4 +315,3 @@ Every notable decision made during development. If you are unsure whether a beha
 - **Add a new module:** copy the module HTML block + header pattern, register in `showModule()`, add a gateway card, add a help tab, extend `openHelpDefault()` mapping, and update this document's file map.
 - **Change UK rules:** edit `validateUKNumber()` only — rules are centralized there.
 - **Change pricing:** edit `AWS_PRICE_INDEX` / `PARIS_DEFAULT_COST`; the baseline system recomputes automatically.
-- **Fix the chart annotation:** load `chartjs-plugin-annotation` from a CDN that satisfies the CSP (`https:`) and register it in the Chart config.
