@@ -43,8 +43,8 @@ A guided 4-step wizard that produces an actionable deployment plan:
 
 1. **Current Footprint** — select existing cells: **List View** (searchable, grouped by continent) or **Map View** (Leaflet, dark CARTO tiles, pulsing markers). Optional **Infrastructure Cost Profile** accordion: enter monthly cost per selected cell; the tool reverse-engineers a normalized global base cost with **Blended** (average) or **Specific** (single-cell anchor) baseline modes and live summary.
 2. **Endpoint Locations** — add endpoints from two searchable tabs: **AWS Regions** or **World Cities** (with T1–T4 tier badges). **Click to Place on Map** mode snaps clicks to the nearest world city. Endpoints list shows count, coords, and per-row delete.
-3. **SLA Configuration** — pick **Latency Estimation Model** (Realistic Mode default: direct distance + infra tax; Naive Mode: AWS proxy) and **SLA Mode** (one Global threshold, default 150ms, or a custom per-endpoint SLA with live latency previews per endpoint). Internal processing time (default 10ms) adds to every latency estimate.
-4. **Coverage Analysis** — the dashboard: 5 stat cards (Total Endpoints, Already Covered, Pending Coverage, New Cells Needed, Est. Monthly OPEX); an optimization summary with average served latency; a coverage map (covered/pending/impossible/recommended markers with dashed connection lines); three result lists; **Latency Explorer** (top-5 candidate cells per uncovered endpoint with full latency breakdowns and cost chips); and **Recommended New Cells** cards (cell, tier tag, cost, endpoints covered, per-endpoint breakdowns). Edge states handled: all covered → success message; nothing coverable → "Impossible SLA" message.
+3. **SLA Configuration** — pick **Latency Estimation Model** (Realistic Mode default: direct distance + infra tax; Naive Mode: AWS proxy) and **SLA Mode** (one Global threshold, default 150ms, or a custom per-endpoint SLA with live latency previews per endpoint). **Safety Margin** (default 20ms) sets the minimum headroom between latency and SLA for new cell eligibility; set to 0 for legacy pass/fail. Internal processing time (default 10ms) adds to every latency estimate.
+4. **Coverage Analysis** — the dashboard: 6 stat cards (Total Endpoints, Already Covered, Pending Coverage, Marginal Headroom, New Cells Needed, Est. Monthly OPEX); an optimization summary with average served latency, min headroom, and marginal relaxation hint; a coverage map (covered/pending/marginal/impossible/recommended markers with dashed connection lines); four result lists (Already Covered with marginalExisting flags, Pending Coverage, Marginal Headroom with relaxation hints, Impossible SLA); **Latency Explorer** (top-5 candidate cells per uncovered endpoint with full latency breakdowns and cost chips); and **Recommended New Cells** cards (cell, tier tag, cost, covered count, min/avg headroom, per-endpoint headroom + breakdowns). Edge states handled: all covered → success message; nothing coverable → "Impossible SLA" message.
 
 Additional features: session JSON import/export, CSV report export, client proposal PDF, back/start-over navigation, step indicator with completed-state tracking.
 
@@ -103,13 +103,14 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | 1241–1303 | Help drawer (3 tabs: optimizer / onboarding / gap) |
 | 1306–1356 | Script: navigation & module state |
 | 1358–1790 | Onboarding logic (Gantt engine, financials) |
-| 1792–3366 | Help drawer logic, Optimizer logic (constants, maps, coverage algorithm, import/export) |
+| 1792–3366 | Help drawer logic, Optimizer logic (constants, maps, `computeCoverage`, coverage algorithm, import/export) |
 | 3368–4203 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
 | — | `playwright.config.js` — Playwright e2e config |
 | — | `e2e/helpers.js` — test helpers (openGapAnalyzer, uploadAndAnalyze, tileText) |
 | — | `e2e/gap.spec.js` — Gap Analyzer e2e specs (P2.3–P2.6) |
 | — | `e2e/gap-phase3.spec.js` — Phase 3 event pairing e2e specs (6 specs) |
 | — | `e2e/gap-phase4.spec.js` — Phase 4 layout + pair legibility + banding + switch e2e specs (9 specs) |
+| — | `e2e/opt-coverage.spec.js` — Optimizer coverage-first objective e2e specs (15 specs) |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -126,12 +127,12 @@ Every notable decision made during development. If you are unsure whether a beha
 2. **Hardcoded `AWS_PRICE_INDEX`** anchored at `us-east-1 = 1.00x` (Paris 1.10x, Tokyo 1.25x, São Paulo 1.50x, Cape Town 1.30x, etc.). Approximates real AWS pricing tiers without live pricing APIs.
 3. **Reverse-engineered global base cost** — `PARIS_DEFAULT_COST = 2674` ÷ `PARIS_INDEX = 1.10` yields the $2,430 "normalized global base." User-entered cell costs are divided by their regional index to derive the base; **Blended** averages all entered cells, **Specific** anchors to one chosen cell. Falls back to the Paris-derived default when no costs are entered.
 4. **Realistic Mode as default** — direct Haversine distance × `0.012 ms/km` + infrastructure tier tax (`TIER_TAX = {1:5, 2:20, 3:40, 4:60}` ms) + processing time. The 0.012 factor is grounded in fiber physics: speed of light in glass ≈ 200,000 km/s → 0.005 ms/km one-way → 0.01 ms/km RTT, rounded with last-mile factors. Naive Mode (AWS-region proxy) is the fallback.
-5. **Greedy cost-effective coverage algorithm** — SLA is a strict pass/fail gate. Score per region = `estimatedCost ÷ endpointsCovered`; lowest wins; tie-break on more coverage; repeat until nothing more can be covered. Outputs recommended cells, pending coverage, impossible SLAs, total new monthly OPEX.
+5. **Coverage-first algorithm with SLA safety floor** — eligibility gate: a (region, endpoint) pair is eligible iff `headroom = SLA − latency ≥ safetyFloor` (default 20ms; 0 = legacy pass/fail). Selection priority: MAX endpoints covered (breadth first), tie-break MAX min-headroom, tie-break MIN region cost. Existing cells still cover endpoints below the floor (flagged `marginalExisting`) but are not re-recommended. Endpoints with no eligible region but passing below the floor go to a `marginal` bucket with relaxation hints. Pure function `computeCoverage(input)` used by both `renderDashboard()` and `generateHeadlessAnalysis()` — exposed on `window` for testing. Outputs recommended cells, pending coverage, marginal SLAs, impossible SLAs, headroom stats, total new monthly OPEX.
 6. **Latency Explorer** — top-5 candidate cells per uncovered endpoint with full breakdowns (base/distance/infra/proc), existing-cell tags, and cost chips.
 7. **Cost breakdown bars** — colored segments (base=blue, dist=amber, infra=violet, proc=pink, total=green) with `title` tooltips for educational transparency.
 8. **Click-to-place on map** — snaps clicks to the nearest `worldCities` entry (nearest-city snapping, not freeform placement).
 9. **Proper Leaflet teardown** — every map rebuild removes non-tile layers, removes listeners (`off()`), and `remove()`s the instance to prevent memory leaks across step navigation.
-10. **Session JSON version "2.0"** with full state round-trip; one-way CSV report export with labeled sections.
+10. **Session JSON version "2.1"** with full state round-trip (includes `safetyFloor`); one-way CSV report export with labeled sections including headroom columns and marginal bucket.
 
 **Onboarding:**
 11. **4-Hour Ceiling Rule** — all hour inputs snap UP to the nearest multiple of 4 (min 4). "17" → 20. Prevents messy fractions in scoping.
@@ -225,14 +226,15 @@ Every notable decision made during development. If you are unsure whether a beha
 - Enter monthly costs per selected cell → tool reverse-engineers global base (§5.1.3). Blended (default) vs Specific (requires ≥1 cost). Baseline summary shows source and math.
 
 ### Coverage analysis (step 4)
-- `renderDashboard()` — computes covered/uncovered, runs greedy algorithm, renders stats, strategy summary, 3 result lists, Latency Explorer, recommendations, and the map.
-- `generateHeadlessAnalysis()` — same math, no DOM; feeds JSON/CSV export and the PDF.
+- `computeCoverage(input)` — pure function (no DOM access) computing the full coverage analysis: covered/uncovered/marginal/impossible classification, greedy selection with headroom-based scoring, headroom stats. Takes `{customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency}`. Exposed on `window` for testing.
+- `renderDashboard()` — calls `computeCoverage()`, renders stats, strategy summary (with headroom + marginal hint), 4 result lists (covered with marginalExisting, pending, marginal with relaxation, impossible), Latency Explorer, recommendations (with headroom), and the map.
+- `generateHeadlessAnalysis()` — calls `computeCoverage()`, returns structured data for JSON/CSV/PDF exports. Includes per-cell min/avg headroom, marginal SLAs, safetyFloor in summary.
 - Dashboard subtitle reflects mode: "Realistic Mode · Coverage Optimization" / "Naive Mode · Coverage Optimization".
 
 ### Wizard & state
 - `currentStep`/`maxStepReached` gate navigation; step dots show completed/active states; connections turn green as you progress.
-- SLA inputs validated in `analyzeCoverage()` (min 1ms SLA, min 0ms processing) with error toasts.
-- Import (`handleImport`) restores all globals and re-renders step 1; Export JSON (`exportSessionJSON`, v2.0) / CSV (`exportSessionCSV`).
+- SLA inputs validated in `analyzeCoverage()` (min 1ms SLA, min 0ms processing, min 0ms safety floor) with error toasts.
+- Import (`handleImport`) restores all globals including `safetyFloor` and re-renders step 1; Export JSON (`exportSessionJSON`, v2.1) / CSV (`exportSessionCSV` with headroom columns and marginal section).
 
 ## 8. Module: Onboarding Calculator (blue)
 
@@ -419,6 +421,16 @@ Every notable decision made during development. If you are unsure whether a beha
 - Wrapped "Rows per page" label in `data-testid="gap-pagesize-label"` span. `toggleGapGroupMode` switches text to "Groups per page:" (with tooltip) when on, reverts to "Rows per page:" when off.
 - Added Playwright spec asserting label text toggles correctly. All 19 tests pass.
 
+### Optimizer: Coverage-First Objective (O1)
+- **Pure function extraction** — `computeCoverage(input)` replaces duplicated greedy logic in `renderDashboard()` and `generateHeadlessAnalysis()`. No DOM access; exposed on `window` for testing.
+- **New objective** — eligibility gate: `headroom = SLA − latency ≥ safetyFloor` (default 20ms). Selection: MAX breadth → MAX min-headroom → MIN cost. Replaces cost-per-customer scoring.
+- **Safety margin UI** — new number input in Step 3 (default 20, min 0). Validated in `analyzeCoverage()` with error toast on negative. Included in session JSON (v2.1) and CSV exports.
+- **Marginal bucket** — endpoints with no eligible region but passing below the safety floor. Separate card in dashboard with relaxation hints. Not recommended for new cells.
+- **Existing marginal** — existing cells covering endpoints below the floor are flagged `marginalExisting` (amber "Marginal" badge) but not dropped or re-recommended.
+- **Headroom surfaces** — recommended cell cards show covered count, min/avg headroom, per-endpoint headroom. Strategy summary shows min headroom + avg headroom + marginal relaxation hint. CSV/JSON/PDF exports include headroom columns and safetyFloor.
+- **Help text rewrite** — "Cost-Effective Coverage Algorithm" section replaced with "Coverage-First Algorithm with SLA Safety Floor" describing eligibility gate, selection priority, marginal bucket, and legacy mode.
+- **15 e2e tests** in `e2e/opt-coverage.spec.js`: 10 focused scoring tests (via `computeCoverage` with synthetic data), 4 UI regression tests (wizard, safety input, JSON export, headless analysis structure), 1 headroom stats test. All 35 tests (20 existing + 15 new) pass.
+
 ### Switch rework + spine removal
 - Rebuilt "Group by pair" as a real sliding switch: `sr-only` checkbox + `gap-switch-track` with `::after` knob that slides via `translateX(16px)` on `:checked`. Track turns violet when on; focus-visible ring for keyboard. Deleted old non-sliding toggle markup.
 - Removed all left-border spines: deleted `GAP_GROUP_PALETTE`, `.gap-spine` class, and inline `style="border-left-color:..."` from `<tr>`. Zebra (`gap-group-alt`) + seams (`gap-group-seam`) remain.
@@ -428,7 +440,7 @@ Every notable decision made during development. If you are unsure whether a beha
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, and Phase 4 layout/pair legibility + banding + page-size label + switch (20 specs total).
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, and Optimizer coverage-first objective (35 specs total).
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)

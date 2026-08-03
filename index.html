@@ -568,6 +568,11 @@ tr.gap-pair-dim { opacity: 0.45; }
           <p class="text-xs text-slate-400 mb-4">Estimated time required for the application to process the payload and generate a response.</p>
           <div class="flex items-center gap-3"><input type="number" id="processing-time-input" value="10" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
         </div>
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Safety Margin</h3>
+          <p class="text-xs text-slate-400 mb-4">Minimum headroom between latency and SLA. A region must beat the SLA by at least this much to be eligible. Set to 0 for legacy pass/fail behavior.</p>
+          <div class="flex items-center gap-3"><input type="number" id="safety-floor-input" value="20" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
+        </div>
       </div>
       <div class="flex justify-between mt-8 max-w-2xl mx-auto"><button class="btn-ghost px-6 py-3" onclick="goToStep(2)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-primary px-6 py-3 rounded-xl" onclick="analyzeCoverage()">Analyze Coverage <i class="fas fa-chart-line ml-2"></i></button></div>
     </div>
@@ -589,9 +594,10 @@ tr.gap-pair-dim { opacity: 0.45; }
         <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-2"><h3 class="font-semibold text-white">Coverage Map</h3><div class="flex gap-3 text-xs flex-wrap"><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing</div><div class="legend-item"><div class="legend-dot" style="background:#10b981;width:8px;height:8px"></div>Covered</div><div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Pending</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Impossible</div><div class="legend-item"><div class="legend-diamond" style="background:#3b82f6"></div>Recommended</div></div></div>
         <div class="h-[300px] sm:h-[400px]"><div id="dash-map" class="w-full h-full"></div></div>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
         <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-check text-emerald-400"></i></div><h3 class="font-semibold text-white">Already Covered</h3></div><div id="dash-covered-list" class="space-y-2"></div></div>
         <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i class="fas fa-clock text-amber-400"></i></div><h3 class="font-semibold text-white">Pending Coverage</h3></div><div id="dash-pending-list" class="space-y-2"></div></div>
+        <div class="result-card" id="marginal-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-yellow-400"></i></div><h3 class="font-semibold text-white">Marginal Headroom</h3></div><div id="dash-marginal-list" class="space-y-2"></div></div>
         <div class="result-card" id="impossible-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center"><i class="fas fa-ban text-red-400"></i></div><h3 class="font-semibold text-white">Impossible SLA</h3></div><div id="dash-impossible-list" class="space-y-2"></div></div>
       </div>
       <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered endpoint (including existing ones)</p></div></div><div id="explorer-list" class="space-y-5"></div></div>
@@ -1256,7 +1262,7 @@ tr.gap-pair-dim { opacity: 0.45; }
       <section class="help-section" id="step2"><h3><span class="step-num">2</span> Endpoint Locations</h3><p>Add endpoints via the <strong>AWS Regions</strong> tab or <strong>World Cities</strong> tab. You can also click anywhere on the map to snap to the nearest major city.</p></section>
       <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>Choose how the tool calculates latency between your infrastructure and end users:</p><ul><li><b>Naive Mode:</b> Uses a simplified "proxy" approach. If an endpoint is in a non-AWS city, the tool finds the geographically closest AWS region to them and uses the known AWS backbone latency from your cell to that proxy region. It ignores exact fiber distances and local internet infrastructure quality.</li><li><b>Realistic Mode</b> (recommended) introduces an intelligent hybrid distance model:<ul><li><b>Direct Distance Model:</b> For non-AWS locations (like world cities), the matrix is bypassed in favor of a direct Haversine formula distance calculation combined with a 0.012 ms/km fiber speed penalty.</li><li><b>Infrastructure tax:</b> Adds penalty latency based on the tier of the city (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul></li></ul></section>
       <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <b>Latency Explorer</b> to debug exactly why a cell passed or failed for a given endpoint.</p></section>
-      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Cost-Effective Coverage Algorithm</h4><p>The tool strictly treats the SLA as a <b>pass/fail gate</b>. For each candidate AWS region, the tool calculates a <b>Cost Efficiency Score</b>:</p><div class="help-formula">Score = Region_Cost ÷ Endpoints_Covered</div><p>Lower scores win. The algorithm iteratively picks the cheapest combination of regions to get 100% of your un-covered endpoints into the "Pass" state.</p><h4>Direct Distance vs AWS Backbone</h4><p>When computing latency, the tool checks the entity type of both endpoints:</p><ul><li><b>AWS to AWS:</b> Uses a hardcoded 32x32 ping matrix representing the true latency of the AWS global backbone.</li><li><b>AWS to City (Naive Mode):</b> Finds the nearest AWS region to the target city and uses the 32x32 backbone matrix latency directly to that proxy region.</li><li><b>AWS to City (Realistic Mode):</b> Defaults to the Direct Distance Model. It calculates the exact Haversine geographic distance between the data center and the city coordinates, multiplies it by 0.012 ms per kilometer, and adds a last-mile infrastructure tier tax.</li></ul>
+      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <b>coverage-first</b> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol style="margin-left:18px;list-style-type:decimal;"><li><b>Eligibility gate:</b> A (region, endpoint) pair is eligible only if <code>headroom = SLA − latency ≥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><b>Selection priority:</b> Among regions covering ≥1 eligible uncovered endpoint:<ul style="list-style-type:disc;margin-left:18px;"><li>1st: MAX endpoints covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered endpoints</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered endpoints; repeat until nothing more can be covered.</li></ol><p><b>Marginal bucket:</b> Endpoints with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal — not impossible, but requiring SLA relaxation. Existing cells still cover endpoints even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly.</p><h4>Legacy Mode</h4><p>Set the safety margin to <b>0ms</b> to restore classic pass/fail SLA behavior with cost-per-customer scoring.</p><h4>Direct Distance vs AWS Backbone</h4><p>When computing latency, the tool checks the entity type of both endpoints:</p><ul><li><b>AWS to AWS:</b> Uses a hardcoded 32x32 ping matrix representing the true latency of the AWS global backbone.</li><li><b>AWS to City (Naive Mode):</b> Finds the nearest AWS region to the target city and uses the 32x32 backbone matrix latency directly to that proxy region.</li><li><b>AWS to City (Realistic Mode):</b> Defaults to the Direct Distance Model. It calculates the exact Haversine geographic distance between the data center and the city coordinates, multiplies it by 0.012 ms per kilometer, and adds a last-mile infrastructure tier tax.</li></ul>
       <h4>Why 0.012 ms/km? (The Physics)</h4>
       <p>This propagation delay factor is mathematically grounded in the physics of fiber optic networking:</p>
       <ul>
@@ -1919,6 +1925,7 @@ let realisticMode = true;
 let cellCosts = {};
 let baselineMode = 'blended';
 let specificBaselineIdx = null;
+let safetyFloor = 20;
 let fpMap, custMap, dashMap;
 let fpMapMarkers = [], custMapMarkers = [], availableCityMarkers = [], dashMapMarkers = [];
 
@@ -2570,9 +2577,9 @@ function renderSLAPerList() {
 }
 
 function analyzeCoverage() {
-  // Validate input values with proper bounds checking
   const slaInput = document.getElementById('global-sla-input');
   const processingInput = document.getElementById('processing-time-input');
+  const safetyFloorInput = document.getElementById('safety-floor-input');
   
   let slaValue = parseInt(slaInput.value);
   if (isNaN(slaValue) || slaValue < 1) {
@@ -2588,8 +2595,16 @@ function analyzeCoverage() {
     showToast('Processing time cannot be negative', true);
   }
   
+  let safetyFloorValue = parseInt(safetyFloorInput.value);
+  if (isNaN(safetyFloorValue) || safetyFloorValue < 0) {
+    safetyFloorValue = 20;
+    safetyFloorInput.value = 20;
+    showToast('Safety margin cannot be negative', true);
+  }
+  
   globalSLA = slaValue;
   processingTime = processingValue;
+  safetyFloor = safetyFloorValue;
   goToStep(4);
 }
 
@@ -2603,34 +2618,35 @@ function getTopCandidatesForCustomer(customer, sla, topN = 5) {
   return candidates.slice(0, topN);
 }
 
-function renderDashboard() {
+function computeCoverage(input) {
+  const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency } = input;
+
   const covered = [], uncovered = [];
-  
+
   customers.forEach((c, i) => {
     const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150);
-    let isCovered = false;
-    let bestServing = null;
-    
+    let isCovered = false, bestServing = null, bestServingHeadroom = 0;
+
     for (let cellIdx of selectedFootprint) {
-      const b = getCustomerLatency(cellIdx, c, true);
+      const b = getLatency(cellIdx, c, true);
       if (b.total <= sla) {
         isCovered = true;
         if (!bestServing || b.total < bestServing.breakdown.total) {
           bestServing = { cellIdx, breakdown: b };
+          bestServingHeadroom = sla - b.total;
         }
       }
     }
-    
+
     if (isCovered) {
-      covered.push({ ...c, sla, idx: i, serving: bestServing });
+      const marginalExisting = bestServingHeadroom < safetyFloor;
+      covered.push({ ...c, sla, idx: i, serving: bestServing, marginalExisting });
     } else {
       let bestFrom = null;
       const cellsToCheck = selectedFootprint.length > 0 ? selectedFootprint : [findNearestRegionIdx(c.lat, c.lng)];
       for (let cellIdx of cellsToCheck) {
-        const b = getCustomerLatency(cellIdx, c, true);
-        if (!bestFrom || b.total < bestFrom.breakdown.total) {
-          bestFrom = { cellIdx, breakdown: b };
-        }
+        const b = getLatency(cellIdx, c, true);
+        if (!bestFrom || b.total < bestFrom.breakdown.total) bestFrom = { cellIdx, breakdown: b };
       }
       uncovered.push({ ...c, sla, idx: i, bestFrom });
     }
@@ -2640,69 +2656,100 @@ function renderDashboard() {
   const remainingSet = new Set(uncovered.map(c => c.idx));
   const remainingCustomers = [...uncovered];
   const usedCells = new Set();
-  
+
   while (remainingSet.size > 0) {
-    let bestCellIdx = -1;
-    let bestCoveredList = [];
-    let minCostPerCust = Infinity;
-    let maxCountTieBreaker = 0;
-    
+    let bestCellIdx = -1, bestCoveredList = [], bestCount = 0, bestMinHeadroom = -1, bestCost = Infinity;
+
     for (let ci = 0; ci < regions.length; ci++) {
       if (usedCells.has(ci)) continue;
-      
+
       const coversNow = [];
       for (const cust of remainingCustomers) {
         if (!remainingSet.has(cust.idx)) continue;
-        const b = getCustomerLatency(ci, cust, true);
-        if (b.total <= cust.sla) {
-          coversNow.push({ ...cust, breakdown: b });
+        const b = getLatency(ci, cust, true);
+        const headroom = cust.sla - b.total;
+        if (headroom >= safetyFloor) {
+          coversNow.push({ ...cust, breakdown: b, headroom });
         }
       }
-      
+
       if (coversNow.length === 0) continue;
-      
+
+      const count = coversNow.length;
+      const minHeadroom = Math.min(...coversNow.map(c => c.headroom));
       const regionCost = estimateRegionCost(ci);
-      const costPerCust = regionCost / coversNow.length;
-      
-      if (costPerCust < minCostPerCust || (Math.abs(costPerCust - minCostPerCust) < 0.01 && coversNow.length > maxCountTieBreaker)) {
-        minCostPerCust = costPerCust;
-        maxCountTieBreaker = coversNow.length;
+
+      if (count > bestCount ||
+          (count === bestCount && minHeadroom > bestMinHeadroom) ||
+          (count === bestCount && Math.abs(minHeadroom - bestMinHeadroom) < 0.01 && regionCost < bestCost)) {
+        bestCount = count;
+        bestMinHeadroom = minHeadroom;
+        bestCost = regionCost;
         bestCellIdx = ci;
         bestCoveredList = coversNow;
       }
     }
 
     if (bestCellIdx === -1) break;
-    
-    recommendations.push({ cellIdx: bestCellIdx, cellName: regions[bestCellIdx].name, cellCode: regions[bestCellIdx].code, covers: bestCoveredList });
+
+    recommendations.push({
+      cellIdx: bestCellIdx,
+      cellName: regions[bestCellIdx].name,
+      cellCode: regions[bestCellIdx].code,
+      covers: bestCoveredList,
+      minHeadroom: bestMinHeadroom,
+      avgHeadroom: Math.round(bestCoveredList.reduce((s, c) => s + c.headroom, 0) / bestCoveredList.length)
+    });
     usedCells.add(bestCellIdx);
-    for (const cust of bestCoveredList) {
-      remainingSet.delete(cust.idx);
-    }
+    for (const cust of bestCoveredList) remainingSet.delete(cust.idx);
   }
 
-  const coverageMap = new Map();
-  recommendations.forEach(rec => { 
-    rec.covers.forEach(c => coverageMap.set(c.idx, { rec, breakdown: c.breakdown }));
-  });
+  const coveredByRecs = new Set();
+  recommendations.forEach(rec => { rec.covers.forEach(c => coveredByRecs.add(c.idx)); });
 
-  const pendingCovered = [], impossible = [];
+  const pendingCovered = [], marginal = [], impossible = [];
   uncovered.forEach(c => {
-    const coverage = coverageMap.get(c.idx);
-    if (coverage) {
-      pendingCovered.push({ ...c, coveredByCell: coverage.rec.cellName, coveredByCellCode: coverage.rec.cellCode, coveredByCellIdx: coverage.rec.cellIdx, recBreakdown: coverage.breakdown });
+    if (coveredByRecs.has(c.idx)) {
+      const rec = recommendations.find(r => r.covers.some(rc => rc.idx === c.idx));
+      const rc = rec.covers.find(rc => rc.idx === c.idx);
+      pendingCovered.push({ ...c, coveredByCell: rec.cellName, coveredByCellCode: rec.cellCode, coveredByCellIdx: rec.cellIdx, recBreakdown: rc.breakdown, headroom: rc.headroom });
     } else {
-      impossible.push(c);
+      let bestHeadroom = -Infinity;
+      let bestHeadroomCellIdx = -1;
+      for (let ci = 0; ci < regions.length; ci++) {
+        const b = getLatency(ci, c, true);
+        const h = c.sla - b.total;
+        if (h > bestHeadroom) { bestHeadroom = h; bestHeadroomCellIdx = ci; }
+      }
+      if (bestHeadroom >= 0) {
+        const relaxation = safetyFloor - bestHeadroom;
+        marginal.push({ ...c, bestHeadroom, bestHeadroomCellIdx, relaxationNeeded: relaxation > 0 ? relaxation : 0 });
+      } else {
+        impossible.push(c);
+      }
     }
   });
 
-  const recommendedTotalOPEX = recommendations.reduce((sum, r) => sum + estimateRegionCost(r.cellIdx), 0);
-  
   const allServed = [
-    ...covered.map(c => ({ latency: c.serving.breakdown.total })),
-    ...pendingCovered.map(c => ({ latency: c.recBreakdown.total }))
+    ...covered.map(c => ({ latency: c.serving.breakdown.total, headroom: c.sla - c.serving.breakdown.total })),
+    ...pendingCovered.map(c => ({ latency: c.recBreakdown.total, headroom: c.headroom }))
   ];
   const avgLatency = allServed.length > 0 ? Math.round(allServed.reduce((s, c) => s + c.latency, 0) / allServed.length) : 0;
+  const minHeadroomAll = allServed.length > 0 ? Math.min(...allServed.map(c => c.headroom)) : 0;
+  const avgHeadroomAll = allServed.length > 0 ? Math.round(allServed.reduce((s, c) => s + c.headroom, 0) / allServed.length) : 0;
+
+  return { covered, uncovered, recommendations, pendingCovered, marginal, impossible, avgLatency, minHeadroomAll, avgHeadroomAll };
+}
+window.computeCoverage = computeCoverage;
+
+function renderDashboard() {
+  const result = computeCoverage({
+    customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint,
+    getLatency: getCustomerLatency
+  });
+  const { covered, uncovered, recommendations, pendingCovered, marginal, impossible, avgLatency, minHeadroomAll, avgHeadroomAll } = result;
+
+  const recommendedTotalOPEX = recommendations.reduce((sum, r) => sum + estimateRegionCost(r.cellIdx), 0);
 
   document.getElementById('dash-subtitle').textContent = realisticMode ? 'Realistic Mode · Coverage Optimization' : 'Naive Mode · Coverage Optimization';
 
@@ -2714,20 +2761,26 @@ function renderDashboard() {
 
   const summaryEl = document.getElementById('strategy-summary');
   if (recommendations.length > 0 || covered.length > 0) {
+    const marginalHint = marginal.length > 0 ? `<p class="text-xs text-amber-300 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${marginal.length} endpoint${marginal.length > 1 ? 's' : ''} only coverable with marginal headroom — relax SLA by ${Math.min(...marginal.map(m => m.relaxationNeeded))}ms to cover them.</p>` : '';
     summaryEl.innerHTML = `
       <div class="flex items-start gap-3">
         <i class="fas fa-bullseye text-xl mt-1 text-emerald-400"></i>
         <div class="flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Optimization Summary</span>
-            <span class="text-sm font-bold text-white">Cost-Effective Coverage</span>
+            <span class="text-sm font-bold text-white">Coverage-First · SLA Safety Floor ${safetyFloor}ms</span>
           </div>
-          <p class="text-sm text-slate-300 mt-1">Algorithm calculated the optimal cell placement to meet SLA requirements while minimizing new infrastructure costs.</p>
+          <p class="text-sm text-slate-300 mt-1">Algorithm maximizes coverage breadth with SLA safety margin. Cost is a tie-breaker only.</p>
           <div class="flex items-center gap-4 mt-3 flex-wrap">
             <div class="flex items-center gap-2">
               <i class="fas fa-tachometer-alt text-purple-400"></i>
-              <span class="text-xs text-slate-400">Avg. Latency (served):</span>
+              <span class="text-xs text-slate-400">Avg. Latency:</span>
               <span class="latency-badge">${avgLatency}ms</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fas fa-shield-alt text-emerald-400"></i>
+              <span class="text-xs text-slate-400">Min Headroom:</span>
+              <span class="latency-badge">${minHeadroomAll}ms</span>
             </div>
             <div class="flex items-center gap-2">
               <i class="fas fa-dollar-sign text-amber-400"></i>
@@ -2735,6 +2788,7 @@ function renderDashboard() {
               <span class="cost-tag">${recommendedTotalOPEX > 0 ? formatMoney(recommendedTotalOPEX) + '/mo' : '$0'}</span>
             </div>
           </div>
+          ${marginalHint}
         </div>
       </div>`;
     summaryEl.classList.remove('hidden');
@@ -2743,7 +2797,11 @@ function renderDashboard() {
   }
 
   const covList = document.getElementById('dash-covered-list');
-  covList.innerHTML = covered.length > 0 ? covered.map(c => `<div class="py-2 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20"><div class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name}</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`).join('') : '<p class="text-sm text-slate-500 italic">No endpoints covered by existing cells.</p>';
+  covList.innerHTML = covered.length > 0 ? covered.map(c => {
+    const marginalTag = c.marginalExisting ? '<span class="text-[10px] font-semibold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded ml-2 uppercase tracking-wide">Marginal</span>' : '';
+    const headroom = c.sla - c.serving.breakdown.total;
+    return `<div class="py-2 px-3 rounded-lg ${c.marginalExisting ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}"><div class="flex items-center gap-2"><i class="fas ${c.marginalExisting ? 'fa-exclamation-triangle text-amber-400' : 'fa-check-circle text-emerald-400'}"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}${marginalTag}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name} · headroom ${headroom}ms</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`;
+  }).join('') : '<p class="text-sm text-slate-500 italic">No endpoints covered by existing cells.</p>';
 
   const pendList = document.getElementById('dash-pending-list');
   pendList.innerHTML = pendingCovered.length > 0 ? pendingCovered.map(c => `<div class="py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/20"><div class="flex items-center gap-2"><i class="fas fa-clock text-amber-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">via <span class="text-blue-400">${c.coveredByCell}</span></div>${renderBreakdown(c.recBreakdown)}</div></div></div>`).join('') : '<p class="text-sm text-slate-500 italic">No pending coverage.</p>';
@@ -2758,6 +2816,17 @@ function renderDashboard() {
     }).join('');
   } else {
     impCard.classList.add('hidden');
+  }
+
+  const margCard = document.getElementById('marginal-card');
+  const margList = document.getElementById('dash-marginal-list');
+  if (marginal.length > 0) {
+    margCard.classList.remove('hidden');
+    margList.innerHTML = marginal.map(c => {
+      return `<div class="py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-yellow-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms · Best headroom: <span class="text-yellow-400">${c.bestHeadroom}ms</span> · Relax by ${c.relaxationNeeded}ms</div></div></div></div>`;
+    }).join('');
+  } else {
+    margCard.classList.add('hidden');
   }
 
   const explorerDiv = document.getElementById('latency-explorer');
@@ -2789,8 +2858,6 @@ function renderDashboard() {
       const idx = AWS_PRICE_INDEX[r.cellCode];
       const tier = getIndexTier(r.cellCode);
       const tierLabel = tier === 'discount' ? 'Discount Region' : tier === 'parity' ? 'Parity Region' : 'Premium Region';
-      const recLatencies = r.covers.map(c => c.breakdown.total);
-      const recAvgLatency = Math.round(recLatencies.reduce((s, v) => s + v, 0) / recLatencies.length);
       return `<div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
         <div class="flex items-center gap-3 mb-3 flex-wrap">
           <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">${i + 1}</div>
@@ -2801,12 +2868,12 @@ function renderDashboard() {
           <div class="flex flex-col items-end gap-1">
             <div class="text-sm text-emerald-400 font-medium">${r.covers.length} endpoint${r.covers.length > 1 ? 's' : ''}</div>
             <div class="flex items-center gap-2">
-              <span class="latency-badge">~${recAvgLatency}ms avg</span>
+              <span class="latency-badge">~${r.avgHeadroom}ms headroom</span>
               <span class="cost-tag ${tier}">~${formatMoney(cost)}/mo</span>
             </div>
           </div>
         </div>
-        <div class="space-y-2">${r.covers.map(c => `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name}</div>${renderBreakdown(c.breakdown)}</div>`).join('')}</div>
+        <div class="space-y-2">${r.covers.map(c => `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500">(headroom ${c.headroom}ms)</span></div>${renderBreakdown(c.breakdown)}</div>`).join('')}</div>
       </div>`;
     }).join('');
   }
@@ -2970,9 +3037,9 @@ function buildAndDownloadPDF() {
   if (includeInfra) {
     html += `
       <h2 class="pdf-section-title">${sectionCounter++}. Global Infrastructure Strategy</h2>
-      <p>Our optimization engine has analyzed the geographic distribution of your endpoints. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
+      <p>Our optimization engine has analyzed the geographic distribution of your endpoints with a <strong>${infraData.summary.safetyFloor}ms safety margin</strong>. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
       <ul style="margin-bottom:20px;">
-         ${infraData.recommendedNewCells.map(c => `<li>• <strong>Deploy new dedicated cell:</strong> ${c.cellName} (${c.cellCode})</li>`).join('')}
+         ${infraData.recommendedNewCells.map(c => `<li>• <strong>Deploy new dedicated cell:</strong> ${c.cellName} (${c.cellCode}) — min headroom ${c.minHeadroom}ms</li>`).join('')}
          ${infraData.alreadyCovered.length > 0 && infraData.recommendedNewCells.length === 0 ? '<li>• <strong>Status:</strong> All endpoints are optimally covered by existing infrastructure. No new cells required.</li>' : ''}
       </ul>
       
@@ -2984,6 +3051,7 @@ function buildAndDownloadPDF() {
             <th>Target SLA</th>
             <th>Serving Cell</th>
             <th>Est. Latency</th>
+            <th>Headroom</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -2991,15 +3059,16 @@ function buildAndDownloadPDF() {
     `;
     
     infraData.alreadyCovered.forEach(ep => {
-         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${ep.servedByCell}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">✓ Pass</td></tr>`;
+         const hrClass = ep.headroom >= infraData.summary.safetyFloor ? 'pdf-highlight' : 'style="color:#f59e0b;font-weight:bold;"';
+         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${ep.servedByCell}</td><td><strong>${ep.actualLatency}ms</strong></td><td ${hrClass}>${ep.headroom}ms</td><td class="pdf-highlight">✓ Pass</td></tr>`;
     });
     infraData.recommendedNewCells.forEach(cell => {
         cell.endpointsCovered.forEach(ep => {
-             html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${cell.cellCode}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">✓ Pass</td></tr>`;
+             html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${cell.cellCode}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">${ep.headroom}ms</td><td class="pdf-highlight">✓ Pass</td></tr>`;
         });
     });
     infraData.impossibleSLAs.forEach(ep => {
-         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>Best Effort</td><td><strong>${ep.bestPossibleLatency}ms</strong></td><td style="color:#ef4444;font-weight:bold;">✗ Miss</td></tr>`;
+         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>Best Effort</td><td><strong>${ep.bestPossibleLatency}ms</strong></td><td style="color:#ef4444;">N/A</td><td style="color:#ef4444;font-weight:bold;">✗ Miss</td></tr>`;
     });
     
     html += `</tbody></table>`;
@@ -3103,7 +3172,7 @@ function exportSessionJSON() {
   const results = generateHeadlessAnalysis();
   
   const sessionData = {
-    version: "2.0",
+    version: "2.1",
     selectedFootprint,
     cellCosts,
     baselineMode,
@@ -3114,6 +3183,7 @@ function exportSessionJSON() {
     perCustomerSLA,
     processingTime,
     realisticMode,
+    safetyFloor,
     analysisResults: results 
   };
   
@@ -3129,93 +3199,35 @@ function exportSessionJSON() {
 }
 
 function generateHeadlessAnalysis() {
-  const covered = [], uncovered = [];
-  customers.forEach((c, i) => {
-    const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150);
-    let isCovered = false, bestServing = null;
-    
-    for (let cellIdx of selectedFootprint) {
-      const b = getCustomerLatency(cellIdx, c, true);
-      if (b.total <= sla) {
-        isCovered = true;
-        if (!bestServing || b.total < bestServing.breakdown.total) bestServing = { cellIdx, breakdown: b };
-      }
-    }
-    
-    if (isCovered) {
-      covered.push({ ...c, sla, idx: i, serving: bestServing });
-    } else {
-      let bestFrom = null;
-      const cellsToCheck = selectedFootprint.length > 0 ? selectedFootprint : [findNearestRegionIdx(c.lat, c.lng)];
-      for (let cellIdx of cellsToCheck) {
-        const b = getCustomerLatency(cellIdx, c, true);
-        if (!bestFrom || b.total < bestFrom.breakdown.total) bestFrom = { cellIdx, breakdown: b };
-      }
-      uncovered.push({ ...c, sla, idx: i, bestFrom });
-    }
+  const result = computeCoverage({
+    customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint,
+    getLatency: getCustomerLatency
   });
+  const { covered, recommendations, pendingCovered, marginal, impossible } = result;
 
-  const recommendations = [];
-  const remainingSet = new Set(uncovered.map(c => c.idx));
-  const remainingCustomers = [...uncovered];
-  const usedCells = new Set();
-  
-  while (remainingSet.size > 0) {
-    let bestCellIdx = -1, bestCoveredList = [], minCostPerCust = Infinity, maxCountTieBreaker = 0;
-    
-    for (let ci = 0; ci < regions.length; ci++) {
-      if (usedCells.has(ci)) continue;
-      
-      const coversNow = [];
-      for (const cust of remainingCustomers) {
-        if (!remainingSet.has(cust.idx)) continue;
-        const b = getCustomerLatency(ci, cust, true);
-        if (b.total <= cust.sla) coversNow.push({ ...cust, breakdown: b });
-      }
-      
-      if (coversNow.length === 0) continue;
-      
-      const regionCost = estimateRegionCost(ci);
-      const costPerCust = regionCost / coversNow.length;
-      
-      if (costPerCust < minCostPerCust || (Math.abs(costPerCust - minCostPerCust) < 0.01 && coversNow.length > maxCountTieBreaker)) {
-        minCostPerCust = costPerCust;
-        maxCountTieBreaker = coversNow.length;
-        bestCellIdx = ci;
-        bestCoveredList = coversNow;
-      }
-    }
-
-    if (bestCellIdx === -1) break;
-    
-    recommendations.push({ cellIdx: bestCellIdx, cellName: regions[bestCellIdx].name, cellCode: regions[bestCellIdx].code, covers: bestCoveredList });
-    usedCells.add(bestCellIdx);
-    for (const cust of bestCoveredList) remainingSet.delete(cust.idx);
-  }
-  
   const totalOpex = recommendations.reduce((sum, r) => sum + estimateRegionCost(r.cellIdx), 0);
-  const coverageMap = new Map();
-  recommendations.forEach(rec => { rec.covers.forEach(c => coverageMap.set(c.idx, { rec, breakdown: c.breakdown })); });
-  
-  const impossible = [];
-  uncovered.forEach(c => { if (!coverageMap.has(c.idx)) impossible.push(c); });
 
   return {
     summary: {
       totalEndpoints: customers.length,
       alreadyCoveredCount: covered.length,
       newRecommendationsCount: recommendations.length,
+      marginalCount: marginal.length,
       impossibleToCoverCount: impossible.length,
-      estimatedNewMonthlyOpex: totalOpex
+      estimatedNewMonthlyOpex: totalOpex,
+      safetyFloor,
+      avgHeadroom: result.avgHeadroomAll,
+      minHeadroom: result.minHeadroomAll
     },
     alreadyCovered: covered.map(c => ({
-      name: c.name, slaThreshold: c.sla, servedByCell: regions[c.serving.cellIdx].code, actualLatency: c.serving.breakdown.total
+      name: c.name, slaThreshold: c.sla, servedByCell: regions[c.serving.cellIdx].code, actualLatency: c.serving.breakdown.total, headroom: c.sla - c.serving.breakdown.total, marginalExisting: c.marginalExisting
     })),
     recommendedNewCells: recommendations.map(r => ({
-      cellCode: r.cellCode, cellName: r.cellName, estimatedMonthlyCost: estimateRegionCost(r.cellIdx), endpointsCoveredCount: r.covers.length, endpointsCovered: r.covers.map(c => ({
-        name: c.name, slaThreshold: c.sla, actualLatency: c.breakdown.total
+      cellCode: r.cellCode, cellName: r.cellName, estimatedMonthlyCost: estimateRegionCost(r.cellIdx), endpointsCoveredCount: r.covers.length, minHeadroom: r.minHeadroom, avgHeadroom: r.avgHeadroom, endpointsCovered: r.covers.map(c => ({
+        name: c.name, slaThreshold: c.sla, actualLatency: c.breakdown.total, headroom: c.headroom
       }))
     })),
+    marginalSLAs: marginal.map(c => ({ name: c.name, slaThreshold: c.sla, bestHeadroom: c.bestHeadroom, relaxationNeeded: c.relaxationNeeded })),
     impossibleSLAs: impossible.map(c => ({ name: c.name, slaThreshold: c.sla, bestPossibleLatency: c.bestFrom.breakdown.total }))
   };
 }
@@ -3229,6 +3241,7 @@ function exportSessionCSV() {
   csvContent += `SLA Mode,${slaMode}\n`;
   if (slaMode === 'global') csvContent += `Global SLA Limit (ms),${globalSLA}\n`;
   csvContent += `Internal Processing Time (ms),${processingTime}\n`;
+  csvContent += `Safety Margin (ms),${safetyFloor}\n`;
   csvContent += `Latency Model,${realisticMode ? 'Realistic (Distance + Infra Tax)' : 'Naive (AWS Proxy)'}\n`;
   csvContent += `Optimization Strategy,Cost-Effective Coverage\n\n`;
   
@@ -3272,13 +3285,13 @@ function exportSessionCSV() {
   if (results.recommendedNewCells.length === 0) {
     csvContent += "No new cells needed.\n";
   } else {
-    csvContent += "Cell Code,Cell Name,Monthly Cost,Endpoint Name,Required SLA (ms),Actual Latency (ms)\n";
+    csvContent += "Cell Code,Cell Name,Monthly Cost,Min Headroom (ms),Avg Headroom (ms),Endpoint Name,Required SLA (ms),Actual Latency (ms),Headroom (ms)\n";
     results.recommendedNewCells.forEach(cell => {
       cell.endpointsCovered.forEach((ep, index) => {
         if (index === 0) {
-          csvContent += `"${cell.cellCode}","${cell.cellName}","$${cell.estimatedMonthlyCost}","${ep.name}",${ep.slaThreshold},${ep.actualLatency}\n`;
+          csvContent += `"${cell.cellCode}","${cell.cellName}","$${cell.estimatedMonthlyCost}",${cell.minHeadroom},${cell.avgHeadroom},"${ep.name}",${ep.slaThreshold},${ep.actualLatency},${ep.headroom}\n`;
         } else {
-          csvContent += `,,,"${ep.name}",${ep.slaThreshold},${ep.actualLatency}\n`;
+          csvContent += `,,,,,"${ep.name}",${ep.slaThreshold},${ep.actualLatency},${ep.headroom}\n`;
         }
       });
     });
@@ -3354,7 +3367,17 @@ function exportOnboardingCSV() {
           const depsStr = deps ? `"${deps}"` : "None";
           const safeText = t.text ? t.text.replace(/"/g, '""') : "Task";
           csvContent += `Tier ${i},"${safeText}",${t.hours || 0},${t.duration},${depsStr}\n`;
-      });
+    });
+  }
+  
+  csvContent += "\nMARGINAL HEADROOM\n";
+  if (results.marginalSLAs.length === 0) {
+    csvContent += "No marginal endpoints.\n";
+  } else {
+    csvContent += "Endpoint Name,SLA Threshold (ms),Best Headroom (ms),Relaxation Needed (ms)\n";
+    results.marginalSLAs.forEach(ep => {
+      csvContent += `"${ep.name}",${ep.slaThreshold},${ep.bestHeadroom},${ep.relaxationNeeded}\n`;
+    });
   }
   
   const encodedUri = encodeURI(csvContent);
@@ -3433,6 +3456,7 @@ function handleImport(event) {
       globalSLA = data.globalSLA || 150;
       perCustomerSLA = data.perCustomerSLA || {};
       processingTime = data.processingTime !== undefined ? data.processingTime : 10;
+      safetyFloor = data.safetyFloor !== undefined ? data.safetyFloor : 20;
       
       if (data.realisticMode !== undefined) {
          setRealisticMode(data.realisticMode);
@@ -3440,6 +3464,7 @@ function handleImport(event) {
       
       document.getElementById('global-sla-input').value = globalSLA;
       document.getElementById('processing-time-input').value = processingTime;
+      document.getElementById('safety-floor-input').value = safetyFloor;
       setSLAMode(slaMode);
       
       goToStep(1);
