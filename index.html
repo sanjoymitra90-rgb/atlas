@@ -495,7 +495,7 @@ tr.gap-pair-dim { opacity: 0.45; }
                 <select class="baseline-dropdown" id="baseline-specific-dropdown" onchange="updateCostBaseline()"></select>
               </div>
               <div class="baseline-summary" id="baseline-summary">
-                <div><div class="label">Normalized Global Base Cost (1.0x)</div><div class="value" id="baseline-value">$2,430</div></div>
+                <div><div class="label" title="Base monthly cost at the cheapest AWS region (us-east-1 = 1.00x). Every other region is priced as a multiple of this base.">Normalized Global Base Cost (1.0x)</div><div class="value" id="baseline-value">$2,430</div></div>
                 <div class="text-xs text-slate-400 sm-text-right" id="baseline-mode-label">Reverse-engineered from Paris default<br>(Paris = 1.10x regional index)</div>
               </div>
             </div>
@@ -518,9 +518,14 @@ tr.gap-pair-dim { opacity: 0.45; }
             <div id="cust-map" class="w-full h-full"></div>
             <!-- FIXED: Added full-width wrapper to prevent jumping on hover -->
             <div class="absolute bottom-4 w-full flex justify-center z-[1000] pointer-events-none">
-              <button class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2 pointer-events-auto shadow-lg" id="click-place-btn" onclick="toggleClickPlace()">
-                <i class="fas fa-map-marker-alt"></i> <span id="click-place-text">Click to Place on Map</span>
-              </button>
+              <div class="flex gap-2 pointer-events-auto shadow-lg">
+                <button class="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2" id="click-place-btn" onclick="toggleClickPlace()">
+                  <i class="fas fa-map-marker-alt"></i> <span id="click-place-text">Click to Place on Map</span>
+                </button>
+                <button class="btn-ghost px-4 py-2 rounded-lg text-sm flex items-center gap-2 hidden" id="done-place-btn" onclick="exitClickPlace()">
+                  <i class="fas fa-check"></i> Done placing
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1447,10 +1452,9 @@ function showModule(moduleName) {
   }
 
   if (moduleName === 'optimizer') {
-    // Use requestAnimationFrame instead of setTimeout for map initialization
-    if (fpMap) requestAnimationFrame(() => fpMap.invalidateSize());
-    if (custMap) requestAnimationFrame(() => custMap.invalidateSize());
-    if (dashMap) requestAnimationFrame(() => dashMap.invalidateSize());
+    if (fpMap) requestAnimationFrame(() => requestAnimationFrame(() => fpMap.invalidateSize()));
+    if (custMap) requestAnimationFrame(() => requestAnimationFrame(() => custMap.invalidateSize()));
+    if (dashMap) requestAnimationFrame(() => requestAnimationFrame(() => dashMap.invalidateSize()));
   } else if (moduleName === 'onboarding') {
     if (!ob_gantt_initialized) {
       initDhtmlxGantt();
@@ -1928,6 +1932,7 @@ let specificBaselineIdx = null;
 let safetyFloor = 20;
 let fpMap, custMap, dashMap;
 let fpMapMarkers = [], custMapMarkers = [], availableCityMarkers = [], dashMapMarkers = [];
+let custMapEscHandler = null;
 
 const MAP_BOUNDS = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
 const TIER_TAX = { 1: 5, 2: 20, 3: 40, 4: 60 };
@@ -2076,20 +2081,15 @@ function updateBaselineSummary() {
   const cellsWithCosts = selectedFootprint.filter(idx => cellCosts[idx] > 0);
   
   if (cellsWithCosts.length === 0) {
-    label.innerHTML = `Reverse-engineered from Paris default<br>(Paris = ${PARIS_INDEX.toFixed(2)}x regional index)`;
+    label.innerHTML = 'Paris-derived default (no costs entered)';
   } else if (baselineMode === 'blended') {
-    if (cellsWithCosts.length === 1) {
-      const r = regions[cellsWithCosts[0]];
-      label.innerHTML = `Reverse-engineered from ${r.name}<br>(${r.code} = ${AWS_PRICE_INDEX[r.code].toFixed(2)}x)`;
-    } else {
-      label.innerHTML = `Blended from ${cellsWithCosts.length} cells<br>(normalized to 1.0x global index)`;
-    }
+    label.innerHTML = `Blended average of ${cellsWithCosts.length} entered cell${cellsWithCosts.length > 1 ? 's' : ''}`;
   } else {
     if (specificBaselineIdx !== null) {
       const r = regions[specificBaselineIdx];
-      label.innerHTML = `Anchored to ${r.name}<br>(${r.code} = ${AWS_PRICE_INDEX[r.code].toFixed(2)}x)`;
+      label.innerHTML = `Anchored to ${r.name}`;
     } else {
-      label.innerHTML = `Select a baseline cell`;
+      label.innerHTML = 'Select a baseline cell';
     }
   }
 }
@@ -2200,6 +2200,11 @@ function createPulseIcon(color) {
 
 function createRecommendedIcon() {
   return L.divIcon({ className: 'custom-div-icon', html: `<div style="position:relative;width:28px;height:28px;"><div class="pulse-ring-diamond" style="position:absolute;width:18px;height:18px;top:5px;left:5px;background:rgba(59,130,246,0.4);"></div><div style="position:absolute;width:18px;height:18px;top:5px;left:5px;background:#3b82f6;transform:rotate(45deg);border:2px solid rgba(255,255,255,0.95);box-shadow:0 0 14px rgba(59,130,246,0.7);z-index:2;"></div></div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+}
+
+function createRecommendedIconWithCost(cost) {
+  const formatted = formatMoney(cost);
+  return L.divIcon({ className: 'custom-div-icon', html: `<div style="position:relative;width:28px;height:28px;"><div class="pulse-ring-diamond" style="position:absolute;width:18px;height:18px;top:5px;left:5px;background:rgba(59,130,246,0.4);"></div><div style="position:absolute;width:18px;height:18px;top:5px;left:5px;background:#3b82f6;transform:rotate(45deg);border:2px solid rgba(255,255,255,0.95);box-shadow:0 0 14px rgba(59,130,246,0.7);z-index:2;"></div></div><div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:9px;font-weight:600;color:#3b82f6;background:rgba(15,23,42,0.9);border:1px solid rgba(59,130,246,0.4);border-radius:4px;padding:1px 4px;z-index:3;">~${formatted}</div>`, iconSize: [28, 36], iconAnchor: [14, 14] });
 }
 
 function createMapOptions() {
@@ -2404,22 +2409,31 @@ function filterCustList() {
   renderCustSourceList();
 }
 
-function addCustomerRegion(idx) {
-  if (customers.some(c => c.regionIdx === idx)) return;
-  const r = regions[idx];
-  customers.push({ name: r.city, lat: r.lat, lng: r.lng, regionIdx: idx, type: 'aws', tier: 1 });
+function tryAddEndpoint(candidate) {
+  const key = candidate.regionIdx != null ? 'r' + candidate.regionIdx : 'c' + candidate.name;
+  const exists = customers.some(c => {
+    const existingKey = c.regionIdx != null ? 'r' + c.regionIdx : 'c' + c.name;
+    return existingKey === key;
+  });
+  if (exists) {
+    showToast('Endpoint already added', true);
+    return false;
+  }
+  customers.push(candidate);
   renderCustList();
   renderCustSourceList();
   updateCustMap();
+  return true;
+}
+
+function addCustomerRegion(idx) {
+  const r = regions[idx];
+  tryAddEndpoint({ name: r.city, lat: r.lat, lng: r.lng, regionIdx: idx, type: 'aws', tier: 1 });
 }
 
 function addCustomerCity(idx) {
   const c = worldCities[idx];
-  if (customers.some(k => k.name === c.name)) return;
-  customers.push({ name: c.name, lat: c.lat, lng: c.lng, type: 'city', tier: c.tier });
-  renderCustList();
-  renderCustSourceList();
-  updateCustMap();
+  tryAddEndpoint({ name: c.name, lat: c.lat, lng: c.lng, type: 'city', tier: c.tier });
 }
 
 function removeCustomer(idx) {
@@ -2435,24 +2449,50 @@ function renderCustList() {
   
   container.innerHTML = customers.map((c, i) => {
     const tierBadge = c.tier ? `<span class="tier-badge tier-${c.tier} ml-1">T${c.tier}</span>` : '';
-    return `<div class="customer-row"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${c.name}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div></div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
+    return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${c.name}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div></div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
   }).join('');
+}
+
+function handleCustKeydown(e, idx) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    const name = customers[idx] ? customers[idx].name : '';
+    removeCustomer(idx);
+    showToast(`Removed endpoint: ${name}`);
+  }
 }
 
 function toggleClickPlace() {
   clickPlaceMode = !clickPlaceMode;
   const btn = document.getElementById('click-place-btn');
   const text = document.getElementById('click-place-text');
+  const doneBtn = document.getElementById('done-place-btn');
   
   if (clickPlaceMode) {
     btn.classList.add('accent-glow');
     text.textContent = 'Cancel Placement';
+    doneBtn.classList.remove('hidden');
     custMap.getContainer().style.cursor = 'crosshair';
   } else {
     btn.classList.remove('accent-glow');
     text.textContent = 'Click to Place on Map';
+    doneBtn.classList.add('hidden');
     custMap.getContainer().style.cursor = '';
   }
+  updateCustMap();
+}
+
+function exitClickPlace() {
+  if (!clickPlaceMode) return;
+  clickPlaceMode = false;
+  const btn = document.getElementById('click-place-btn');
+  const text = document.getElementById('click-place-text');
+  const doneBtn = document.getElementById('done-place-btn');
+  btn.classList.remove('accent-glow');
+  text.textContent = 'Click to Place on Map';
+  doneBtn.classList.add('hidden');
+  if (custMap) custMap.getContainer().style.cursor = '';
   updateCustMap();
 }
 
@@ -2468,9 +2508,18 @@ function initCustMap() {
     custMap.remove();
     custMap = null;
   }
+  if (custMapEscHandler) {
+    document.removeEventListener('keydown', custMapEscHandler);
+    custMapEscHandler = null;
+  }
   custMap = L.map('cust-map', createMapOptions()).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(custMap);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(custMap);
+
+  custMapEscHandler = function(e) {
+    if (e.key === 'Escape' && clickPlaceMode) exitClickPlace();
+  };
+  document.addEventListener('keydown', custMapEscHandler);
   
   custMap.on('click', function(e) {
     if (!clickPlaceMode) return;
@@ -2488,7 +2537,7 @@ function initCustMap() {
     });
     
     if (!customers.some(k => k.name === nearest.name)) {
-      addCustomerCity(nearestIdx);
+      tryAddEndpoint({ name: nearest.name, lat: nearest.lat, lng: nearest.lng, type: 'city', tier: nearest.tier });
     }
     
     toggleClickPlace();
@@ -2938,7 +2987,7 @@ function initDashMap(covered, pendingCovered, impossible, recommendations) {
   recommendations.forEach(r => {
     const region = regions[r.cellIdx];
     const cost = estimateRegionCost(r.cellIdx);
-    const marker = L.marker([region.lat, region.lng], { icon: createRecommendedIcon() }).addTo(dashMap);
+    const marker = L.marker([region.lat, region.lng], { icon: createRecommendedIconWithCost(cost) }).addTo(dashMap);
     const coveredNames = r.covers.map(c => c.name).join(', ');
     marker.bindPopup(`<b>${region.name}</b><br><span class="text-xs text-blue-400">Recommended Cell ◆</span><br><span class="text-xs text-slate-500">${region.code}</span><br><span class="text-xs text-emerald-400">Covers ${r.covers.length}: ${coveredNames}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
     dashMapMarkers.push(marker);
@@ -3172,13 +3221,15 @@ function exportSessionJSON() {
   
   const results = generateHeadlessAnalysis();
   
+  const customersExport = customers.map((c, i) => ({ ...c, sla: perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150 }));
+  
   const sessionData = {
     version: "2.1",
     selectedFootprint,
     cellCosts,
     baselineMode,
     specificBaselineIdx,
-    customers,
+    customers: customersExport,
     slaMode,
     globalSLA,
     perCustomerSLA,
@@ -3458,6 +3509,12 @@ function handleImport(event) {
       perCustomerSLA = data.perCustomerSLA || {};
       processingTime = data.processingTime !== undefined ? data.processingTime : 10;
       safetyFloor = data.safetyFloor !== undefined ? data.safetyFloor : 20;
+
+      if (Object.keys(perCustomerSLA).length === 0 && customers.length > 0) {
+        customers.forEach((c, i) => {
+          if (c.sla !== undefined) perCustomerSLA[i] = c.sla;
+        });
+      }
       
       if (data.realisticMode !== undefined) {
          setRealisticMode(data.realisticMode);

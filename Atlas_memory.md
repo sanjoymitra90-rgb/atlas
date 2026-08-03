@@ -42,9 +42,9 @@ ATLAS is an internal planning suite for **Provenant Inc.** covering the full lif
 A guided 4-step wizard that produces an actionable deployment plan:
 
 1. **Current Footprint** — select existing cells: **List View** (searchable, grouped by continent) or **Map View** (Leaflet, dark CARTO tiles, pulsing markers). Optional **Infrastructure Cost Profile** accordion: enter monthly cost per selected cell; the tool reverse-engineers a normalized global base cost with **Blended** (average) or **Specific** (single-cell anchor) baseline modes and live summary.
-2. **Endpoint Locations** — add endpoints from two searchable tabs: **AWS Regions** or **World Cities** (with T1–T4 tier badges). **Click to Place on Map** mode snaps clicks to the nearest world city. Endpoints list shows count, coords, and per-row delete.
+2. **Endpoint Locations** — add endpoints from two searchable tabs: **AWS Regions** or **World Cities** (with T1–T4 tier badges). Centralized `tryAddEndpoint()` helper with dedup guard (identity: `r{regionIdx}` for AWS, `c{name}` for cities; duplicate → toast, no add). **Click to Place on Map** mode snaps clicks to the nearest world city; exitable via toggle, **Escape** key, or **"Done placing"** button. Endpoints list shows count, coords, per-row delete, and **keyboard delete** (focus row + Delete/Backspace key removes endpoint with toast).
 3. **SLA Configuration** — pick **Latency Estimation Model** (Realistic Mode default: direct distance + infra tax; Naive Mode: AWS proxy) and **SLA Mode** (one Global threshold, default 150ms, or a custom per-endpoint SLA with live latency previews per endpoint). **Safety Margin** (default 20ms) sets the minimum headroom between latency and SLA for new cell eligibility; set to 0 for legacy pass/fail. Internal processing time (default 10ms) adds to every latency estimate.
-4. **Coverage Analysis** — the dashboard: 6 stat cards (Total Endpoints, Already Covered, Pending Coverage, Marginal Headroom, New Cells Needed, Est. Monthly OPEX); an optimization summary with average served latency, min headroom, and marginal relaxation hint; a coverage map (covered/pending/marginal/impossible/recommended markers with dashed connection lines); four result lists (Already Covered with marginalExisting flags, Pending Coverage, Marginal Headroom with relaxation hints, Impossible SLA); **Latency Explorer** (top-5 candidate cells per uncovered endpoint with full latency breakdowns and cost chips); and **Recommended New Cells** cards (cell, tier tag, cost, covered count, min/avg headroom, per-endpoint headroom + breakdowns). Edge states handled: all covered → success message; nothing coverable → "Impossible SLA" message.
+4. **Coverage Analysis** — the dashboard: 6 stat cards (Total Endpoints, Already Covered, Pending Coverage, Marginal Headroom, New Cells Needed, Est. Monthly OPEX); an optimization summary with average served latency, min headroom, and marginal relaxation hint; a coverage map (covered/pending/marginal/impossible markers, recommended markers with cost chips and dashed connection lines); four result lists (Already Covered with marginalExisting flags, Pending Coverage, Marginal Headroom with relaxation hints, Impossible SLA); **Latency Explorer** (top-5 candidate cells per uncovered endpoint with full latency breakdowns and cost chips); and **Recommended New Cells** cards (cell, tier tag, cost, covered count, min/avg headroom, per-endpoint headroom + breakdowns). Edge states handled: all covered → success message; nothing coverable → "Impossible SLA" message.
 
 Additional features: session JSON import/export, CSV report export, client proposal PDF, back/start-over navigation, step indicator with completed-state tracking.
 
@@ -111,6 +111,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | — | `e2e/gap-phase3.spec.js` — Phase 3 event pairing e2e specs (6 specs) |
 | — | `e2e/gap-phase4.spec.js` — Phase 4 layout + pair legibility + banding + switch e2e specs (9 specs) |
 | — | `e2e/opt-coverage.spec.js` — Optimizer coverage-first objective e2e specs (15 specs) |
+| — | `e2e/opt-ux.spec.js` — Optimizer UX hardening e2e specs (9 specs) |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -133,6 +134,13 @@ Every notable decision made during development. If you are unsure whether a beha
 8. **Click-to-place on map** — snaps clicks to the nearest `worldCities` entry (nearest-city snapping, not freeform placement).
 9. **Proper Leaflet teardown** — every map rebuild removes non-tile layers, removes listeners (`off()`), and `remove()`s the instance to prevent memory leaks across step navigation.
 10. **Session JSON version "2.1"** with full state round-trip (includes `safetyFloor`); one-way CSV report export with labeled sections including headroom columns and marginal bucket.
+11. **Centralized `tryAddEndpoint(candidate)`** — single entry point for all three add paths (AWS Regions, World Cities, click-to-place). Dedup identity: `r{regionIdx}` for AWS regions, `c{name}` for world cities (including snapped cities from click-to-place). On duplicate → `showToast('Endpoint already added', true)`, no mutation. Returns boolean.
+12. **Click-to-place exit paths** — three ways to exit: toggle button again, **Escape** key (document-level listener, scoped to step 2 via `custMapEscHandler`), or **"Done placing"** button (visible only while placement mode is active). All clear cursor, hide Done button, and refresh map.
+13. **Coverage map cost chips** — recommended cell markers use `createRecommendedIconWithCost(cost)` rendering a `~$N/mo` label above the blue diamond icon. Existing/covered markers unchanged.
+14. **Leaflet double-rAF invalidation** — `showModule('optimizer')` uses nested `requestAnimationFrame(() => requestAnimationFrame(() => map.invalidateSize()))` to ensure full layout settlement before measuring map dimensions.
+15. **Keyboard delete on endpoint rows** — each `.customer-row` gets `tabindex="0"` and `onkeydown="handleCustKeydown(event, i)"`. Delete/Backspace removes the endpoint with `showToast` confirmation. Guard: does not fire when focus is inside an `<input>`.
+16. **Baseline clarity strings** — `updateBaselineSummary()` shows: "Paris-derived default (no costs entered)" / "Blended average of N entered cell(s)" / "Anchored to {name}". Tooltip on the "Normalized Global Base Cost (1.0x)" label explains the 1.0x convention.
+17. **Session JSON `customers[].sla`** — export includes per-endpoint SLA on each customer object. Import restores `perCustomerSLA` from `customers[].sla` when `perCustomerSLA` is missing (backward compat with v2.0).
 
 **Onboarding:**
 11. **4-Hour Ceiling Rule** — all hour inputs snap UP to the nearest multiple of 4 (min 4). "17" → 20. Prevents messy fractions in scoping.
@@ -223,7 +231,7 @@ Every notable decision made during development. If you are unsure whether a beha
 - Returns number, or breakdown object `{base, distance, infra, proc, total, nearestRegionIdx, distanceKm, tier, isDirect}` when `withBreakdown`.
 
 ### Cost baseline (step 1 accordion)
-- Enter monthly costs per selected cell → tool reverse-engineers global base (§5.1.3). Blended (default) vs Specific (requires ≥1 cost). Baseline summary shows source and math.
+- Enter monthly costs per selected cell → tool reverse-engineers global base (§5.1.3). Blended (default) vs Specific (requires ≥1 cost). Baseline summary: "Paris-derived default (no costs entered)" / "Blended average of N entered cell(s)" / "Anchored to {name}". Tooltip on "Normalized Global Base Cost (1.0x)" label explains 1.0x convention.
 
 ### Coverage analysis (step 4)
 - `computeCoverage(input)` — pure function (no DOM access) computing the full coverage analysis: covered/uncovered/marginal/impossible classification, greedy selection with headroom-based scoring, headroom stats. Takes `{customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency}`. Exposed on `window` for testing.
@@ -234,7 +242,8 @@ Every notable decision made during development. If you are unsure whether a beha
 ### Wizard & state
 - `currentStep`/`maxStepReached` gate navigation; step dots show completed/active states; connections turn green as you progress.
 - SLA inputs validated in `analyzeCoverage()` (min 1ms SLA, min 0ms processing, min 0ms safety floor) with error toasts.
-- Import (`handleImport`) restores all globals including `safetyFloor` and re-renders step 1; Export JSON (`exportSessionJSON`, v2.1) / CSV (`exportSessionCSV` with headroom columns and marginal section).
+- Import (`handleImport`) restores all globals including `safetyFloor` and `perCustomerSLA` (from `customers[].sla` fallback) and re-renders step 1; Export JSON (`exportSessionJSON`, v2.1 with `customers[].sla`) / CSV (`exportSessionCSV` with headroom columns and marginal section).
+- Endpoint management via `tryAddEndpoint(candidate)` with dedup guard (§5.1.11). Keyboard delete on endpoint rows (§5.1.15). Click-to-place exit via toggle/Escape/Done button (§5.1.12).
 
 ## 8. Module: Onboarding Calculator (blue)
 
@@ -431,6 +440,16 @@ Every notable decision made during development. If you are unsure whether a beha
 - **Help text rewrite** — "Cost-Effective Coverage Algorithm" section replaced with "Coverage-First Algorithm with SLA Safety Floor" describing eligibility gate, selection priority, marginal bucket, and legacy mode.
 - **15 e2e tests** in `e2e/opt-coverage.spec.js`: 10 focused scoring tests (via `computeCoverage` with synthetic data), 4 UI regression tests (wizard, safety input, JSON export, headless analysis structure), 1 headroom stats test. All 35 tests (20 existing + 15 new) pass.
 
+### Optimizer: UX Hardening (O2)
+- **T1: Centralized `tryAddEndpoint(candidate)`** — single entry point for all three add paths (AWS Regions tab, World Cities tab, click-to-place). Dedup identity: `r{regionIdx}` for AWS, `c{name}` for cities. On duplicate → toast, no mutation. Returns boolean.
+- **T2: Click-to-place exit** — three exit paths: toggle button, Escape key (`custMapEscHandler` document listener, cleaned up in `initCustMap`), "Done placing" button (visible only while active). All clear cursor and refresh map.
+- **T3: Session JSON round-trip** — export includes `customers[].sla` per-endpoint SLA. Import restores `perCustomerSLA` from `customers[].sla` when `perCustomerSLA` is missing (backward compat). All fields: `realisticMode`, `slaMode`, `globalSLA`, `perCustomerSLA`, `processingTime`, `safetyFloor`, `selectedFootprint`, `cellCosts`, `baselineMode`, `specificBaselineIdx`.
+- **T4: Baseline clarity** — `updateBaselineSummary()` strings: "Paris-derived default (no costs entered)" / "Blended average of N entered cell(s)" / "Anchored to {name}". Tooltip on "Normalized Global Base Cost (1.0x)" label.
+- **T5: Coverage map cost chips** — `createRecommendedIconWithCost(cost)` renders `~$N/mo` label above blue diamond on recommended cell markers.
+- **T6: Double-rAF invalidation** — `showModule('optimizer')` uses nested `requestAnimationFrame` for Leaflet map `invalidateSize()`.
+- **T7: Keyboard delete** — `.customer-row` gets `tabindex="0"` + `onkeydown="handleCustKeydown(event, i)"`. Delete/Backspace removes with toast. Input focus guard.
+- **9 e2e tests** in `e2e/opt-ux.spec.js`: dedup (2), Esc exit, JSON round-trip, baseline strings, baseline tooltip, cost chip, map size, keyboard delete. All 48 tests (39 existing + 9 new) pass.
+
 ### Switch rework + spine removal
 - Rebuilt "Group by pair" as a real sliding switch: `sr-only` checkbox + `gap-switch-track` with `::after` knob that slides via `translateX(16px)` on `:checked`. Track turns violet when on; focus-visible ring for keyboard. Deleted old non-sliding toggle markup.
 - Removed all left-border spines: deleted `GAP_GROUP_PALETTE`, `.gap-spine` class, and inline `style="border-left-color:..."` from `<tr>`. Zebra (`gap-group-alt`) + seams (`gap-group-seam`) remain.
@@ -440,7 +459,7 @@ Every notable decision made during development. If you are unsure whether a beha
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, and Optimizer coverage-first objective (35 specs total).
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 48 specs total.
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)
