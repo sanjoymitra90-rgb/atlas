@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { openGapAnalyzer, uploadAndAnalyze } from './helpers.js';
 const fs = require('fs');
 
-const TEST_CSV = 'test_gap_phase6.csv';
+const TEST_CSV = 'gap-phase6.csv';
 
 test.describe('Gap Analyzer — Phase 6 (Data Flexibility)', () => {
   test.beforeEach(async ({ page }) => {

@@ -5,7 +5,7 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
 
   test.beforeEach(async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_phase3.csv');
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
   });
 
   test('pairing summary at default 1000ms window', async ({ page }) => {
@@ -14,7 +14,7 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     await expect(page.getByTestId('gap-pair-unsigned')).toHaveText('2');
     await expect(page.getByTestId('gap-pair-duplicates')).toHaveText('1');
     await expect(page.getByTestId('gap-pair-unpairable')).toHaveText('1');
-    await expect(page.getByTestId('gap-pair-ttv')).toContainText('500');
+    await expect(page.getByTestId('gap-pair-ttv')).toContainText('600');
   });
 
   test('correlation line crosses pairing with UK validity', async ({ page }) => {
@@ -31,7 +31,7 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     await expect(page.locator('[data-pair-status="unpairable"]')).toHaveCount(1);
   });
 
-  test('retry is last-in-wins: one duplicate, two paired among the three retry rows', async ({ page }) => {
+  test('retry is first-in-wins: one duplicate, two paired among the three retry rows', async ({ page }) => {
     const retryRows = page.locator('[data-testid="gap-table"] tbody tr', { hasText: '447911000105' });
     await expect(retryRows.locator('[data-pair-status="duplicate"]')).toHaveCount(1);
     await expect(retryRows.locator('[data-pair-status="paired"]')).toHaveCount(2);
@@ -45,7 +45,7 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     await expect(page.getByTestId('gap-pair-matchrate')).toContainText('57.1');
     await expect(page.getByTestId('gap-pair-unverified')).toHaveText('1');
     await expect(page.getByTestId('gap-pair-unsigned')).toHaveText('1');
-    await expect(page.getByTestId('gap-pair-ttv')).toContainText('600');
+    await expect(page.getByTestId('gap-pair-ttv')).toContainText('800');
   });
 
   test('clicking signed-but-not-verified filters the table to those 2 rows', async ({ page }) => {

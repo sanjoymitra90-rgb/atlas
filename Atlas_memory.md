@@ -105,15 +105,25 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | 1358–1790 | Onboarding logic (Gantt engine, financials) |
 | 1792–3366 | Help drawer logic, Optimizer logic (constants, maps, `computeCoverage`, coverage algorithm, import/export) |
 | 3368–4203 | Gap Analyzer logic (CSV pipeline, validation, charts, table, export) |
-| — | `playwright.config.js` — Playwright e2e config |
-| — | `e2e/helpers.js` — test helpers (openGapAnalyzer, uploadAndAnalyze, tileText) |
-| — | `e2e/gap.spec.js` — Gap Analyzer e2e specs (P2.3–P2.6) |
-| — | `e2e/gap-phase3.spec.js` — Phase 3 event pairing e2e specs (6 specs) |
-| — | `e2e/gap-phase4.spec.js` — Phase 4 layout + pair legibility + banding + switch e2e specs (9 specs) |
-| — | `e2e/gap-phase5.spec.js` — Phase 5 time-series overhaul e2e specs (7 specs) |
-| — | `e2e/gap-phase6.spec.js` — Phase 6 data flexibility e2e specs (7 specs) |
-| — | `e2e/opt-coverage.spec.js` — Optimizer coverage-first objective e2e specs (15 specs) |
-| — | `e2e/opt-ux.spec.js` — Optimizer UX hardening e2e specs (9 specs) |
+| — | `playwright.config.js` — Playwright e2e config (projects: gap, optimizer) |
+| — | `fixtures/` — test CSV data files |
+| — | `fixtures/gap-core.csv` — core gap analyzer test data (11 rows) |
+| — | `fixtures/gap-dup.csv` — duplicate detection test data |
+| — | `fixtures/gap-pairing.csv` — event pairing test data |
+| — | `fixtures/gap-pairing-chart.csv` — pairing chart test data |
+| — | `fixtures/gap-invalid-only.csv` — invalid-only test data |
+| — | `fixtures/gap-phase1.csv` — phase 1 test data |
+| — | `fixtures/gap-phase6.csv` — phase 6 flexibility test data |
+| — | `e2e/gap/helpers.js` — gap test helpers (openGapAnalyzer, uploadAndAnalyze, tileText) |
+| — | `e2e/gap/gap-core.spec.js` — core gap analyzer specs (P2.3–P2.6, 5 specs) |
+| — | `e2e/gap/gap-dup.spec.js` — duplicate detection specs (5 specs) |
+| — | `e2e/gap/gap-pairing.spec.js` — pairing chart + tile specs (2 specs) |
+| — | `e2e/gap/gap-pairing-fifo.spec.js` — FIFO pairing / event pairing specs (6 specs) |
+| — | `e2e/gap/gap-layout.spec.js` — layout + pair legibility + banding specs (9 specs) |
+| — | `e2e/gap/gap-charts.spec.js` — time-series overhaul specs (7 specs) |
+| — | `e2e/gap/gap-flexibility.spec.js` — data flexibility / custom columns specs (7 specs) |
+| — | `e2e/optimizer/opt-coverage.spec.js` — Optimizer coverage-first objective specs (15 specs) |
+| — | `e2e/optimizer/opt-ux.spec.js` — Optimizer UX hardening specs (9 specs) |
 
 **Module pattern (follow when adding features):** each module owns its HTML section, its globals, and its functions. Cross-module sharing is limited to: `showModule`, `showToast`, help drawer, export dropdown click-away, proposal modal (accessible from both Optimizer and Onboarding headers).
 
@@ -499,11 +509,18 @@ Every notable decision made during development. If you are unsure whether a beha
 - **`getUnmappedHeaders()`** — Returns CSV headers not already mapped to the 8 core fields, used for additional column and pairing key dropdowns.
 - **7 e2e tests** in `e2e/gap-phase6.spec.js`: horizontal scroll, modal section, custom column header+cell, live preview, pairing key UI, CSV export includes custom columns, TTV chart canvas. **69 tests total.**
 
+### Repo restructure — module-grouped e2e + fixtures
+- **Test fixtures moved** — all `test_gap_*.csv` files moved from project root to `fixtures/` with clean names: `gap-core.csv`, `gap-dup.csv`, `gap-pairing.csv`, `gap-pairing-chart.csv`, `gap-invalid-only.csv`, `gap-phase1.csv`, `gap-phase6.csv`.
+- **e2e tests grouped by module** — `e2e/gap/` (8 spec files + helpers.js), `e2e/optimizer/` (2 spec files). Specs renamed from phase-based to feature-based: `gap-core.spec.js`, `gap-dup.spec.js`, `gap-pairing.spec.js`, `gap-pairing-fifo.spec.js`, `gap-layout.spec.js`, `gap-charts.spec.js`, `gap-flexibility.spec.js`.
+- **Playwright projects** — `playwright.config.js` defines `gap` and `optimizer` projects with separate `testDir`. `npx playwright test --project=gap` runs only gap tests (41), `--project=optimizer` runs only optimizer tests (28).
+- **npm scripts** — `npm test` (full regression), `npm run test:gap`, `npm run test:optimizer`, `npm run test:headed`.
+- **Post-gate: 69/69 passed** — pre-gate and post-gate counts identical.
+
 ## 12. Known Limitations & Gotchas
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Phase 6 data flexibility, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 69 specs total.
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Organized by module: `e2e/gap/` (41 specs), `e2e/optimizer/` (28 specs). Run selectively via `npm run test:gap` or `npm run test:optimizer`. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Phase 6 data flexibility, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 69 specs total.
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)

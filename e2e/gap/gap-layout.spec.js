@@ -4,7 +4,7 @@ const { openGapAnalyzer, uploadAndAnalyze } = require('./helpers');
 test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
   test.beforeEach(async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_phase3.csv');
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
   });
 
   test('workspace is widened (>= 1320px at 1440 viewport)', async ({ page }) => {

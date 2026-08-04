@@ -5,7 +5,7 @@ test.describe('Gap Analyzer — pairing-derived gap chart + tile', () => {
 
   test.beforeEach(async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_pairing_chart.csv');
+    await uploadAndAnalyze(page, 'gap-pairing-chart.csv');
   });
 
   test('Gap Count tile uses simple signing − verify difference', async ({ page }) => {

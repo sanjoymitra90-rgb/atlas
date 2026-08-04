@@ -5,7 +5,7 @@ test.describe('Gap Analyzer — Duplicate Detection', () => {
 
   test('duplicate signing detected', async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_dup.csv');
+    await uploadAndAnalyze(page, 'gap-dup.csv');
     expect(await tileText(page, 'total')).toBe('5');
     expect(await tileText(page, 'signing')).toBe('3');
     expect(await tileText(page, 'verify')).toBe('2');
@@ -19,7 +19,7 @@ test.describe('Gap Analyzer — Duplicate Detection', () => {
 
   test('duplicate pill shown in table', async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_dup.csv');
+    await uploadAndAnalyze(page, 'gap-dup.csv');
     const pill = page.locator('[data-pair-status="duplicate"]');
     await expect(pill).toHaveCount(1);
     await expect(pill).toHaveText('Duplicate');
@@ -27,7 +27,7 @@ test.describe('Gap Analyzer — Duplicate Detection', () => {
 
   test('pair status filter includes duplicate option', async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_dup.csv');
+    await uploadAndAnalyze(page, 'gap-dup.csv');
     const select = page.getByTestId('gap-filter-pair');
     await expect(select).toBeVisible();
     const options = await select.locator('option').allTextContents();
@@ -36,7 +36,7 @@ test.describe('Gap Analyzer — Duplicate Detection', () => {
 
   test('drillDownPair shows duplicate rows', async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_dup.csv');
+    await uploadAndAnalyze(page, 'gap-dup.csv');
     await page.evaluate(() => window.drillDownPair('duplicate'));
     const rows = page.locator('[data-testid="gap-table"] tbody tr');
     await expect(rows).toHaveCount(1);
@@ -44,7 +44,7 @@ test.describe('Gap Analyzer — Duplicate Detection', () => {
 
   test('export CSV includes duplicate in pairing summary', async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'test_gap_dup.csv');
+    await uploadAndAnalyze(page, 'gap-dup.csv');
     const download = page.waitForEvent('download');
     await page.evaluate(() => {
       window.gapExportAllData = true;
