@@ -1,26 +1,35 @@
 const { test, expect } = require('@playwright/test');
 const { openGapAnalyzer, uploadAndAnalyze, tileText } = require('./helpers');
 
-test.describe('Gap Analyzer — Phase 5: Time-Series Overhaul', () => {
+test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
 
   test('auto-bucketing selects 1hour for 2-hour range', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');
     const chartData = await page.evaluate(() => window.gapChartData);
     expect(chartData.labels.length).toBeGreaterThan(0);
-    const dropdown = page.getByTestId('gap-bucket-interval');
+    const dropdown = page.getByTestId('gap-bucket-interval-invalid');
     await expect(dropdown).toHaveValue('auto');
   });
 
-  test('UI control: selecting 1hour re-renders charts', async ({ page }) => {
+  test('per-chart dropdown: selecting 1hour on invalid chart re-renders that chart', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');
     const before = await page.evaluate(() => window.gapChartData.labels.length);
-    const dropdown = page.getByTestId('gap-bucket-interval');
+    const dropdown = page.getByTestId('gap-bucket-interval-invalid');
     await dropdown.selectOption('1hour');
     await page.waitForTimeout(200);
     const after = await page.evaluate(() => window.gapChartData.labels.length);
     expect(after).toBeGreaterThan(0);
+  });
+
+  test('per-chart bucket isolation: changing invalid dropdown does not affect volume dropdown', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    await page.getByTestId('gap-bucket-interval-invalid').selectOption('5min');
+    await page.waitForTimeout(100);
+    await expect(page.getByTestId('gap-bucket-interval-invalid')).toHaveValue('5min');
+    await expect(page.getByTestId('gap-bucket-interval-volume')).toHaveValue('auto');
   });
 
   test('Gaps Over Time chart is removed from DOM', async ({ page }) => {
@@ -62,17 +71,26 @@ test.describe('Gap Analyzer — Phase 5: Time-Series Overhaul', () => {
     expect(chartData.labels.length).toBe(0);
   });
 
-  test('Time Bucket dropdown exists with correct options', async ({ page }) => {
+  test('four per-chart bucket dropdowns exist with correct options', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');
-    const dropdown = page.getByTestId('gap-bucket-interval');
-    await expect(dropdown).toBeVisible();
-    const options = await dropdown.locator('option').allTextContents();
-    expect(options).toContain('Auto');
-    expect(options).toContain('1 Min');
-    expect(options).toContain('5 Min');
-    expect(options).toContain('1 Hour');
-    expect(options).toContain('1 Day');
+    for (const ct of ['invalid', 'volume', 'proc', 'ttv']) {
+      const dropdown = page.getByTestId('gap-bucket-interval-' + ct);
+      await expect(dropdown).toBeVisible();
+      const options = await dropdown.locator('option').allTextContents();
+      expect(options).toContain('Auto');
+      expect(options).toContain('1 Min');
+      expect(options).toContain('5 Min');
+      expect(options).toContain('1 Hour');
+      expect(options).toContain('1 Day');
+    }
+  });
+
+  test('TTV chart canvas exists in DOM', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const canvas = page.locator('#gap-chart-ttv');
+    await expect(canvas).toBeVisible();
   });
 
 });

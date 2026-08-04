@@ -63,14 +63,15 @@ A scoping + quoting workspace built around an interactive DHTMLX Gantt:
 
 An EDR call-data analysis tool with validation, filtering, visualization, and export:
 
-- **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required. Upload area includes a **privacy note** ("Private by design — your call data is processed entirely in this browser and never sent to a server.").
+- **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required. **Pairing key** dropdowns render horizontally with muted `+` separators; default is From + To, expandable to 4 components via "+ Add pairing component". **Additional columns** render in a two-column grid of self-contained bordered units (header dropdown + display name input each). Upload area includes a **privacy note** ("Private by design — your call data is processed entirely in this browser and never sent to a server.").
 - **UK number validation** — every destination number is normalized (scientific notation and Excel `+`-stripping recovered) and validated against E.164 structural rules; results surfaced as a per-row Valid/Invalid pill plus an **Invalid UK Numbers** metric.
 - **Call Pairing** — heuristic per-call matching: signing → verification on `(from, to)` key within a directional time window (default 1000ms, configurable in Settings). First-in-wins (FIFO) algorithm. Panel shows match rate, unverified/unsigned counts, time-to-verify median + P95, and invalid cross-tabs. Global (whole dataset, not filtered).
 - **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: `signing − verify`), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**. Below the tiles: **Call Pairing** panel + **Invalid UK Numbers breakdown** panel with clickable reason chips.
 - **Configurable thresholds** — Settings modal: processing-time threshold (default 100ms) and pairing window (default 1000ms). Both live-update on change.
 - **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, processing-time min/max, and **pair status** (Paired / Signed not verified / Verified not signed / Unpairable); one-click **Reset All**. Chart drill-through sets a **bucket filter**.
-- **3 visualizations** (Chart.js, smart auto-bucketed UTC, humanized labels): Invalid Numbers Over Time, Signing vs Verification Volume, Processing Time Distribution. All charts are **clickable** for drill-through. A **Time Bucket** dropdown (Auto / 1 Min / 5 Min / 1 Hour / 1 Day) in the filter bar controls bucketing interval; Auto selects based on data time range.
-- **Data table** — 10 sortable columns (including Pair Status), pagination (25/50/100 per page), showing/indicator controls. Paired pills display pair ID (e.g. `P3 · Paired`). Hover a row to cross-highlight its partner (violet ring) and dim others; off-page partners noted in tooltip. **Group by pair** sliding switch groups rows by pair for contiguous rendering with luminance zebra banding. Page-size label switches to "Groups per page" when grouped.
+- **3 visualizations** (Chart.js, smart auto-bucketed UTC, humanized labels): Invalid Numbers Over Time, Signing vs Verification Volume, Processing Time Distribution. All charts are **clickable** for drill-through. Per-chart **Time Bucket** dropdowns (Auto / 1 Min / 5 Min / 1 Hour / 1 Day) in each chart card header — each chart buckets independently.
+- **TTV chart** — 4th chart: Time to Verify with dual-line (median cyan, P95 pink dashed). Per-chart bucket dropdown.
+- **Data table** — 10 sortable columns (including Pair Status), pagination (25/50/100 per page), showing/indicator controls. Paired pills display pair ID (e.g. `P3 · Paired`). Hover a row to cross-highlight its partner (violet ring) and dim others; off-page partners noted in tooltip. **Group by pair** sliding switch groups rows by pair for contiguous rendering with luminance zebra banding. Page-size label switches to "Groups per page" when grouped. Per-column `min-width` styles with `whitespace-nowrap` for stable column widths.
 - **Export** — modal with **Filtered** vs **All** scope; CSV includes metrics summary, invalid-reason breakdown, pairing summary, and full data rows with pair status/ID/time-to-verify columns.
 
 ## 3. Tech Stack (CDN, No Build)
@@ -89,7 +90,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 ## 4. Architecture & File Map
 
-`index.html` (~4,203 lines) is organized in this order:
+`index.html` (~5,218 lines) is organized in this order:
 
 | Lines (approx) | Content |
 |---|---|
@@ -120,8 +121,8 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | — | `e2e/gap/gap-pairing.spec.js` — pairing chart + tile specs (2 specs) |
 | — | `e2e/gap/gap-pairing-fifo.spec.js` — FIFO pairing / event pairing specs (6 specs) |
 | — | `e2e/gap/gap-layout.spec.js` — layout + pair legibility + banding specs (9 specs) |
-| — | `e2e/gap/gap-charts.spec.js` — time-series overhaul specs (7 specs) |
-| — | `e2e/gap/gap-flexibility.spec.js` — data flexibility / custom columns specs (7 specs) |
+| — | `e2e/gap/gap-charts.spec.js` — time-series + per-chart bucket specs (9 specs) |
+| — | `e2e/gap/gap-flexibility.spec.js` — data flexibility + Phase 6B UX hardening specs (14 specs) |
 | — | `e2e/optimizer/opt-coverage.spec.js` — Optimizer coverage-first objective specs (15 specs) |
 | — | `e2e/optimizer/opt-ux.spec.js` — Optimizer UX hardening specs (9 specs) |
 
@@ -202,8 +203,8 @@ Every notable decision made during development. If you are unsure whether a beha
 47. **Privacy messaging on upload** — a `fa-shield-halved` line appears below the upload drop-zone: "Private by design — your call data is processed entirely in this browser and never sent to a server." Addresses data-sensitivity concerns without adding complexity.
 48. **Filtered-view indicator** — when any filter is active, a slim strip appears above the metrics grid showing global (unfiltered) values as "N of M" with tooltips, plus a Reset Filters button. Metrics tiles, charts, and table continue to show filtered values. Global values are computed in `updateGapMetrics()` by counting against `gapData` (full dataset) when `isFiltered` is true.
 49. **Configurable slow threshold** — `gapSlowThreshold` global (default 100) set via a number input in the Settings modal. `handleGapThresholdChange()` updates the tile label, Processing Time chart annotation (`yMin`/`yMax`), `suggestedMax`, and re-renders all data. Annotation label dynamically shows `"{threshold}ms Threshold"`. `drillDownGap('outliers')` uses `gapSlowThreshold` for `procMin` (not hardcoded).
-50. **Chart → table drill-through** — each of the four charts has `onClick: chartClickHandler` which resolves the clicked x-index to a time bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it; a removable chip in the filter bar shows the active bucket. `resetGapFilters()`, `drillDownGap()`, and `resetGapMetrics()` clear the bucket filter. Each row stores `bucketKey` (ISO hour string or `'__unknown__'`).
-51. **`row.bucketKey`** — derived in `processGapData()` from `row.timestamp` via `new Date(timestamp).toISOString().slice(0, 13)` when `timeValid` is true; `'__unknown__'` otherwise. Used by chart drill-through and bucket filtering.
+50. **Chart → table drill-through** — each of the four charts has `onClick: makeChartClickHandler(chartType)` which sets `gapBucketFilterSource` to the chart type and resolves the clicked x-index to a time bucket key via `gapChartBucketOrders[chartType][idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` resolves interval from `gapBucketIntervals[gapBucketFilterSource]`; a removable chip in the filter bar shows the active bucket. `resetGapFilters()`, `drillDownGap()`, and `resetGapMetrics()` clear the bucket filter and source.
+51. **`gapBucketIntervals` per-chart state** — `{ invalid: 'auto', volume: 'auto', proc: 'auto', ttv: 'auto' }`. Each chart has its own dropdown (`gap-bucket-interval-invalid|volume|proc|ttv`). Changing a dropdown calls `handleChartBucketIntervalChange(chartType, val)` → `renderSingleChart(chartType)`. If the filter source chart's interval changes, the bucket filter is cleared.
 
 **Phase 3:**
 52. **First-in-wins (FIFO) pairing** — no correlation ID in EDR, so pairing is heuristic: match verification to signing on `(from, to)` key within a directional time window. Stream is sorted by timestamp (signings before verifications at equal timestamps); each verification pairs with the earliest (oldest) unmatched signing with the same key if within `gapPairWindow`. Signings older than the window are evicted from the queue and marked `unverified`. After pairing, any unverified signing that has a paired signing with the same key is reclassified as `pairStatus = 'duplicate'` (superseded retry). Rationale: order-preserving matching recovers true pairs in dense same-key bursts (H10).
@@ -292,8 +293,8 @@ Every notable decision made during development. If you are unsure whether a beha
 
 ### Pipeline
 1. `handleGapCSVUpload` or drag-and-drop → calls `readGapFile(file)` → `parseGapCSV(text)` (single-pass state machine: BOM strip, quoted commas/newlines, CRLF, empty rows, short-row padding). Returns `{headers, rows, errors, meta}`.
-2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to. Also includes processing-time threshold and pairing window inputs.
-3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), derive `row.bucketKey` (ISO hour or `'__unknown__'`), run `pairGapCalls()` (assigns `row.pairStatus`, `row.pairId`, `row.timeToVerify`), compute `gapPairSummary`, populate filter dropdowns, metrics, pairing panel, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast.
+2. `openGapSettings(headers)` — 8 mapping dropdowns (time, service, from, to, status, customer, sourceIP, processingTime) with keyword auto-detection. Required: time, service, to. Fields rendered in a **4-column grid** (`grid-cols-2 sm:grid-cols-4`) with compact `text-xs` styling and `pr-8` for native chevron spacing. Also includes processing-time threshold and pairing window inputs. **Pairing Key** section (horizontal flex-wrap with muted `+` separators between dropdowns; X button above each dropdown top-right; removable down to 1 component, add up to 4 via "+ Add pairing component").
+3. `confirmGapColumnMapping` → `processGapData()` (try/catch wrapped): parse timestamps into `row.timestamp`/`row.timeValid`, normalize phone numbers, validate UK numbers, derive `isSigning`/`isVerify` via `svc.includes("signing"/"verif")` on lowercased value (display string preserved), run `pairGapCalls()` (assigns `row.pairStatus`, `row.pairId`, `row.timeToVerify`), compute `gapPairSummary`, populate filter dropdowns, metrics, pairing panel, table, charts; enable Settings/Export buttons; hide upload prompt; show descriptive summary toast.
 4. Filters — service, UK validation, from/to substring, status, customer, source IP substring, proc min/max, bucket key (chart drill-through), **pair status** (pairing drill-through). Metrics/table recompute from `gapFilteredData`. Pairing panel is global (from `gapPairSummary`).
 5. `drillDownGap(type)` — reset all filters then apply one; `total` = pure reset. Clears `gapInvalidReason`, `gapBucketFilter`, `gapPairFilter`.
 6. `drillDownPair(status)` — sets `gapPairFilter` to the given status (or toggles off). Clears other filters. Scrolls to table.
@@ -317,10 +318,11 @@ Every notable decision made during development. If you are unsure whether a beha
 - `from` numbers are normalized but never validated (they are assumed to be internal/valid).
 - Per-row results: `ukValid` (bool) + `ukValidationReason` (string). Rendered as green "Valid" / red "Invalid" pill.
 
-### Charts (all smart auto-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows excluded; all charts are clickable for drill-through)
-1. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid). Click filters table to that bucket.
-2. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks. Click filters table to that bucket.
-3. Processing Time Distribution — violet line (per-bucket average) with dynamic Y-axis scaling (no fixed `suggestedMax`). Click filters table to that bucket.
+### Charts (all smart auto-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows excluded; all charts are clickable for drill-through; per-chart bucket dropdowns in each chart card header)
+1. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid). Per-chart bucket dropdown. Click filters table to that bucket.
+2. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks. Per-chart bucket dropdown. Click filters table to that bucket.
+3. Processing Time Distribution — violet line (per-bucket average) with dynamic Y-axis scaling (no fixed `suggestedMax`). Per-chart bucket dropdown. Click filters table to that bucket.
+4. Time to Verify (TTV) — dual-line: median cyan, P95 pink dashed. Per-chart bucket dropdown. Computed from paired rows.
 
 ### Table & export
 - 10 sortable columns (Time, Service, From, To, Status, Customer, Source IP, Proc. Time, UK Valid, Pair); default sort time desc; pagination 25/50/100 (default 25).
@@ -489,25 +491,46 @@ Every notable decision made during development. If you are unsure whether a beha
 - **6 e2e tests** in `e2e/gap-pairing-chart.spec.js`: tile counts (unverified − unsigned), boundary pair no-bar, lone signing red bar, all verifies pair (0 unsigned), unpairable excluded from chart, subtitle mentions pairing engine. 59 tests total.
 
 ### Phase 5 — Time-Series Overhaul & Chart Cleanup
-- **Smart Auto-Bucketing** — `getGapBucketKey(timestamp, interval)` and `getAutoBucketInterval(minTime, maxTime)` helper functions. Data range ≤1h → 1min, ≤6h → 5min, ≤3d → 1hour, >3d → 1day. `gapBucketInterval` global (default `'auto'`). UI dropdown (`gap-filter-bucket-interval`) in filter bar with Auto/1Min/5Min/1Hour/1Day options. Changing interval clears bucket filter and re-renders charts.
+- **Smart Auto-Bucketing** — `getGapBucketKey(timestamp, interval)` and `getAutoBucketInterval(minTime, maxTime)` helper functions. Data range ≤1h → 1min, ≤6h → 5min, ≤3d → 1hour, >3d → 1day. `gapBucketIntervals` per-chart object (default all `'auto'`). Per-chart UI dropdowns (`gap-bucket-interval-invalid|volume|proc|ttv`) in each chart card header. Changing an interval re-renders only that chart via `renderSingleChart()`.
+- **`gapBucketIntervals` per-chart state** — `{ invalid: 'auto', volume: 'auto', proc: 'auto', ttv: 'auto' }`. Each chart can be bucketed independently. `gapChartBucketOrders` stores per-chart bucket key order for drill-through.
+- **`makeChartClickHandler(chartType)`** — Returns closure that sets `gapBucketFilterSource` to the chart type and calls `toggleGapBucket()`. `applyGapFilters()` and `renderGapBucketChip()` resolve interval from `gapBucketIntervals[gapBucketFilterSource]`.
+- **`renderSingleChart(chartType)`** — Re-renders a single chart with its own interval. Called by `handleChartBucketIntervalChange()`. Full refresh via `renderGapCharts()` computes all charts in one pass.
 - **Gaps Over Time chart removed** — HTML canvas+wrapper deleted, JS rendering logic and `gapChartInstances.gaps` removed. Gap Count tile reverted to simple `signing − verify` (was `unverified − unsigned`). Help drawer and tile tooltip updated.
 - **Processing Time chart Y-axis cleanup** — removed `chartjs-plugin-annotation` threshold line and `suggestedMax: gapSlowThreshold` from Y-axis options. Chart.js now scales Y dynamically to data range. `gapSlowThreshold` logic retained for the Slow Requests tile.
 - **Invalid timestamps excluded from charts** — `renderGapCharts()` filters for `row.timeValid && row.timestamp` only. Unknown bucket removed from UI. Invalid rows still count in metric tiles and appear in data table with amber icon.
 - **`row.bucketKey` removed** — no longer stored on each row. Computed dynamically in `applyGapFilters()` and `renderGapCharts()` via `getGapBucketKey()`. `gapBucketFilter` checked against dynamically computed key.
-- **7 e2e tests** in `e2e/gap-phase5.spec.js`: auto-bucketing, UI control re-render, removed chart DOM, gap tile formula, dynamic Y-axis, invalid timestamps excluded, dropdown options. 62 tests total.
+- **9 e2e tests** in `e2e/gap-charts.spec.js`: auto-bucketing, UI control re-render, per-chart bucket isolation, removed chart DOM, gap tile formula, dynamic Y-axis, invalid timestamps excluded, per-chart dropdown options, TTV chart. 71 tests total.
 
 ### Phase 6 — Data Flexibility & Pairing Generality
-- **Horizontal scroll for wide tables** — `min-w-[1200px]` on `<table>`, `overflow-x-auto` on wrapper. Table scrolls on narrow viewports.
+- **Horizontal scroll for wide tables** — `overflow-x-auto` wrapper with `rounded-lg border border-slate-700/50`. No `min-w-[1200px]` on table. Per-column `min-width` styles on `<th>` elements (Time 140px, Service 80px, From 120px, To 120px, Status 80px, Customer 120px, Source IP 120px, Proc Time 90px, UK Valid 80px, Pair 140px). All `<th>` and `<td>` have `whitespace-nowrap`.
 - **`row.raw` stored on each row** — `raw: row` property in `processGapData()` preserves the original header-keyed CSV values for custom column access.
 - **Additional columns UI** — In the mapping modal, "Additional Columns" section with "+ Add Column" button. Each entry has a header dropdown (`gap-add-col-header`) and display name input (`gap-add-col-name`). `gapAdditionalColumns: [{header, displayName}]` global. `renderAdditionalColumnsUI()` renders entries. `handleAdditionalColHeaderChange()` / `handleAdditionalColNameChange()` update state and preview.
 - **Custom columns in table** — `renderGapTable()` dynamically adds `<th class="gap-custom-col-th">` headers and `<td>` cells using `row.raw[col.header]`. Grouped + flat mode both support custom columns. Sort comparators use `row.raw[col.header]` as fallback. Empty-state colspan updated.
 - **Custom columns in CSV export** — `exportGapData()` appends custom column headers and per-row values from `row.raw[col.header]`.
 - **Generic pairing key (up to 4 components)** — `gapPairingKeys: []` global (default = from+to). Pairing key UI in mapping modal with "+ Add" / remove buttons. `pairGapCalls()` uses `gapPairingKeys.length > 0 ? gapPairingKeys.map(h => row.raw[h]).join('|') : row.from + '|' + row.to`. Duplicate detection and all downstream stats use generic key.
 - **Mapping preview** — Live preview section in mapping modal. `updateGapPreview()` renders headers + first data row from `gapRawData[0]`, updates on every dropdown/input change.
+- **Settings snapshot/restore** — `gapSettingsSnapshot` stores deep copy of `gapColumnMapping`, `gapAdditionalColumns`, `gapPairingKeys`, `gapSlowThreshold`, `gapPairWindow` on modal open. `closeGapColumnModal()` restores from snapshot (discards unsaved changes). `confirmGapColumnMapping()` clears snapshot before closing (commits changes). Prevents stale edits persisting after Cancel/X.
 - **Time to Verify (TTV) chart** — 4th chart: `gap-chart-ttv`. Dual-line (median cyan, P95 pink dashed). Computed from paired rows per time bucket. `gapChartData` extended with `ttvMedian: []` and `ttvP95: []`. Empty-state shows "No paired data" when no TTV values.
 - **`escapeHtml()` helper** — Added for safe rendering of raw CSV values in preview and table cells.
 - **`getUnmappedHeaders()`** — Returns CSV headers not already mapped to the 8 core fields, used for additional column and pairing key dropdowns.
-- **7 e2e tests** in `e2e/gap-phase6.spec.js`: horizontal scroll, modal section, custom column header+cell, live preview, pairing key UI, CSV export includes custom columns, TTV chart canvas. **69 tests total.**
+- **14 e2e tests** in `e2e/gap-flexibility.spec.js`: horizontal scroll, table no min-w, th whitespace-nowrap, td whitespace-nowrap, th min-width, modal width, pairing key defaults, pairing key pre-selected, modal section, custom column header+cell, live preview, pairing key UI, CSV export includes custom columns, TTV chart canvas. **80 tests total.**
+
+### Phase 6B — PM Feedback Round
+- **Modal widened** — `max-w-2xl` → `max-w-4xl`, `max-h-[90vh]` → `max-h-[85vh]`. Threshold/pairing window in `sm:grid-cols-2` wrapper. Column mappings grid `sm:grid-cols-2`.
+- **Pairing key editable defaults** — `renderPairingKeysUI()` rewritten: always shows From/To as first two dropdowns with labels ("From (required)", "To (required)"). `gapPairingKeys` always populated with `[fromHeader, toHeader]` defaults. Options disabled if already used elsewhere. "+ Add column" button hidden at max 4. Extra columns get remove buttons. `confirmGapColumnMapping()` ensures at least from/to fallback. `openGapSettings()` syncs defaults via `syncPairDefaults()` on From/To change.
+- **Per-chart time bucket dropdowns** — Global dropdown removed. 4 per-chart dropdowns in chart card headers (`gap-bucket-interval-invalid|volume|proc|ttv`). State: `gapBucketIntervals = { invalid:'auto', volume:'auto', proc:'auto', ttv:'auto' }`. `handleChartBucketIntervalChange(chartType, val)` re-renders only that chart. `gapChartBucketOrders` stores per-chart bucket key order. Drill-through uses source chart's interval for `applyGapFilters()`.
+- **Table column min-widths** — Removed `min-w-[1200px]`. Added `whitespace-nowrap` to all `<th>` and `<td>`. Per-column `style="min-width: Xpx"` on `<th>` elements for stable column widths.
+
+### Phase 6C — Mapping Modal Layout Refinements
+- **Modal widened** — `max-w-4xl` → `max-w-6xl` (1152px) to accommodate 4-column mapping grid.
+- **Pairing Key section moved up** — now sits directly after the Processing Time / Pairing Window inputs, before the column mappings.
+- **Pairing key horizontal layout** — dropdowns render in a `flex flex-wrap` row with muted `+` separators. Merged `+` and X into Option B: small circular X button positioned `absolute -top-1.5 -right-1.5` above each dropdown (top-right corner). Components removable down to minimum 1; add button "+ Add pairing component" hidden at 4.
+- **Pairing key min 1** — `renderPairingKeysUI()` initializes to `[from, to]` on first open only; subsequent removes can go down to 1 component.
+- **4-column mapping grid** — `grid-cols-2 sm:grid-cols-4` with compact `text-xs` labels/selects, tighter padding (`p-3`, `px-2.5 py-1.5`), and `pr-8` on all `<select>` elements for native chevron spacing.
+- **"Map Columns" section header** — column mappings wrapped in a section with `<h3>Map Columns</h3>` and description, matching Pairing Key / Additional Columns / Preview section style. Standalone intro paragraph removed.
+- **Settings snapshot/restore** — `openGapSettings()` takes a deep snapshot of `gapColumnMapping`, `gapAdditionalColumns`, `gapPairingKeys`, `gapSlowThreshold`, `gapPairWindow`. `closeGapColumnModal()` restores from snapshot (discards unsaved changes). `confirmGapColumnMapping()` clears snapshot before closing (commits changes). Prevents stale edits persisting after Cancel/X.
+- **Additional columns** — unchanged 2-column grid of bordered grouped units.
+- **15 e2e tests** in `gap-flexibility.spec.js` Phase 6C block: horizontal flex-wrap, + separators, button label, max-4 hidden, min-1 remove, grid-cols-2 container, bordered units, unit contents, 4-column mapping grid, pr-8 chevron, X above dropdown, section order, Map Columns header, cancel resets state, Analyze persists state.
 
 ### Repo restructure — module-grouped e2e + fixtures
 - **Test fixtures moved** — all `test_gap_*.csv` files moved from project root to `fixtures/` with clean names: `gap-core.csv`, `gap-dup.csv`, `gap-pairing.csv`, `gap-pairing-chart.csv`, `gap-invalid-only.csv`, `gap-phase1.csv`, `gap-phase6.csv`.
@@ -520,7 +543,7 @@ Every notable decision made during development. If you are unsure whether a beha
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Organized by module: `e2e/gap/` (41 specs), `e2e/optimizer/` (28 specs). Run selectively via `npm run test:gap` or `npm run test:optimizer`. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Phase 6 data flexibility, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 69 specs total.
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Organized by module: `e2e/gap/` (52 specs), `e2e/optimizer/` (28 specs). Run selectively via `npm run test:gap` or `npm run test:optimizer`. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Phase 6 data flexibility, Phase 6B UX hardening, Phase 6C mapping modal layout refinements, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 80 specs total.
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)

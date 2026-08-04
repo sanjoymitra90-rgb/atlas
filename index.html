@@ -655,7 +655,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 
   <!-- Column Mapping Modal -->
   <div id="gap-column-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[3000] hidden items-center justify-center p-4" role="dialog" aria-labelledby="gap-modal-title" aria-modal="true" data-testid="gap-settings-modal">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
       <div class="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
         <h2 id="gap-modal-title" class="text-lg font-bold text-white"><i class="fas fa-columns text-violet-400 mr-2"></i>Map CSV Columns</h2>
         <button class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center" onclick="closeGapColumnModal()" aria-label="Close modal">
@@ -663,8 +663,7 @@ tr.gap-pair-dim { opacity: 0.45; }
         </button>
       </div>
       <div class="p-6 space-y-4">
-        <p class="text-slate-300 text-sm mb-4">Select which columns from your CSV correspond to each required field:</p>
-        <div class="flex items-center gap-4 bg-slate-800/50 rounded-lg px-4 py-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-800/50 rounded-lg px-4 py-3">
           <div class="flex items-center gap-2">
             <label class="text-xs text-slate-400 whitespace-nowrap">Processing time threshold (ms)</label>
             <input type="number" id="gap-slow-threshold" min="1" value="100" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" data-testid="gap-threshold-input" onchange="handleGapThresholdChange(this.value)">
@@ -674,8 +673,20 @@ tr.gap-pair-dim { opacity: 0.45; }
             <input type="number" id="gap-pair-window" min="1" value="1000" class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white focus:border-violet-500 focus:outline-none" data-testid="gap-pair-window-input" onchange="handleGapPairWindowChange(this.value)">
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="gap-column-mappings">
-          <!-- Mappings will be populated dynamically -->
+        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-link text-violet-400 mr-2"></i>Pairing Key</h3>
+            <button class="text-xs text-violet-400 hover:text-violet-300" onclick="addGapPairingKey()" id="gap-add-pair-key-btn">+ Add pairing component</button>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">Columns combined to match signing → verification. Default is From + To. Add up to 4 components total.</p>
+          <div id="gap-pairing-keys" class="flex flex-wrap items-center gap-y-2"></div>
+        </div>
+        <div class="mt-4">
+          <h3 class="text-sm font-semibold text-white mb-2"><i class="fas fa-columns text-violet-400 mr-2"></i>Map Columns</h3>
+          <p class="text-xs text-slate-400 mb-3">Select which columns from your CSV correspond to each required field.</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="gap-column-mappings">
+            <!-- Mappings will be populated dynamically -->
+          </div>
         </div>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-2">
@@ -683,15 +694,7 @@ tr.gap-pair-dim { opacity: 0.45; }
             <button class="text-xs text-violet-400 hover:text-violet-300" onclick="addGapAdditionalColumn()">+ Add Column</button>
           </div>
           <p class="text-xs text-slate-400 mb-3">Map extra CSV columns to display as additional table columns.</p>
-          <div id="gap-additional-columns" class="space-y-2"></div>
-        </div>
-        <div class="mt-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-white"><i class="fas fa-link text-violet-400 mr-2"></i>Pairing Key</h3>
-            <button class="text-xs text-violet-400 hover:text-violet-300" onclick="addGapPairingKey()">+ Add</button>
-          </div>
-          <p class="text-xs text-slate-400 mb-3">Columns used to match signing → verification. Default: From + To.</p>
-          <div id="gap-pairing-keys" class="space-y-2"></div>
+          <div id="gap-additional-columns" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
         </div>
         <div class="mt-4">
           <h3 class="text-sm font-semibold text-white mb-2"><i class="fas fa-eye text-violet-400 mr-2"></i>Preview</h3>
@@ -976,33 +979,57 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
 
       <!-- Charts Section -->
-      <div class="flex items-center justify-end mb-2">
-        <div class="flex items-center gap-2">
-          <label class="text-xs text-slate-400 whitespace-nowrap">Time Bucket</label>
-          <select id="gap-filter-bucket-interval" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" data-testid="gap-bucket-interval" onchange="handleGapBucketIntervalChange(this.value)">
-            <option value="auto">Auto</option>
-            <option value="1min">1 Min</option>
-            <option value="5min">5 Min</option>
-            <option value="1hour">1 Hour</option>
-            <option value="1day">1 Day</option>
-          </select>
-        </div>
-      </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-amber-400 mr-2"></i>Invalid Numbers Over Time</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-area text-amber-400 mr-2"></i>Invalid Numbers Over Time</h3>
+            <select class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" data-testid="gap-bucket-interval-invalid" onchange="handleChartBucketIntervalChange('invalid', this.value)">
+              <option value="auto">Auto</option>
+              <option value="1min">1 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="1hour">1 Hour</option>
+              <option value="1day">1 Day</option>
+            </select>
+          </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-invalid"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-stacked text-blue-400 mr-2"></i>Signing vs Verification Volume</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-stacked text-blue-400 mr-2"></i>Signing vs Verification Volume</h3>
+            <select class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" data-testid="gap-bucket-interval-volume" onchange="handleChartBucketIntervalChange('volume', this.value)">
+              <option value="auto">Auto</option>
+              <option value="1min">1 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="1hour">1 Hour</option>
+              <option value="1day">1 Day</option>
+            </select>
+          </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-volume"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-bar text-purple-400 mr-2"></i>Processing Time Distribution</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-bar text-purple-400 mr-2"></i>Processing Time Distribution</h3>
+            <select class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" data-testid="gap-bucket-interval-proc" onchange="handleChartBucketIntervalChange('proc', this.value)">
+              <option value="auto">Auto</option>
+              <option value="1min">1 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="1hour">1 Hour</option>
+              <option value="1day">1 Day</option>
+            </select>
+          </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-processing"></canvas></div>
         </div>
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-stopwatch text-cyan-400 mr-2"></i>Time to Verify Over Time</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-stopwatch text-cyan-400 mr-2"></i>Time to Verify Over Time</h3>
+            <select class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" data-testid="gap-bucket-interval-ttv" onchange="handleChartBucketIntervalChange('ttv', this.value)">
+              <option value="auto">Auto</option>
+              <option value="1min">1 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="1hour">1 Hour</option>
+              <option value="1day">1 Day</option>
+            </select>
+          </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-ttv"></canvas></div>
         </div>
       </div>
@@ -1026,22 +1053,22 @@ tr.gap-pair-dim { opacity: 0.45; }
             </label>
           </div>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm min-w-[1200px]" data-testid="gap-table">
+        <div class="overflow-x-auto rounded-lg border border-slate-700/50">
+          <table class="w-full text-sm" data-testid="gap-table">
             <thead class="bg-slate-800/50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('time')">Time <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('service')">Service <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('from')">From <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('to')">To <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('status')">Status <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('sourceIP')">Source IP <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('processingTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider relative" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, 3, 7, or 8), and rejects test/placeholder numbers with sequential or repeated digits.">
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:140px" onclick="handleGapSort('time')">Time <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:80px" onclick="handleGapSort('service')">Service <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:120px" onclick="handleGapSort('from')">From <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:120px" onclick="handleGapSort('to')">To <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:80px" onclick="handleGapSort('status')">Status <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:120px" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:120px" onclick="handleGapSort('sourceIP')">Source IP <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:90px" onclick="handleGapSort('processingTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap relative" style="min-width:80px" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, 3, 7, or 8), and rejects test/placeholder numbers with sequential or repeated digits.">
                   UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400"></i>
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white" onclick="handleGapSort('pairStatus')">Pair <i class="fas fa-sort text-xs ml-1"></i></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:140px" onclick="handleGapSort('pairStatus')">Pair <i class="fas fa-sort text-xs ml-1"></i></th>
               </tr>
             </thead>
             <tbody id="gap-table-body" class="divide-y divide-slate-800">
@@ -3614,9 +3641,12 @@ let gapGroupMode = false;
 let gapPairWindow = 1000;
 let gapPairSummary = {};
 let gapPairFilter = null;
-let gapBucketInterval = 'auto';
+let gapBucketIntervals = { invalid: 'auto', volume: 'auto', proc: 'auto', ttv: 'auto' };
+let gapBucketFilterSource = null;
 let gapAdditionalColumns = [];
 let gapPairingKeys = [];
+let gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [] };
+let gapSettingsSnapshot = null;
 
 function getGapBucketKey(timestamp, interval) {
   if (!timestamp) return null;
@@ -3666,13 +3696,16 @@ function formatBucketLabel(key, interval) {
   return key;
 }
 
-function handleGapBucketIntervalChange(val) {
-  gapBucketInterval = val;
-  gapBucketFilter = null;
-  renderGapBucketChip();
-  if (gapData.length > 0) {
+function handleChartBucketIntervalChange(chartType, val) {
+  gapBucketIntervals[chartType] = val;
+  if (gapBucketFilterSource === chartType) {
+    gapBucketFilter = null;
+    gapBucketFilterSource = null;
+    renderGapBucketChip();
     applyGapFilters();
-    renderGapCharts();
+  }
+  if (gapData.length > 0) {
+    renderSingleChart(chartType);
   }
 }
 
@@ -3801,6 +3834,13 @@ function handleGapCSVUpload(event) {
 
 function openGapSettings(headers) {
   if (!headers) headers = gapRawHeaders;
+  gapSettingsSnapshot = {
+    columnMapping: JSON.parse(JSON.stringify(gapColumnMapping)),
+    additionalColumns: JSON.parse(JSON.stringify(gapAdditionalColumns)),
+    pairingKeys: [...gapPairingKeys],
+    slowThreshold: gapSlowThreshold,
+    pairWindow: gapPairWindow
+  };
   const mappingsContainer = document.getElementById("gap-column-mappings");
   const fields = [
     { key: "time", label: "Time Column", icon: "fa-clock" },
@@ -3814,11 +3854,11 @@ function openGapSettings(headers) {
   ];
   let html = "";
   fields.forEach(field => {
-    html += "<div class=\"bg-slate-800/50 p-4 rounded-xl border border-slate-700\">" +
-      "<label class=\"block text-xs text-slate-400 mb-2\">" +
-      "<i class=\"fas " + field.icon + " text-violet-400 mr-2\"></i>" + field.label +
+    html += "<div class=\"bg-slate-800/50 p-3 rounded-xl border border-slate-700\">" +
+      "<label class=\"block text-xs text-slate-400 mb-1.5\">" +
+      "<i class=\"fas " + field.icon + " text-violet-400 mr-1.5\"></i>" + field.label +
       "</label>" +
-      "<select id=\"gap-map-" + field.key + "\" class=\"w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none\">" +
+      "<select id=\"gap-map-" + field.key + "\" class=\"w-full bg-slate-900 border border-slate-600 rounded-lg px-2.5 py-1.5 pr-8 text-xs text-white focus:border-violet-500 focus:outline-none\">" +
       "<option value=\"\">-- Select Column --</option>" +
       (headers || []).map(h => "<option value=\"" + h + "\">" + h + "</option>").join("") +
       "</select></div>";
@@ -3852,11 +3892,36 @@ function openGapSettings(headers) {
     const sel = document.getElementById("gap-map-" + field.key);
     if (sel) sel.addEventListener('change', updateGapPreview);
   });
+  const syncPairDefaults = () => {
+    const fromVal = document.getElementById('gap-map-from') ? document.getElementById('gap-map-from').value : '';
+    const toVal = document.getElementById('gap-map-to') ? document.getElementById('gap-map-to').value : '';
+    if (gapPairingKeys.length >= 2) {
+      if (!gapRawHeaders.includes(gapPairingKeys[0])) gapPairingKeys[0] = fromVal;
+      if (!gapRawHeaders.includes(gapPairingKeys[1])) gapPairingKeys[1] = toVal;
+    }
+    renderPairingKeysUI();
+  };
+  const fromSel = document.getElementById('gap-map-from');
+  const toSel = document.getElementById('gap-map-to');
+  if (fromSel) fromSel.addEventListener('change', syncPairDefaults);
+  if (toSel) toSel.addEventListener('change', syncPairDefaults);
   document.getElementById("gap-column-modal").classList.remove("hidden");
   document.getElementById("gap-column-modal").classList.add("flex");
 }
 
 function closeGapColumnModal() {
+  if (gapSettingsSnapshot) {
+    gapColumnMapping = JSON.parse(JSON.stringify(gapSettingsSnapshot.columnMapping));
+    gapAdditionalColumns = JSON.parse(JSON.stringify(gapSettingsSnapshot.additionalColumns));
+    gapPairingKeys = [...gapSettingsSnapshot.pairingKeys];
+    gapSlowThreshold = gapSettingsSnapshot.slowThreshold;
+    gapPairWindow = gapSettingsSnapshot.pairWindow;
+    const thrInput = document.getElementById('gap-slow-threshold');
+    const pwInput = document.getElementById('gap-pair-window');
+    if (thrInput) thrInput.value = gapSlowThreshold;
+    if (pwInput) pwInput.value = gapPairWindow;
+    gapSettingsSnapshot = null;
+  }
   document.getElementById("gap-column-modal").classList.add("hidden");
   document.getElementById("gap-column-modal").classList.remove("flex");
 }
@@ -3892,17 +3957,20 @@ function renderAdditionalColumnsUI() {
   const container = document.getElementById('gap-additional-columns');
   if (!container) return;
   if (gapAdditionalColumns.length === 0) {
-    container.innerHTML = '<p class="text-xs text-slate-500 italic">No additional columns mapped.</p>';
+    container.innerHTML = '<p class="text-xs text-slate-500 italic col-span-2">No additional columns mapped.</p>';
     return;
   }
   const unmapped = gapRawHeaders || [];
   container.innerHTML = gapAdditionalColumns.map((col, i) => {
     const options = unmapped.map(h => '<option value="' + h + '"' + (col.header === h ? ' selected' : '') + '>' + h + '</option>').join('');
-    return '<div class="flex items-center gap-2">' +
-      '<select class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none gap-add-col-header" data-idx="' + i + '" onchange="handleAdditionalColHeaderChange(' + i + ', this.value)">' +
+    return '<div class="bg-slate-900/60 border border-slate-700 rounded-lg p-3 space-y-2">' +
+      '<div class="flex items-center justify-between">' +
+      '<span class="text-xs text-slate-400 font-medium">Column ' + (i + 1) + '</span>' +
+      '<button class="text-red-400 hover:text-red-300 text-xs" onclick="removeGapAdditionalColumn(' + i + ')" title="Remove"><i class="fas fa-times"></i></button>' +
+      '</div>' +
+      '<select class="w-full bg-slate-900 border border-slate-600 rounded-lg px-2.5 py-1.5 pr-8 text-xs text-white focus:border-violet-500 focus:outline-none gap-add-col-header" data-idx="' + i + '" onchange="handleAdditionalColHeaderChange(' + i + ', this.value)">' +
       '<option value="">-- Select Header --</option>' + options + '</select>' +
-      '<input type="text" placeholder="Display name" value="' + escapeHtml(col.displayName) + '" class="w-40 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none gap-add-col-name" data-idx="' + i + '" oninput="handleAdditionalColNameChange(' + i + ', this.value)">' +
-      '<button class="text-red-400 hover:text-red-300 px-2" onclick="removeGapAdditionalColumn(' + i + ')" title="Remove"><i class="fas fa-times"></i></button>' +
+      '<input type="text" placeholder="Display name" value="' + escapeHtml(col.displayName) + '" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none gap-add-col-name" data-idx="' + i + '" oninput="handleAdditionalColNameChange(' + i + ', this.value)">' +
       '</div>';
   }).join('');
 }
@@ -3936,23 +4004,44 @@ function removeGapPairingKey(idx) {
 function renderPairingKeysUI() {
   const container = document.getElementById('gap-pairing-keys');
   if (!container) return;
-  if (gapPairingKeys.length === 0) {
-    container.innerHTML = '<p class="text-xs text-slate-500 italic">Default: From + To number columns.</p>';
-    return;
-  }
   const allHeaders = gapRawHeaders || [];
-  container.innerHTML = gapPairingKeys.map((key, i) => {
-    const options = allHeaders.map(h => '<option value="' + h + '"' + (key === h ? ' selected' : '') + '>' + h + '</option>').join('');
-    return '<div class="flex items-center gap-2">' +
-      '<select class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none gap-pair-key" data-idx="' + i + '" onchange="handlePairingKeyChange(' + i + ', this.value)">' +
+  const fromSel = document.getElementById('gap-map-from');
+  const toSel = document.getElementById('gap-map-to');
+  const defaultFrom = fromSel ? fromSel.value : '';
+  const defaultTo = toSel ? toSel.value : '';
+  if (gapPairingKeys.length === 0) {
+    gapPairingKeys = [defaultFrom, defaultTo];
+  }
+  const addBtn = document.getElementById('gap-add-pair-key-btn');
+  if (addBtn) {
+    if (gapPairingKeys.length >= 4) {
+      addBtn.classList.add('hidden');
+    } else {
+      addBtn.classList.remove('hidden');
+    }
+  }
+  const parts = gapPairingKeys.map((key, i) => {
+    const usedValues = gapPairingKeys.filter((v, j) => j !== i && v);
+    const options = allHeaders.map(h => {
+      const disabled = usedValues.includes(h) && key !== h;
+      return '<option value="' + h + '"' + (key === h ? ' selected' : '') + (disabled ? ' disabled' : '') + '>' + h + (disabled ? ' (in use)' : '') + '</option>';
+    }).join('');
+    const removeBtn = gapPairingKeys.length > 1
+      ? '<button class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500/80 hover:bg-red-400 text-white flex items-center justify-center text-[9px] leading-none z-10" onclick="removeGapPairingKey(' + i + ')" title="Remove component"><i class="fas fa-times"></i></button>'
+      : '';
+    return '<div class="relative flex flex-col items-center shrink-0">' +
+      removeBtn +
+      '<select class="bg-slate-900 border border-slate-600 rounded-lg px-2.5 py-2 pr-8 text-sm text-white focus:border-violet-500 focus:outline-none gap-pair-key" data-idx="' + i + '" onchange="handlePairingKeyChange(' + i + ', this.value)">' +
       '<option value="">-- Select Column --</option>' + options + '</select>' +
-      '<button class="text-red-400 hover:text-red-300 px-2" onclick="removeGapPairingKey(' + i + ')" title="Remove"><i class="fas fa-times"></i></button>' +
       '</div>';
-  }).join('');
+  });
+  const separator = '<span class="text-slate-500 text-sm font-semibold px-1 shrink-0">+</span>';
+  container.innerHTML = parts.join(separator);
 }
 
 function handlePairingKeyChange(idx, val) {
   gapPairingKeys[idx] = val;
+  renderPairingKeysUI();
 }
 
 function updateGapPreview() {
@@ -4006,6 +4095,10 @@ function confirmGapColumnMapping() {
   const pairSelects = document.querySelectorAll('.gap-pair-key');
   gapPairingKeys = [];
   pairSelects.forEach(sel => { if (sel.value) gapPairingKeys.push(sel.value); });
+  if (gapPairingKeys.length < 2) {
+    gapPairingKeys = [gapColumnMapping.from, gapColumnMapping.to].filter(Boolean);
+  }
+  gapSettingsSnapshot = null;
   closeGapColumnModal();
   processGapData();
 }
@@ -4151,11 +4244,15 @@ function applyGapFilters() {
   const procMin = parseFloat(document.getElementById("gap-filter-proc-min").value) || null;
   const procMax = parseFloat(document.getElementById("gap-filter-proc-max").value) || null;
   const pairFilter = document.getElementById("gap-filter-pair").value;
-  let effectiveInterval = gapBucketInterval;
-  if (effectiveInterval === 'auto' && gapBucketFilter) {
-    const validTimestamps = gapData.filter(r => r.timeValid && r.timestamp).map(r => r.timestamp);
-    if (validTimestamps.length) effectiveInterval = getAutoBucketInterval(Math.min(...validTimestamps), Math.max(...validTimestamps));
-    else effectiveInterval = '1hour';
+  let effectiveInterval = '1hour';
+  if (gapBucketFilter && gapBucketFilterSource) {
+    const rawInterval = gapBucketIntervals[gapBucketFilterSource];
+    if (rawInterval === 'auto') {
+      const validTimestamps = gapData.filter(r => r.timeValid && r.timestamp).map(r => r.timestamp);
+      if (validTimestamps.length) effectiveInterval = getAutoBucketInterval(Math.min(...validTimestamps), Math.max(...validTimestamps));
+    } else {
+      effectiveInterval = rawInterval;
+    }
   }
   gapFilteredData = gapData.filter(row => {
     if (serviceFilter === "signing" && !row.isSigning) return false;
@@ -4187,6 +4284,7 @@ function applyGapFilters() {
 function resetGapFilters() {
   gapInvalidReason = '';
   gapBucketFilter = null;
+  gapBucketFilterSource = null;
   gapPairFilter = null;
   renderGapBucketChip();
   document.getElementById("gap-filter-service").value = "all";
@@ -4337,15 +4435,31 @@ function chartClickHandler(evt, elements, chart) {
   if (key) toggleGapBucket(key);
 }
 
+function makeChartClickHandler(chartType) {
+  return function(evt, elements, chart) {
+    if (!elements || !elements.length) return;
+    const idx = elements[0].index;
+    const key = gapChartBucketOrders[chartType][idx];
+    if (key) {
+      gapBucketFilterSource = chartType;
+      toggleGapBucket(key);
+    }
+  };
+}
+
 function renderGapBucketChip() {
   const chip = document.getElementById('gap-bucket-chip');
   if (!chip) return;
   if (gapBucketFilter) {
-    let effectiveInterval = gapBucketInterval;
-    if (effectiveInterval === 'auto') {
-      const validTimestamps = gapData.filter(r => r.timeValid && r.timestamp).map(r => r.timestamp);
-      if (validTimestamps.length) effectiveInterval = getAutoBucketInterval(Math.min(...validTimestamps), Math.max(...validTimestamps));
-      else effectiveInterval = '1hour';
+    let effectiveInterval = '1hour';
+    if (gapBucketFilterSource) {
+      const rawInterval = gapBucketIntervals[gapBucketFilterSource];
+      if (rawInterval === 'auto') {
+        const validTimestamps = gapData.filter(r => r.timeValid && r.timestamp).map(r => r.timestamp);
+        if (validTimestamps.length) effectiveInterval = getAutoBucketInterval(Math.min(...validTimestamps), Math.max(...validTimestamps));
+      } else {
+        effectiveInterval = rawInterval;
+      }
     }
     const label = formatBucketLabel(gapBucketFilter, effectiveInterval);
     chip.classList.remove('hidden');
@@ -4508,7 +4622,7 @@ function renderGapTable() {
     existingCustomTh.forEach(th => th.remove());
     gapAdditionalColumns.forEach(col => {
       const th = document.createElement('th');
-      th.className = 'px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white gap-custom-col-th';
+      th.className = 'px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white gap-custom-col-th';
       th.textContent = col.displayName || col.header;
       th.onclick = function() { handleGapSort(col.header); };
       tableHead.appendChild(th);
@@ -4605,17 +4719,17 @@ function renderGapTable() {
         }
       }
       return `<tr class="${trClasses}" data-pair-group="${groupKey}">
-      <td class="py-3 px-4 text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
-      <td class="py-3 px-4 text-slate-300">${row.service || '-'}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.service || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.from || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.status || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.customer || '-'}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
-      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${pillTitle}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
-      ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.status || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.customer || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
+      <td class="py-3 px-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${pillTitle}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
+      ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
     }).join('');
 
@@ -4645,17 +4759,17 @@ function renderGapTable() {
 
     tableBody.innerHTML = pageData.map(row => {
       return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
-      <td class="py-3 px-4 text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
-      <td class="py-3 px-4 text-slate-300">${row.service || '-'}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.from || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.service || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.from || '-'}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.status || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.customer || '-'}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
-      <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
-      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
-      ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.status || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.customer || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
+      <td class="py-3 px-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
+      ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
     }).join('');
 
@@ -4674,12 +4788,196 @@ function renderGapCharts() {
     gapChartInstances = {};
     gapChartData = { labels: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [], invalidTotal: [], ttvMedian: [], ttvP95: [] };
     window.gapChartData = gapChartData;
+    gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [] };
     return;
   }
   const minTime = Math.min(...validData.map(r => r.timestamp));
   const maxTime = Math.max(...validData.map(r => r.timestamp));
-  let interval = gapBucketInterval;
-  if (interval === 'auto') interval = getAutoBucketInterval(minTime, maxTime);
+  const autoInterval = getAutoBucketInterval(minTime, maxTime);
+  const chartTypes = ['invalid', 'volume', 'proc', 'ttv'];
+  const chartData = {};
+  chartTypes.forEach(ct => {
+    const rawInterval = gapBucketIntervals[ct];
+    const interval = rawInterval === 'auto' ? autoInterval : rawInterval;
+    const timeBuckets = {};
+    validData.forEach(row => {
+      const bucketKey = getGapBucketKey(row.timestamp, interval);
+      if (!bucketKey) return;
+      if (!timeBuckets[bucketKey]) {
+        timeBuckets[bucketKey] = { signingValid: 0, signingInvalid: 0, verifyValid: 0, verifyInvalid: 0, processing: [] };
+      }
+      if (row.isSigning) {
+        if (row.ukValid) timeBuckets[bucketKey].signingValid++;
+        else timeBuckets[bucketKey].signingInvalid++;
+      }
+      if (row.isVerify) {
+        if (row.ukValid) timeBuckets[bucketKey].verifyValid++;
+        else timeBuckets[bucketKey].verifyInvalid++;
+      }
+      timeBuckets[bucketKey].processing.push(row.processingTime);
+    });
+    const labels = Object.keys(timeBuckets).sort();
+    gapChartBucketOrders[ct] = labels;
+    const displayLabels = labels.map(k => formatBucketLabel(k, interval));
+    const signingValid = labels.map(k => timeBuckets[k].signingValid);
+    const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
+    const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
+    const verifyInvalid = labels.map(k => timeBuckets[k].verifyInvalid);
+    const processing = labels.map(k => {
+      const arr = timeBuckets[k].processing;
+      return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
+    });
+    const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
+    const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.timeToVerify != null);
+    const ttvByBucket = {};
+    labels.forEach(k => { ttvByBucket[k] = []; });
+    pairedRows.forEach(r => {
+      const bk = getGapBucketKey(r.timestamp, interval);
+      if (ttvByBucket[bk]) ttvByBucket[bk].push(r.timeToVerify);
+    });
+    const ttvMedian = labels.map(k => {
+      const arr = ttvByBucket[k];
+      if (!arr || arr.length === 0) return null;
+      arr.sort((a, b) => a - b);
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    });
+    const ttvP95 = labels.map(k => {
+      const arr = ttvByBucket[k];
+      if (!arr || arr.length === 0) return null;
+      arr.sort((a, b) => a - b);
+      const idx = Math.ceil(arr.length * 0.95) - 1;
+      return arr[Math.max(0, idx)];
+    });
+    chartData[ct] = { labels, displayLabels, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal, ttvMedian, ttvP95 };
+  });
+  gapBucketOrder = chartData.invalid.labels;
+  const d = chartData.invalid;
+  gapChartData = { labels: d.labels, signingValid: d.signingValid, signingInvalid: d.signingInvalid, verifyValid: d.verifyValid, verifyInvalid: d.verifyInvalid, processing: d.processing, invalidTotal: d.invalidTotal, ttvMedian: d.ttvMedian, ttvP95: d.ttvP95 };
+  window.gapChartData = gapChartData;
+
+  Object.values(gapChartInstances).forEach(chart => { if (chart) chart.destroy(); });
+  gapChartInstances = {};
+
+  const invalidCtx = document.getElementById('gap-chart-invalid');
+  if (invalidCtx) {
+    gapChartInstances.invalid = new Chart(invalidCtx, {
+      type: 'line',
+      data: {
+        labels: chartData.invalid.displayLabels,
+        datasets: [{
+          label: 'Invalid UK Numbers',
+          data: chartData.invalid.invalidTotal,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: makeChartClickHandler('invalid'),
+        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+
+  const volumeCtx = document.getElementById('gap-chart-volume');
+  if (volumeCtx) {
+    gapChartInstances.volume = new Chart(volumeCtx, {
+      type: 'bar',
+      data: {
+        labels: chartData.volume.displayLabels,
+        datasets: [
+          { label: 'Signing (Valid)', data: chartData.volume.signingValid, backgroundColor: 'rgba(59, 130, 246, 0.7)', borderColor: '#3b82f6', borderWidth: 1, stack: 'signing' },
+          { label: 'Signing (Invalid)', data: chartData.volume.signingInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'signing' },
+          { label: 'Verification (Valid)', data: chartData.volume.verifyValid, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: '#10b981', borderWidth: 1, stack: 'verify' },
+          { label: 'Verification (Invalid)', data: chartData.volume.verifyInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'verify' }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: makeChartClickHandler('volume'),
+        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+
+  const procCtx = document.getElementById('gap-chart-processing');
+  if (procCtx) {
+    gapChartInstances.processing = new Chart(procCtx, {
+      type: 'line',
+      data: {
+        labels: chartData.proc.displayLabels,
+        datasets: [{
+          label: 'Avg Processing Time (ms)',
+          data: chartData.proc.processing,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: makeChartClickHandler('proc'),
+        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+        }
+      }
+    });
+  }
+
+  const ttvCtx = document.getElementById('gap-chart-ttv');
+  if (ttvCtx) {
+    const hasTtvData = chartData.ttv.ttvMedian.some(v => v !== null);
+    gapChartInstances.ttv = new Chart(ttvCtx, {
+      type: 'line',
+      data: {
+        labels: chartData.ttv.displayLabels,
+        datasets: [
+          { label: 'Median TTV (ms)', data: chartData.ttv.ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false },
+          { label: 'P95 TTV (ms)', data: chartData.ttv.ttvP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: makeChartClickHandler('ttv'),
+        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true, title: { display: true, text: 'ms', color: '#64748b' } }
+        }
+      }
+    });
+  }
+}
+
+function renderSingleChart(chartType) {
+  const validData = gapFilteredData.filter(row => row.timeValid && row.timestamp);
+  if (!validData.length) {
+    if (gapChartInstances[chartType]) { gapChartInstances[chartType].destroy(); gapChartInstances[chartType] = null; }
+    return;
+  }
+  const minTime = Math.min(...validData.map(r => r.timestamp));
+  const maxTime = Math.max(...validData.map(r => r.timestamp));
+  const autoInterval = getAutoBucketInterval(minTime, maxTime);
+  const rawInterval = gapBucketIntervals[chartType];
+  const interval = rawInterval === 'auto' ? autoInterval : rawInterval;
   const timeBuckets = {};
   validData.forEach(row => {
     const bucketKey = getGapBucketKey(row.timestamp, interval);
@@ -4698,204 +4996,55 @@ function renderGapCharts() {
     timeBuckets[bucketKey].processing.push(row.processingTime);
   });
   const labels = Object.keys(timeBuckets).sort();
-  gapBucketOrder = labels;
+  gapChartBucketOrders[chartType] = labels;
   const displayLabels = labels.map(k => formatBucketLabel(k, interval));
-  const signingValid = labels.map(k => timeBuckets[k].signingValid);
-  const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
-  const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
-  const verifyInvalid = labels.map(k => timeBuckets[k].verifyInvalid);
-  const processing = labels.map(k => {
-    const arr = timeBuckets[k].processing;
-    return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
-  });
-  const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
-  const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.timeToVerify != null);
-  const ttvByBucket = {};
-  labels.forEach(k => { ttvByBucket[k] = []; });
-  pairedRows.forEach(r => {
-    const bk = getGapBucketKey(r.timestamp, interval);
-    if (ttvByBucket[bk]) ttvByBucket[bk].push(r.timeToVerify);
-  });
-  const ttvMedian = labels.map(k => {
-    const arr = ttvByBucket[k];
-    if (!arr || arr.length === 0) return null;
-    arr.sort((a, b) => a - b);
-    const mid = Math.floor(arr.length / 2);
-    return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
-  });
-  const ttvP95 = labels.map(k => {
-    const arr = ttvByBucket[k];
-    if (!arr || arr.length === 0) return null;
-    arr.sort((a, b) => a - b);
-    const idx = Math.ceil(arr.length * 0.95) - 1;
-    return arr[Math.max(0, idx)];
-  });
-  gapChartData = { labels, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal, ttvMedian, ttvP95 };
-  window.gapChartData = gapChartData;
-
-  Object.values(gapChartInstances).forEach(chart => {
-    if (chart) chart.destroy();
-  });
-  gapChartInstances = {};
-
-  const invalidCtx = document.getElementById('gap-chart-invalid');
-  if (invalidCtx) {
-    gapChartInstances.invalid = new Chart(invalidCtx, {
+  if (gapChartInstances[chartType]) { gapChartInstances[chartType].destroy(); gapChartInstances[chartType] = null; }
+  const canvasId = { invalid: 'gap-chart-invalid', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv' }[chartType];
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (chartType === 'invalid') {
+    const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
+    gapChartInstances.invalid = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: displayLabels,
-        datasets: [{
-          label: 'Invalid UK Numbers',
-          data: invalidTotal,
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: chartClickHandler,
-        plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } }
-        },
-        scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
-        }
-      }
+      data: { labels: displayLabels, datasets: [{ label: 'Invalid UK Numbers', data: invalidTotal, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('invalid'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } } } }
     });
-  }
-
-  const volumeCtx = document.getElementById('gap-chart-volume');
-  if (volumeCtx) {
-    gapChartInstances.volume = new Chart(volumeCtx, {
+  } else if (chartType === 'volume') {
+    const signingValid = labels.map(k => timeBuckets[k].signingValid);
+    const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
+    const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
+    const verifyInvalid = labels.map(k => timeBuckets[k].verifyInvalid);
+    gapChartInstances.volume = new Chart(ctx, {
       type: 'bar',
-      data: {
-        labels: displayLabels,
-        datasets: [
-          {
-            label: 'Signing (Valid)',
-            data: signingValid,
-            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-            borderColor: '#3b82f6',
-            borderWidth: 1,
-            stack: 'signing'
-          },
-          {
-            label: 'Signing (Invalid)',
-            data: signingInvalid,
-            backgroundColor: 'rgba(245, 158, 11, 0.7)',
-            borderColor: '#f59e0b',
-            borderWidth: 1,
-            stack: 'signing'
-          },
-          {
-            label: 'Verification (Valid)',
-            data: verifyValid,
-            backgroundColor: 'rgba(16, 185, 129, 0.7)',
-            borderColor: '#10b981',
-            borderWidth: 1,
-            stack: 'verify'
-          },
-          {
-            label: 'Verification (Invalid)',
-            data: verifyInvalid,
-            backgroundColor: 'rgba(245, 158, 11, 0.7)',
-            borderColor: '#f59e0b',
-            borderWidth: 1,
-            stack: 'verify'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: chartClickHandler,
-        plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } }
-        },
-        scales: {
-          x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
-        }
-      }
+      data: { labels: displayLabels, datasets: [
+        { label: 'Signing (Valid)', data: signingValid, backgroundColor: 'rgba(59, 130, 246, 0.7)', borderColor: '#3b82f6', borderWidth: 1, stack: 'signing' },
+        { label: 'Signing (Invalid)', data: signingInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'signing' },
+        { label: 'Verification (Valid)', data: verifyValid, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: '#10b981', borderWidth: 1, stack: 'verify' },
+        { label: 'Verification (Invalid)', data: verifyInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'verify' }
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } } } }
     });
-  }
-
-  const procCtx = document.getElementById('gap-chart-processing');
-  if (procCtx) {
-    gapChartInstances.processing = new Chart(procCtx, {
+  } else if (chartType === 'proc') {
+    const processing = labels.map(k => { const arr = timeBuckets[k].processing; return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0; });
+    gapChartInstances.processing = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: displayLabels,
-        datasets: [{
-          label: 'Avg Processing Time (ms)',
-          data: processing,
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139, 92, 246, 0.1)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: chartClickHandler,
-        plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } }
-        },
-        scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
-        }
-      }
+      data: { labels: displayLabels, datasets: [{ label: 'Avg Processing Time (ms)', data: processing, borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)', fill: true, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('proc'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } } } }
     });
-  }
-
-  const ttvCtx = document.getElementById('gap-chart-ttv');
-  if (ttvCtx) {
-    const hasTtvData = ttvMedian.some(v => v !== null);
-    gapChartInstances.ttv = new Chart(ttvCtx, {
+  } else if (chartType === 'ttv') {
+    const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.timeToVerify != null);
+    const ttvByBucket = {};
+    labels.forEach(k => { ttvByBucket[k] = []; });
+    pairedRows.forEach(r => { const bk = getGapBucketKey(r.timestamp, interval); if (ttvByBucket[bk]) ttvByBucket[bk].push(r.timeToVerify); });
+    const ttvMedian = labels.map(k => { const arr = ttvByBucket[k]; if (!arr || arr.length === 0) return null; arr.sort((a, b) => a - b); const mid = Math.floor(arr.length / 2); return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2; });
+    const ttvP95 = labels.map(k => { const arr = ttvByBucket[k]; if (!arr || arr.length === 0) return null; arr.sort((a, b) => a - b); const idx = Math.ceil(arr.length * 0.95) - 1; return arr[Math.max(0, idx)]; });
+    gapChartInstances.ttv = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: displayLabels,
-        datasets: [
-          {
-            label: 'Median TTV (ms)',
-            data: ttvMedian,
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.1)',
-            fill: false,
-            tension: 0.4,
-            spanGaps: false
-          },
-          {
-            label: 'P95 TTV (ms)',
-            data: ttvP95,
-            borderColor: '#f472b6',
-            backgroundColor: 'rgba(244, 114, 182, 0.1)',
-            fill: false,
-            tension: 0.4,
-            borderDash: [5, 3],
-            spanGaps: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: chartClickHandler,
-        plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } }
-        },
-        scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true,
-            title: { display: true, text: 'ms', color: '#64748b' } }
-        }
-      }
+      data: { labels: displayLabels, datasets: [
+        { label: 'Median TTV (ms)', data: ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false },
+        { label: 'P95 TTV (ms)', data: ttvP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false }
+      ] },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('ttv'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true, title: { display: true, text: 'ms', color: '#64748b' } } } }
     });
   }
 }

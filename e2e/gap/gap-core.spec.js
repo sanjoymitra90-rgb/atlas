@@ -42,10 +42,10 @@ test.describe('Gap Analyzer', () => {
   test('P2.3 — bucket drill-through filters the table', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');
-    await page.evaluate(() => window.toggleGapBucket('2026-08-01T10:05'));
+    await page.evaluate(() => window.toggleGapBucket('2026-08-01T11'));
     await expect(page.getByTestId('gap-bucket-chip')).toBeVisible();
     const rows = page.locator('[data-testid="gap-table"] tbody tr');
-    await expect(rows).toHaveCount(2);
+    await expect(rows).toHaveCount(4);
   });
 
 });
