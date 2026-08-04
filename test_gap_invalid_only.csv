@@ -1,0 +1,3 @@
+Time,Service,From,To,Status,Customer,Source IP,Processing Time
+not-a-timestamp,Signing,+447305409280,+447305409281,200,Acme,10.0.0.1,50
+also-bad,Verification,+447305409282,+447305409283,200,Beta,10.0.0.2,60

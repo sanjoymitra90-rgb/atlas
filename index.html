@@ -640,7 +640,7 @@ tr.gap-pair-dim { opacity: 0.45; }
       </button>
 
       <div class="relative inline-block">
-        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50 opacity-50 pointer-events-none" onclick="openGapExportModal()" id="gap-export-btn" title="Export CSV" disabled>
+        <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50 opacity-50 pointer-events-none" onclick="openGapExportModal()" id="gap-export-btn" data-testid="gap-export-btn" title="Export CSV" disabled>
           <i class="fas fa-file-export text-violet-400"></i>
           <span class="hidden sm:inline">Export CSV</span>
         </button>
@@ -807,11 +807,12 @@ tr.gap-pair-dim { opacity: 0.45; }
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Pair Status</label>
-            <select id="gap-filter-pair" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
+            <select id="gap-filter-pair" data-testid="gap-filter-pair" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="applyGapFilters()">
               <option value="all">All Pair Statuses</option>
               <option value="paired">Paired</option>
               <option value="unverified">Signed not verified</option>
               <option value="unsigned">Verified not signed</option>
+              <option value="duplicate">Duplicates</option>
               <option value="unpairable">Unpairable</option>
             </select>
           </div>
@@ -862,7 +863,7 @@ tr.gap-pair-dim { opacity: 0.45; }
             <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
               <i class="fas fa-exclamation-triangle text-red-400"></i>
             </div>
-            <span class="text-xs text-slate-400">Gap Count <i class="fas fa-info-circle text-[10px] text-violet-400" title="Absolute difference between signing and verification request counts. A gap of 0 means perfectly matched pairs."></i></span>
+            <span class="text-xs text-slate-400">Gap Count <i class="fas fa-info-circle text-[10px] text-violet-400" title="Difference between signing and verification request counts. Positive = more signings; negative = more verifications."></i></span>
           </div>
           <div class="text-3xl font-bold text-white" id="gap-metric-gap" data-testid="gap-tile-gap">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-gap-desc">-</div>
@@ -905,12 +906,12 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
 
       <!-- Call Pairing Panel -->
-      <div id="gap-pair-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-5 mt-4">
+      <div id="gap-pair-panel" data-testid="gap-pair-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-5 mt-4">
         <div class="flex items-center justify-between mb-4">
           <h4 class="text-sm font-semibold text-white"><i class="fas fa-link text-violet-400 mr-2"></i>Call Pairing</h4>
           <span id="gap-pair-window-label" class="text-xs text-slate-500"></span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
             <div class="text-2xl font-bold text-white" id="gap-pair-rate" data-testid="gap-pair-matchrate">-</div>
             <div class="text-xs text-slate-400 mt-1" id="gap-pair-rate-desc">-</div>
@@ -924,6 +925,11 @@ tr.gap-pair-dim { opacity: 0.45; }
             <div class="text-2xl font-bold text-amber-400" id="gap-pair-unsigned" data-testid="gap-pair-unsigned">0</div>
             <div class="text-xs text-slate-400 mt-1" id="gap-pair-unsigned-desc">-</div>
             <div class="text-[10px] text-amber-400/60 mt-0.5">Verified &middot; not signed</div>
+          </div>
+          <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-blue-500/50 border border-transparent transition-all" onclick="drillDownPair('duplicate')">
+            <div class="text-2xl font-bold text-blue-400" id="gap-pair-duplicates" data-testid="gap-pair-duplicates">0</div>
+            <div class="text-xs text-slate-400 mt-1">Duplicates</div>
+            <div class="text-[10px] text-blue-400/60 mt-0.5">Superseded signing</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center cursor-pointer hover:border-slate-500/50 border border-transparent transition-all" onclick="drillDownPair('unpairable')">
             <div class="text-2xl font-bold text-slate-400" id="gap-pair-unpairable" data-testid="gap-pair-unpairable">0</div>
@@ -945,12 +951,19 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
 
       <!-- Charts Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <h3 class="text-sm font-semibold text-white mb-1"><i class="fas fa-chart-area text-violet-400 mr-2"></i>Gaps Over Time</h3>
-          <p class="text-[10px] text-slate-500 mb-4">Per hour: Positive = signed but not verified &middot; Negative = verified but not signed</p>
-          <div style="position:relative;height:200px;"><canvas id="gap-chart-gaps"></canvas></div>
+      <div class="flex items-center justify-end mb-2">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-400 whitespace-nowrap">Time Bucket</label>
+          <select id="gap-filter-bucket-interval" class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:border-violet-500 focus:outline-none" data-testid="gap-bucket-interval" onchange="handleGapBucketIntervalChange(this.value)">
+            <option value="auto">Auto</option>
+            <option value="1min">1 Min</option>
+            <option value="5min">5 Min</option>
+            <option value="1hour">1 Hour</option>
+            <option value="1day">1 Day</option>
+          </select>
         </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <h3 class="text-sm font-semibold text-white mb-4"><i class="fas fa-chart-area text-amber-400 mr-2"></i>Invalid Numbers Over Time</h3>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-invalid"></canvas></div>
@@ -1363,7 +1376,7 @@ tr.gap-pair-dim { opacity: 0.45; }
         <ul>
           <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
-          <li><strong>Gap Count</strong> &mdash; signed difference (signing &minus; verification), shown as a net value across the dataset. Positive = signed but not verified; negative = verified but not signed. The Gaps Over Time chart breaks the same calculation down per hour.</li>
+          <li><strong>Gap Count</strong> &mdash; the difference between signing and verification request counts. Positive = more signings than verifications; negative = more verifications than signings; zero = balanced.</li>
           <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the processing-time threshold (configurable in Settings, default 100ms).</li>
         </ul>
@@ -1396,11 +1409,11 @@ tr.gap-pair-dim { opacity: 0.45; }
         <h3><i class="fas fa-chart-bar text-pink-400"></i> Visualizations</h3>
         <p>Below the table you will find:</p>
         <ul>
-          <li><strong>Gaps Over Time</strong> &mdash; signed bar chart per time bucket. Red bars above zero = signed but not verified; amber bars below zero = verified but not signed; a dashed zero baseline is shown.</li>
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
-          <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket, with a dashed threshold line (configurable in Settings, default 100ms).</li>
+          <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket. The Y-axis scales dynamically to the data range.</li>
         </ul>
+        <p>Use the <strong>Time Bucket</strong> dropdown in the filter bar to switch between Auto, 1 Min, 5 Min, 1 Hour, and 1 Day bucketing intervals.</p>
       </section>
 
       <section class="help-section" id="gap-uk">
@@ -3572,6 +3585,65 @@ let gapGroupMode = false;
 let gapPairWindow = 1000;
 let gapPairSummary = {};
 let gapPairFilter = null;
+let gapBucketInterval = 'auto';
+
+function getGapBucketKey(timestamp, interval) {
+  if (!timestamp) return null;
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return null;
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const h = String(d.getUTCHours()).padStart(2, '0');
+  const min = d.getUTCMinutes();
+  if (interval === '1day') return y + '-' + m + '-' + day;
+  if (interval === '1hour') return y + '-' + m + '-' + day + 'T' + h;
+  if (interval === '5min') return y + '-' + m + '-' + day + 'T' + h + ':' + String(Math.floor(min / 5) * 5).padStart(2, '0');
+  if (interval === '1min') return y + '-' + m + '-' + day + 'T' + h + ':' + String(min).padStart(2, '0');
+  return y + '-' + m + '-' + day + 'T' + h;
+}
+
+function getAutoBucketInterval(minTime, maxTime) {
+  const rangeMs = maxTime - minTime;
+  const hourMs = 3600000;
+  if (rangeMs <= hourMs) return '1min';
+  if (rangeMs <= 6 * hourMs) return '5min';
+  if (rangeMs <= 3 * 24 * hourMs) return '1hour';
+  return '1day';
+}
+
+function formatBucketLabel(key, interval) {
+  if (interval === '1day') {
+    const d = new Date(key + 'T00:00:00Z');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getUTCMonth()] + ' ' + d.getUTCDate();
+  }
+  if (interval === '1hour') {
+    const d = new Date(key + ':00:00Z');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCHours() + ':00';
+  }
+  if (interval === '5min' || interval === '1min') {
+    const parts = key.split('T');
+    const timeParts = parts[1].split(':');
+    let h = parseInt(timeParts[0], 10);
+    const min = timeParts[1];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + min + ' ' + ampm;
+  }
+  return key;
+}
+
+function handleGapBucketIntervalChange(val) {
+  gapBucketInterval = val;
+  gapBucketFilter = null;
+  renderGapBucketChip();
+  if (gapData.length > 0) {
+    applyGapFilters();
+    renderGapCharts();
+  }
+}
 
 function parseGapCSV(text) {
   if (!text) return { headers: [], rows: [], errors: [] };
@@ -3802,17 +3874,17 @@ function processGapData() {
       service: row[gapColumnMapping.service] || "",
       from: normalizePhoneNumber(row[gapColumnMapping.from] || ""),
       to: toNumber,
+      key: normalizePhoneNumber(row[gapColumnMapping.from] || "") + '|' + toNumber,
       status: row[gapColumnMapping.status] || "",
       customer: row[gapColumnMapping.customer] || "",
       sourceIP: row[gapColumnMapping.sourceIP] || "",
       processingTime: procTime,
       ukValid: ukValid.valid,
       ukValidationReason: ukValid.reason,
-      isSigning: svc.includes('signing'),
+      isSigning: svc.includes('sign'),
       isVerify: svc.includes('verif'),
       timestamp: timestamp,
-      timeValid: timeValid,
-      bucketKey: timeValid && timestamp ? new Date(timestamp).toISOString().slice(0, 13) : '__unknown__'
+      timeValid: timeValid
     };
   });
   gapData.forEach((row, i) => { row._gapIdx = i; });
@@ -3910,6 +3982,12 @@ function applyGapFilters() {
   const procMin = parseFloat(document.getElementById("gap-filter-proc-min").value) || null;
   const procMax = parseFloat(document.getElementById("gap-filter-proc-max").value) || null;
   const pairFilter = document.getElementById("gap-filter-pair").value;
+  let effectiveInterval = gapBucketInterval;
+  if (effectiveInterval === 'auto' && gapBucketFilter) {
+    const validTimestamps = gapData.filter(r => r.timeValid && r.timestamp).map(r => r.timestamp);
+    if (validTimestamps.length) effectiveInterval = getAutoBucketInterval(Math.min(...validTimestamps), Math.max(...validTimestamps));
+    else effectiveInterval = '1hour';
+  }
   gapFilteredData = gapData.filter(row => {
     if (serviceFilter === "signing" && !row.isSigning) return false;
     if (serviceFilter === "verify" && !row.isVerify) return false;
@@ -3917,7 +3995,11 @@ function applyGapFilters() {
     if (validationFilter === "invalid" && row.ukValid) return false;
     if (gapInvalidReason && row.ukValid) return false;
     if (gapInvalidReason && gapReasonBucket(row.ukValidationReason) !== gapInvalidReason) return false;
-    if (gapBucketFilter && row.bucketKey !== gapBucketFilter) return false;
+    if (gapBucketFilter) {
+      if (!row.timeValid || !row.timestamp) return false;
+      const rowBucket = getGapBucketKey(row.timestamp, effectiveInterval);
+      if (rowBucket !== gapBucketFilter) return false;
+    }
     if (pairFilter !== 'all' && row.pairStatus !== pairFilter) return false;
     if (fromFilter && !row.from.toLowerCase().includes(fromFilter)) return false;
     if (toFilter && !row.to.toLowerCase().includes(toFilter)) return false;
@@ -4090,7 +4172,13 @@ function renderGapBucketChip() {
   const chip = document.getElementById('gap-bucket-chip');
   if (!chip) return;
   if (gapBucketFilter) {
-    const label = gapBucketFilter === '__unknown__' ? 'Unknown time' : gapBucketFilter.replace('T', ' ').replace(':00:00Z', ':00');
+    let effectiveInterval = gapBucketInterval;
+    if (effectiveInterval === 'auto') {
+      const validTimestamps = gapData.filter(r => r.timeValid && r.timestamp).map(r => r.timestamp);
+      if (validTimestamps.length) effectiveInterval = getAutoBucketInterval(Math.min(...validTimestamps), Math.max(...validTimestamps));
+      else effectiveInterval = '1hour';
+    }
+    const label = formatBucketLabel(gapBucketFilter, effectiveInterval);
     chip.classList.remove('hidden');
     chip.innerHTML = '<span class="text-xs text-violet-300"><i class="fas fa-clock mr-1"></i>Time bucket: ' + label + '</span> <button class="ml-2 text-violet-400 hover:text-violet-200" onclick="toggleGapBucket(null)"><i class="fas fa-times"></i></button>';
   } else {
@@ -4141,12 +4229,24 @@ function pairGapCalls() {
   Object.values(unmatched).forEach(stack => {
     stack.forEach(row => { row.pairStatus = 'unverified'; });
   });
+  const pairedSignings = gapData.filter(r => r.pairStatus === 'paired' && r.isSigning);
+  const pairedKeys = new Set(pairedSignings.map(r => r.key));
+  let duplicateCount = 0;
+  gapData.forEach(row => {
+    if (row.pairStatus === 'unverified' && row.isSigning && pairedKeys.has(row.key)) {
+      row.pairStatus = 'duplicate';
+      row.pairId = null;
+      row.timeToVerify = null;
+      duplicateCount++;
+    }
+  });
   const paired = gapData.filter(r => r.pairStatus === 'paired');
   const pairedPairs = paired.length / 2;
   const unverified = gapData.filter(r => r.pairStatus === 'unverified').length;
   const unsigned = gapData.filter(r => r.pairStatus === 'unsigned').length;
   const unpairable = gapData.filter(r => r.pairStatus === 'unpairable').length;
-  const outcomes = pairedPairs + unverified + unsigned;
+  const duplicates = gapData.filter(r => r.pairStatus === 'duplicate').length;
+  const outcomes = pairedPairs + unverified + unsigned + duplicates;
   const ttv = paired.filter(r => r.isVerify).map(r => r.timeToVerify).sort((a, b) => a - b);
   const median = ttv.length > 0 ? ttv[Math.floor(ttv.length / 2)] : 0;
   const p95Idx = Math.ceil(ttv.length * 0.95) - 1;
@@ -4157,7 +4257,7 @@ function pairGapCalls() {
   const invalidPairs = gapData.filter(r => r.pairStatus === 'paired' && r.isSigning && !r.ukValid).length;
   gapPairSummary = {
     pairedPairs: Math.round(pairedPairs),
-    unverified, unsigned, unpairable,
+    unverified, unsigned, unpairable, duplicates,
     matchRate: outcomes > 0 ? ((pairedPairs / outcomes) * 100).toFixed(1) : '0.0',
     matchRateNum: outcomes > 0 ? (pairedPairs / outcomes) * 100 : 0,
     matchRateDenom: Math.round(outcomes),
@@ -4193,7 +4293,7 @@ function renderGapPairPanel() {
   const panel = document.getElementById('gap-pair-panel');
   if (!panel) return;
   const s = gapPairSummary;
-  if (!s.pairedPairs && !s.unverified && !s.unsigned && !s.unpairable) {
+  if (!s.pairedPairs && !s.unverified && !s.unsigned && !s.unpairable && !s.duplicates) {
     panel.classList.add('hidden');
     return;
   }
@@ -4206,6 +4306,7 @@ function renderGapPairPanel() {
   document.getElementById('gap-pair-unsigned').textContent = s.unsigned;
   const usPct = (s.verifyPairs + s.unsigned) > 0 ? ((s.unsigned / (s.verifyPairs + s.unsigned)) * 100).toFixed(0) : '0';
   document.getElementById('gap-pair-unsigned-desc').textContent = usPct + '% of verifications';
+  document.getElementById('gap-pair-duplicates').textContent = s.duplicates;
   document.getElementById('gap-pair-unpairable').textContent = s.unpairable;
   document.getElementById('gap-pair-ttv').textContent = 'median ' + s.timeToVerifyMedian + 'ms \u00b7 p95 ' + s.timeToVerifyP95 + 'ms';
   const corrLine = document.getElementById('gap-pair-correlation');
@@ -4323,7 +4424,7 @@ function renderGapTable() {
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${pillTitle}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
+      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${pillTitle}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
     </tr>`;
     }).join('');
 
@@ -4362,7 +4463,7 @@ function renderGapTable() {
       <td class="py-3 px-4 text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
       <td class="py-3 px-4 text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : 'Unpairable'}</span></td>
+      <td class="py-3 px-4"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
     </tr>`;
     }).join('');
 
@@ -4375,15 +4476,22 @@ function renderGapTable() {
 }
 
 function renderGapCharts() {
+  const validData = gapFilteredData.filter(row => row.timeValid && row.timestamp);
+  if (!validData.length) {
+    Object.values(gapChartInstances).forEach(chart => { if (chart) chart.destroy(); });
+    gapChartInstances = {};
+    gapChartData = { labels: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [], invalidTotal: [] };
+    window.gapChartData = gapChartData;
+    return;
+  }
+  const minTime = Math.min(...validData.map(r => r.timestamp));
+  const maxTime = Math.max(...validData.map(r => r.timestamp));
+  let interval = gapBucketInterval;
+  if (interval === 'auto') interval = getAutoBucketInterval(minTime, maxTime);
   const timeBuckets = {};
-  gapFilteredData.forEach(row => {
-    let bucketKey;
-    if (!row.timeValid || !row.timestamp) {
-      bucketKey = '__unknown__';
-    } else {
-      const d = new Date(row.timestamp);
-      bucketKey = d.toISOString().slice(0, 13);
-    }
+  validData.forEach(row => {
+    const bucketKey = getGapBucketKey(row.timestamp, interval);
+    if (!bucketKey) return;
     if (!timeBuckets[bucketKey]) {
       timeBuckets[bucketKey] = { signingValid: 0, signingInvalid: 0, verifyValid: 0, verifyInvalid: 0, processing: [] };
     }
@@ -4397,88 +4505,26 @@ function renderGapCharts() {
     }
     timeBuckets[bucketKey].processing.push(row.processingTime);
   });
-  
-  const knownKeys = Object.keys(timeBuckets).filter(k => k !== '__unknown__').sort();
-  const labels = timeBuckets['__unknown__'] ? knownKeys.concat(['__unknown__']) : knownKeys;
+  const labels = Object.keys(timeBuckets).sort();
   gapBucketOrder = labels;
-  const displayLabels = labels.map(k => {
-    if (k === '__unknown__') return 'Unknown';
-    const d = new Date(k + ':00:00Z');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCHours() + ':00';
-  });
+  const displayLabels = labels.map(k => formatBucketLabel(k, interval));
   const signingValid = labels.map(k => timeBuckets[k].signingValid);
   const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
   const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
   const verifyInvalid = labels.map(k => timeBuckets[k].verifyInvalid);
-  const signedGaps = labels.map(k => (timeBuckets[k].signingValid + timeBuckets[k].signingInvalid) - (timeBuckets[k].verifyValid + timeBuckets[k].verifyInvalid));
-  const gapColors = signedGaps.map(v => v > 0 ? '#ef4444' : (v < 0 ? '#f59e0b' : 'rgba(100,116,139,0.3)'));
   const processing = labels.map(k => {
     const arr = timeBuckets[k].processing;
     return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
   });
-  
   const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
-  
-  gapChartData = { labels, signedGaps, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal };
-  
+  gapChartData = { labels, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal };
+  window.gapChartData = gapChartData;
+
   Object.values(gapChartInstances).forEach(chart => {
     if (chart) chart.destroy();
   });
   gapChartInstances = {};
-  
-  const gapsCtx = document.getElementById('gap-chart-gaps');
-  if (gapsCtx) {
-    gapChartInstances.gaps = new Chart(gapsCtx, {
-      type: 'bar',
-      data: {
-        labels: displayLabels,
-        datasets: [{
-          label: 'Gap (signed)',
-          data: signedGaps,
-          backgroundColor: gapColors,
-          borderColor: gapColors,
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: chartClickHandler,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                const v = ctx.parsed.y;
-                if (v > 0) return '+' + v + ' \u00b7 signed but not verified';
-                if (v < 0) return '\u2212' + Math.abs(v) + ' \u00b7 verified but not signed';
-                return '0 \u00b7 balanced';
-              }
-            }
-          },
-          annotation: {
-            annotations: {
-              zeroLine: {
-                type: 'line',
-                yMin: 0,
-                yMax: 0,
-                borderColor: '#64748b',
-                borderWidth: 1,
-                borderDash: [5, 5]
-              }
-            }
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
-        }
-      }
-    });
-  }
-  
-  // Invalid Numbers Over Time Chart
+
   const invalidCtx = document.getElementById('gap-chart-invalid');
   if (invalidCtx) {
     gapChartInstances.invalid = new Chart(invalidCtx, {
@@ -4508,8 +4554,7 @@ function renderGapCharts() {
       }
     });
   }
-  
-  // Volume Comparison Chart
+
   const volumeCtx = document.getElementById('gap-chart-volume');
   if (volumeCtx) {
     gapChartInstances.volume = new Chart(volumeCtx, {
@@ -4565,8 +4610,7 @@ function renderGapCharts() {
       }
     });
   }
-  
-  // Processing Time Distribution Chart
+
   const procCtx = document.getElementById('gap-chart-processing');
   if (procCtx) {
     gapChartInstances.processing = new Chart(procCtx, {
@@ -4587,28 +4631,11 @@ function renderGapCharts() {
         maintainAspectRatio: false,
         onClick: chartClickHandler,
         plugins: {
-          legend: { display: true, labels: { color: '#94a3b8' } },
-          annotation: {
-            annotations: {
-              line1: {
-                type: 'line',
-                yMin: gapSlowThreshold,
-                yMax: gapSlowThreshold,
-                borderColor: '#ef4444',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                label: { content: gapSlowThreshold + 'ms Threshold', enabled: true, position: 'end' }
-              }
-            }
-          }
+          legend: { display: true, labels: { color: '#94a3b8' } }
         },
         scales: {
           x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { 
-            ticks: { color: '#64748b' }, 
-            grid: { color: '#1e293b' },
-            suggestedMax: gapSlowThreshold
-          }
+          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
         }
       }
     });
@@ -4653,7 +4680,7 @@ function exportGapData() {
   const reasonCounts = {};
   invalidData.forEach(d => { const b = gapReasonBucket(d.ukValidationReason); reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
   const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
-  const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
+  const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.duplicates + ' duplicates, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
   const csvRows = [
     'Total Records,Signing,Verification,Gap,Invalid UK Numbers,Processing Time Outliers',
     [total, signing, verify, gap, invalid, outliers].join(','),

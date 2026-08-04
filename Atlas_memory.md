@@ -66,10 +66,10 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 - **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required. Upload area includes a **privacy note** ("Private by design — your call data is processed entirely in this browser and never sent to a server.").
 - **UK number validation** — every destination number is normalized (scientific notation and Excel `+`-stripping recovered) and validated against E.164 structural rules; results surfaced as a per-row Valid/Invalid pill plus an **Invalid UK Numbers** metric.
 - **Call Pairing** — heuristic per-call matching: signing → verification on `(from, to)` key within a directional time window (default 1000ms, configurable in Settings). Greedy last-in-wins algorithm. Panel shows match rate, unverified/unsigned counts, time-to-verify median + P95, and invalid cross-tabs. Global (whole dataset, not filtered).
-- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**. Below the tiles: **Call Pairing** panel + **Invalid UK Numbers breakdown** panel with clickable reason chips.
+- **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: `signing − verify`), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**. Below the tiles: **Call Pairing** panel + **Invalid UK Numbers breakdown** panel with clickable reason chips.
 - **Configurable thresholds** — Settings modal: processing-time threshold (default 100ms) and pairing window (default 1000ms). Both live-update on change.
 - **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, processing-time min/max, and **pair status** (Paired / Signed not verified / Verified not signed / Unpairable); one-click **Reset All**. Chart drill-through sets a **bucket filter**.
-- **4 visualizations** (Chart.js, hourly UTC buckets, humanized labels): Gaps Over Time, Invalid Numbers Over Time, Signing vs Verification Volume, Processing Time Distribution. All charts are **clickable** for drill-through.
+- **3 visualizations** (Chart.js, smart auto-bucketed UTC, humanized labels): Invalid Numbers Over Time, Signing vs Verification Volume, Processing Time Distribution. All charts are **clickable** for drill-through. A **Time Bucket** dropdown (Auto / 1 Min / 5 Min / 1 Hour / 1 Day) in the filter bar controls bucketing interval; Auto selects based on data time range.
 - **Data table** — 10 sortable columns (including Pair Status), pagination (25/50/100 per page), showing/indicator controls. Paired pills display pair ID (e.g. `P3 · Paired`). Hover a row to cross-highlight its partner (violet ring) and dim others; off-page partners noted in tooltip. **Group by pair** sliding switch groups rows by pair for contiguous rendering with luminance zebra banding. Page-size label switches to "Groups per page" when grouped.
 - **Export** — modal with **Filtered** vs **All** scope; CSV includes metrics summary, invalid-reason breakdown, pairing summary, and full data rows with pair status/ID/time-to-verify columns.
 
@@ -110,6 +110,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | — | `e2e/gap.spec.js` — Gap Analyzer e2e specs (P2.3–P2.6) |
 | — | `e2e/gap-phase3.spec.js` — Phase 3 event pairing e2e specs (6 specs) |
 | — | `e2e/gap-phase4.spec.js` — Phase 4 layout + pair legibility + banding + switch e2e specs (9 specs) |
+| — | `e2e/gap-phase5.spec.js` — Phase 5 time-series overhaul e2e specs (7 specs) |
 | — | `e2e/opt-coverage.spec.js` — Optimizer coverage-first objective e2e specs (15 specs) |
 | — | `e2e/opt-ux.spec.js` — Optimizer UX hardening e2e specs (9 specs) |
 
@@ -168,14 +169,16 @@ Every notable decision made during development. If you are unsure whether a beha
 31. **Descriptive toasts** — e.g. `"12 records analyzed · 6 signing, 6 verify"` and `"CSV exported · 12 records"` instead of generic confirmations.
 32. **9-column aligned table** with native `title` tooltip on UK Valid (custom hover divs clip inside `overflow-hidden` tables).
 33. **RFC-4180 single-pass CSV parser** — handles quoted commas, quoted newlines, CRLF, BOM, `""` escape, empty rows, and short-row padding. Returns `{headers, rows, errors, meta}`.
-34. **Case-insensitive service classification** — `isSigning` derived via `svc.includes('signing')`, `isVerify` via `svc.includes('verif')` (stem match covers verify/verification/verified); display string preserved as-is.
+34. **Case-insensitive service classification** — `isSigning` derived via `svc.includes('sign')` (matches "sign", "signing", "SIGN", etc.), `isVerify` via `svc.includes('verif')` (stem match covers verify/verification/verified); display string preserved as-is.
 35. **Sort-at-render pattern** — `renderGapTable()` sorts `[...gapFilteredData]` (shallow copy); source array is never mutated.
 36. **Shared upload path** — both file picker and drag-and-drop call `readGapFile(file)` then `handleGapCSVUpload(text)`.
 37. **Drag-and-drop upload zone** — violet glow feedback on drag, CSV MIME/extension validation, both picker and drop feed into the same parser.
 38. **Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. Pure 10-digit string → epoch seconds (×1000); pure 13-digit string → epoch ms; otherwise `new Date()`. Rows with invalid timestamps remain in `gapFilteredData` (count in tiles, appear in table with amber icon). In charts, invalid-time rows are assigned to an explicit **"Unknown"** bucket (always last), never excluded — chart bucket totals must equal tile totals. Invalid timestamps always sort to the bottom of the table regardless of sort direction.
-39. **Signed directional gap** — Gap Count tile shows signed value (`+3`, `−2`, `0`) with dynamic caption: positive → "+N net · signed but not verified" (red), negative → "−N net · verified but not signed" (amber), zero → "balanced". Gaps Over Time chart is a bar chart: red bars above zero, amber below, with a dashed slate zero baseline via the annotation plugin. Tooltip uses directional labels via `plugins.tooltip.callbacks.label`.
+39. **Signed directional gap (pairing-derived)** — Gap Count tile shows signed value derived from pairing engine: `signedGap = unverified − unsigned` (positive → "+N net · signed but not verified" (red), negative → "−N net · verified but not signed" (amber), zero → "balanced"). Gaps Over Time chart bar values are also `unverified − unsigned` per hourly bucket. Red bars above zero, amber below, with a dashed slate zero baseline via the annotation plugin. Tooltip uses directional labels via `plugins.tooltip.callbacks.label`. Subtitle: "Derived from pairing engine".
 40. **Invalid-reason breakdown panel** — full-width slim panel below the metrics grid, visible only when filtered invalid count > 0. Shows clickable chips (e.g. `sequential run ×3`) derived from `gapReasonBucket()` — a display-layer keyword mapping over existing `ukValidationReason` strings. Chips set `gapInvalidReason` global + UK-validation filter to "Invalid"; clicking active chip clears. `resetGapFilters()` and manual validation-dropdown changes also clear it.
 41. **Epoch 10/13-digit handling** — EDR exports sometimes emit epoch seconds (10 digits) or epoch milliseconds (13 digits). Both are detected by regex and converted to ms timestamps, avoiding `new Date(numericString)` ambiguity.
+42. **Smart Auto-Bucketing** — charts dynamically select bucket interval based on data time range: ≤1h → 1min, ≤6h → 5min, ≤3d → 1hour, >3d → 1day. User can override via Time Bucket dropdown (Auto/1Min/5Min/1Hour/1Day). `row.bucketKey` is no longer stored on each row; computed dynamically in `applyGapFilters()` and `renderGapCharts()` using `getGapBucketKey(timestamp, interval)`. Changing interval clears any active bucket filter.
+43. **Invalid timestamps excluded from time-series charts** — rows with `timeValid === false` are excluded from chart data entirely. They still count in metric tiles and appear in the data table with an amber warning icon. The "Unknown" bucket has been removed. This makes charts cleaner and focuses on actionable time-series data.
 
 **Global:**
 42. **ARIA live region + skip link + module-change announcements** — accessibility built in from the start.
@@ -192,11 +195,11 @@ Every notable decision made during development. If you are unsure whether a beha
 51. **`row.bucketKey`** — derived in `processGapData()` from `row.timestamp` via `new Date(timestamp).toISOString().slice(0, 13)` when `timeValid` is true; `'__unknown__'` otherwise. Used by chart drill-through and bucket filtering.
 
 **Phase 3:**
-52. **Greedy most-recent-match pairing** — no correlation ID in EDR, so pairing is heuristic: match verification to signing on `(from, to)` key within a directional time window. Stream is sorted by timestamp (signings before verifications at equal timestamps); each verification pops the most recent unmatched signing with the same key if within `gapPairWindow`. This is the "last-in-wins on retries" rule — a retry signing pushes onto the stack, and the verification matches the most recent one.
+52. **Greedy most-recent-match pairing** — no correlation ID in EDR, so pairing is heuristic: match verification to signing on `(from, to)` key within a directional time window. Stream is sorted by timestamp (signings before verifications at equal timestamps); each verification pops the most recent unmatched signing with the same key if within `gapPairWindow`. This is the "last-in-wins on retries" rule — a retry signing pushes onto the stack, and the verification matches the most recent one. After pairing, any unverified signing that has a paired signing with the same key is reclassified as `pairStatus = 'duplicate'` (superseded signing).
 53. **Pairing window default 1000ms** — each operation has a 100ms SLA; typical signing→verification handoff is under 500ms (PM domain input). Window covers P99 tail of the handoff distribution (queueing spikes and retries create right-skew). False-pair risk at 1000ms is negligible (same caller + same destination recurs within 1s only in retry storms). The pairing panel's time-to-verify median + P95 is the calibration instrument; the PM will set the production default from observed P99 on real exports. **Calibration result (real EDR data, 41 calls / 82 events):** 1000ms pairs 100% of call outcomes; 500ms pairs only 49.1%. The 500ms misses are a timestamp-resolution artifact — events logged at whole-second granularity, so cross-tick pairs show an apparent 1000ms gap (median time-to-verify 0ms, p95 1000ms). Therefore 1000ms is the minimum usable window with this data and is confirmed as the production default; sub-second latency is not observable from second-resolution EDR timestamps.
 54. **Global pairing panel** — computed from `gapData` (full dataset), not `gapFilteredData`. A signing and its verification may be in different filter buckets. Panel does not recompute on filter changes. Documented exception to §5.24 (metrics on filtered data).
 55. **Unpairable rows** — rows with `timeValid === false` that are signing or verify are marked `pairStatus = 'unpairable'`. They cannot participate in pairing (no timestamp to compare).
-56. **Pair Status filter** — dropdown in the filter bar; `applyGapFilters()` checks `pairFilter`. `resetGapFilters()` and `drillDownGap()` clear it. `drillDownPair(status)` sets the filter directly.
+56. **Pair Status filter** — dropdown in the filter bar with options: Paired, Signed not verified, Verified not signed, Duplicates, Unpairable. `applyGapFilters()` checks `pairFilter`. `resetGapFilters()` and `drillDownGap()` clear it. `drillDownPair(status)` sets the filter directly.
 57. **Median convention** — `timeToVerifyMedian` uses the upper-middle value for even-count samples (e.g. `[400,500,600,1500]` → `600`, not `550`). This is the "ceil" median, not the standard statistical median (average of the two middle values). Chosen because pairing is last-in-wins and verification times are discrete integer milliseconds; the upper-middle avoids averaging a near-miss outlier into the median.
 58. **Group-by-pair** — a render-layer over `gapFilteredData`. Toggled by a switch in the table header. When on, rows are grouped by pair ID (paired rows share a group, orphans are solo). Groups are paginated (page size applies to groups, not rows); indicator reads `A–B of G groups (R rows)`. The page-size label switches from "Rows per page" to "Groups per page" (with tooltip explaining what a group is). Sorting while grouped sorts groups by the representative row's column value (representative = signing row if present, else first row). Toggling resets `gapCurrentPage = 1`.
 59. **Banding (luminance zebra + seams)** — Groups alternate between transparent and `rgba(148,163,184,0.05)` (`gap-group-alt` class). Each group's first row (except the very first) gets a seam (`border-top: 1px solid rgba(71,85,85,0.55)` via `gap-group-seam`). No coloured spines — row banding alone provides structure. Banding is presentation-only; export unchanged.
@@ -303,11 +306,10 @@ Every notable decision made during development. If you are unsure whether a beha
 - `from` numbers are normalized but never validated (they are assumed to be internal/valid).
 - Per-row results: `ukValid` (bool) + `ukValidationReason` (string). Rendered as green "Valid" / red "Invalid" pill.
 
-### Charts (all hourly-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows in "Unknown" bucket, always last; all charts are clickable for drill-through)
-1. Gaps Over Time — signed bar chart (signing − verify per hour); red above zero, amber below; dashed zero baseline via annotation plugin. Click filters table to that bucket.
-2. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid). Click filters table to that bucket.
-3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks. Click filters table to that bucket.
-4. Processing Time Distribution — violet line (per-hour average) with configurable threshold annotation (default 100ms); y-axis `suggestedMax: gapSlowThreshold` ensures the line is visible when averages fall below threshold. Click filters table to that bucket.
+### Charts (all smart auto-bucketed, UTC, destroyed/rebuilt per render — invalid-time rows excluded; all charts are clickable for drill-through)
+1. Invalid Numbers Over Time — amber line (invalidTotal = signingInvalid + verifyInvalid). Click filters table to that bucket.
+2. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks. Click filters table to that bucket.
+3. Processing Time Distribution — violet line (per-bucket average) with dynamic Y-axis scaling (no fixed `suggestedMax`). Click filters table to that bucket.
 
 ### Table & export
 - 10 sortable columns (Time, Service, From, To, Status, Customer, Source IP, Proc. Time, UK Valid, Pair); default sort time desc; pagination 25/50/100 (default 25).
@@ -385,22 +387,30 @@ Every notable decision made during development. If you are unsure whether a beha
 
 ### Phase 3 — Event Pairing
 - **Task 0: Settings button fix** — root cause: HTML `onclick="openGapSettings()"` passed no arguments; JS `headers.find()` on `undefined` crashed before modal `classList` toggle. Fixed with `gapRawHeaders` fallback.
-- **Task 1: pairGapCalls engine** — greedy stream matching on `(from, to)` key within `gapPairWindow` (default 1000ms). Assigns `row.pairStatus` (paired/unverified/unsigned/unpairable), `row.pairId` (P1, P2…), `row.timeToVerify` (ms). Computes `gapPairSummary` (match rate, counts, median/P95, invalid cross-tabs). Runs on full `gapData`, not filtered subset.
-- **Task 2: Call Pairing panel** — full-width panel below metric tiles with 5 stat blocks (match rate, unverified, unsigned, unpairable, time-to-verify) + correlation line. Clickable blocks via `drillDownPair(status)`. Global (not filtered).
-- **Task 3: Table Pair column** — 10th column with colored pills (green/red/amber/gray) and tooltips. Pair Status dropdown filter added to filter bar. `applyGapFilters()` checks it; `resetGapFilters()` and `drillDownGap()` clear it.
+- **Task 1: pairGapCalls engine** — greedy stream matching on `(from, to)` key within `gapPairWindow` (default 1000ms). Assigns `row.pairStatus` (paired/unverified/unsigned/unpairable/duplicate), `row.pairId` (P1, P2…), `row.timeToVerify` (ms). After pairing, unverified signings with a paired signing on the same key are reclassified as `duplicate`. Computes `gapPairSummary` (match rate, counts including duplicates, median/P95, invalid cross-tabs). Runs on full `gapData`, not filtered subset.
+- **Task 2: Call Pairing panel** — full-width panel below metric tiles with 6 stat blocks (match rate, unverified, unsigned, duplicates, unpairable, time-to-verify) + correlation line. Clickable blocks via `drillDownPair(status)`. Global (not filtered).
+- **Task 3: Table Pair column** — 10th column with colored pills (green/red/amber/blue/gray for paired/unverified/unsigned/duplicate/unpairable) and tooltips. Pair Status dropdown filter added to filter bar with duplicate option. `applyGapFilters()` checks it; `resetGapFilters()` and `drillDownGap()` clear it.
 - **Task 4: Configurable pairing window** — number input in Settings modal; `handleGapPairWindowChange()` re-runs `pairGapCalls()` and re-renders panel + table. Persists for session.
-- **Task 5: Export + help** — CSV export includes pairStatus, pairId, timeToVerify columns + pairing summary line. Help drawer gains Call Pairing section (heuristic explained, algorithm, statuses, window). Dashboard Metrics section updated to reference pairing panel.
+- **Task 5: Export + help** — CSV export includes pairStatus, pairId, timeToVerify columns + pairing summary line with duplicate count. Help drawer gains Call Pairing section (heuristic explained, algorithm, statuses including duplicate, window). Dashboard Metrics section updated to reference pairing panel.
 
 ### Playwright e2e testing setup
 - Added `data-testid` attributes to 17 elements in `index.html` (gateway launch, upload zone, privacy note, file input, analyze button, settings button/modal, threshold input, 7 metric tile values, service filter, filtered strip, table, bucket chip, reset button).
 - Scaffolded `playwright.config.js` (chromium, 1440×900, headless, list reporter).
 - Created `e2e/helpers.js` (openGapAnalyzer, uploadAndAnalyze, tileText).
 - Created `e2e/gap.spec.js` with 5 specs: P2.5 privacy, core tiles, P2.4 filtered strip, P2.6 threshold, P2.3 bucket drill-through.
-- Created `e2e/gap-phase3.spec.js` with 6 specs: pairing summary, correlation, pair status pills, retry last-in-wins, widening window, signed-not-verified drill-down.
-- Added 8 pairing testids (`gap-pair-matchrate`, `gap-pair-unverified`, `gap-pair-unsigned`, `gap-pair-unpairable`, `gap-pair-ttv`, `gap-pair-correlation`, `gap-pair-window-input`, `data-pair-status` attribute on pills).
+- Created `e2e/gap-phase3.spec.js` with 6 specs: pairing summary, correlation, pair status pills (including duplicate), retry last-in-wins (duplicate detection), widening window, signed-not-verified drill-down.
+- Added 9 pairing testids (`gap-pair-matchrate`, `gap-pair-unverified`, `gap-pair-unsigned`, `gap-pair-duplicates`, `gap-pair-unpairable`, `gap-pair-ttv`, `gap-pair-correlation`, `gap-pair-window-input`, `data-pair-status` attribute on pills).
 - Selector fix: privacy note assertion changed from "never leaves" to "never sent" to match actual HTML text.
 - Assertion fix: widened window TTV changed from 550 to 600 to match actual algorithm median (6 paired calls → median 600ms).
 - All 11 tests pass. Test suite is dev tooling alongside the single-file app.
+
+### Duplicate Detection (Gap Analyzer)
+- **Service classification fix** — `processGapData()` changed `svc.includes('signing')` → `svc.includes('sign')` to match `"sign"`, `"SIGN"`, etc.
+- **Duplicate detection** — after `pairGapCalls()` pairing loop, any `unverified` signing that has a `paired` signing with the same key is reclassified as `pairStatus = 'duplicate'`. New `duplicates` count added to `gapPairSummary`.
+- **UI additions** — "Duplicates" stat block (blue pill, `gap-pair-duplicates` testid) added to pairing panel. Pair Status filter dropdown gains "Duplicates" option. Table pill rendering adds blue `bg-blue-900/50 text-blue-400` style for duplicate. Export summary line includes duplicate count.
+- Created `e2e/gap-dup.spec.js` with 5 specs: duplicate signing detected, duplicate pill shown, filter includes duplicate option, drillDownPair shows duplicate rows, export CSV includes duplicate in summary.
+- Created `test_gap_dup.csv` with test data for duplicate detection (2 signings + 1 verify for same key within 1000ms window).
+- Updated Phase-3 tests: unverified count 3→2 (one reclassified as duplicate), widening window unverified 2→1.
 
 ### Documentation & help-text hygiene (post-Phase 3)
 - Fixed help drawer UK prefix line: changed "must be 1, 2, or 7 (the only allocated UK prefixes)" → "must be 1, 2, 3, 7, or 8". Also fixed the `<th>` title tooltip at the same line.
@@ -448,18 +458,32 @@ Every notable decision made during development. If you are unsure whether a beha
 - **T5: Coverage map cost chips** — `createRecommendedIconWithCost(cost)` renders `~$N/mo` label above blue diamond on recommended cell markers.
 - **T6: Double-rAF invalidation** — `showModule('optimizer')` uses nested `requestAnimationFrame` for Leaflet map `invalidateSize()`.
 - **T7: Keyboard delete** — `.customer-row` gets `tabindex="0"` + `onkeydown="handleCustKeydown(event, i)"`. Delete/Backspace removes with toast. Input focus guard.
-- **9 e2e tests** in `e2e/opt-ux.spec.js`: dedup (2), Esc exit, JSON round-trip, baseline strings, baseline tooltip, cost chip, map size, keyboard delete. All 48 tests (39 existing + 9 new) pass.
+- **9 e2e tests** in `e2e/opt-ux.spec.js`: dedup (2), Esc exit, JSON round-trip, baseline strings, baseline tooltip, cost chip, map size, keyboard delete. All 53 tests (48 existing + 5 new gap-dup) pass.
 
 ### Switch rework + spine removal
 - Rebuilt "Group by pair" as a real sliding switch: `sr-only` checkbox + `gap-switch-track` with `::after` knob that slides via `translateX(16px)` on `:checked`. Track turns violet when on; focus-visible ring for keyboard. Deleted old non-sliding toggle markup.
 - Removed all left-border spines: deleted `GAP_GROUP_PALETTE`, `.gap-spine` class, and inline `style="border-left-color:..."` from `<tr>`. Zebra (`gap-group-alt`) + seams (`gap-group-seam`) remain.
 - Rewrote banding Playwright spec: asserts no inline `border-left-color`, alt-zebra alternation, 9 groups with correct sizes, switch knob slides. All 20 tests pass.
 
+### Pairing-derived gap chart + tile
+- **Gap formula changed** — Gap Count tile and Gaps Over Time chart now derive from pairing engine: `signedGap = unverified − unsigned` (was `signing − verify`). Boundary-signing artifact eliminated: signing at H:59:59 + verification at (H+1):00:00 within 1000ms produces NO bar in either hour.
+- **Chart data exposed** — `window.gapChartData` set after `renderGapCharts()` computation for test access. Includes `signedGaps`, `unverified`, `unsigned` arrays per bucket.
+- **Help text updated** — Gap Count tile tooltip, help drawer Gap Count entry, and Gaps Over Time entry all reference pairing engine.
+- **6 e2e tests** in `e2e/gap-pairing-chart.spec.js`: tile counts (unverified − unsigned), boundary pair no-bar, lone signing red bar, all verifies pair (0 unsigned), unpairable excluded from chart, subtitle mentions pairing engine. 59 tests total.
+
+### Phase 5 — Time-Series Overhaul & Chart Cleanup
+- **Smart Auto-Bucketing** — `getGapBucketKey(timestamp, interval)` and `getAutoBucketInterval(minTime, maxTime)` helper functions. Data range ≤1h → 1min, ≤6h → 5min, ≤3d → 1hour, >3d → 1day. `gapBucketInterval` global (default `'auto'`). UI dropdown (`gap-filter-bucket-interval`) in filter bar with Auto/1Min/5Min/1Hour/1Day options. Changing interval clears bucket filter and re-renders charts.
+- **Gaps Over Time chart removed** — HTML canvas+wrapper deleted, JS rendering logic and `gapChartInstances.gaps` removed. Gap Count tile reverted to simple `signing − verify` (was `unverified − unsigned`). Help drawer and tile tooltip updated.
+- **Processing Time chart Y-axis cleanup** — removed `chartjs-plugin-annotation` threshold line and `suggestedMax: gapSlowThreshold` from Y-axis options. Chart.js now scales Y dynamically to data range. `gapSlowThreshold` logic retained for the Slow Requests tile.
+- **Invalid timestamps excluded from charts** — `renderGapCharts()` filters for `row.timeValid && row.timestamp` only. Unknown bucket removed from UI. Invalid rows still count in metric tiles and appear in data table with amber icon.
+- **`row.bucketKey` removed** — no longer stored on each row. Computed dynamically in `applyGapFilters()` and `renderGapCharts()` via `getGapBucketKey()`. `gapBucketFilter` checked against dynamically computed key.
+- **7 e2e tests** in `e2e/gap-phase5.spec.js`: auto-bucketing, UI control re-render, removed chart DOM, gap tile formula, dynamic Y-axis, invalid timestamps excluded, dropdown options. 62 tests total.
+
 ## 12. Known Limitations & Gotchas
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 48 specs total.
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 62 specs total.
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)

@@ -22,7 +22,7 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
     const pairedIds = await page.locator('[data-pair-id]').allTextContents();
     expect(pairedIds.length).toBe(6);
     pairedIds.forEach(t => expect(t).toMatch(/P\d+\s*·\s*Paired/));
-    await expect(page.locator('[data-pair-status="unverified"]')).toHaveCount(3);
+    await expect(page.locator('[data-pair-status="unverified"]')).toHaveCount(2);
     await expect(page.locator('[data-pair-status="unverified"][data-pair-id]')).toHaveCount(0);
   });
 
