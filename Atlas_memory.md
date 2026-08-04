@@ -65,7 +65,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 - **CSV upload & column mapping** — upload a CSV; a modal maps 8 fields (Time, Service, From, To, Status, Customer, Source IP, Processing Time) with **keyword auto-detection** (pre-filled when headers match); time/service/to are required. Upload area includes a **privacy note** ("Private by design — your call data is processed entirely in this browser and never sent to a server.").
 - **UK number validation** — every destination number is normalized (scientific notation and Excel `+`-stripping recovered) and validated against E.164 structural rules; results surfaced as a per-row Valid/Invalid pill plus an **Invalid UK Numbers** metric.
-- **Call Pairing** — heuristic per-call matching: signing → verification on `(from, to)` key within a directional time window (default 1000ms, configurable in Settings). Greedy last-in-wins algorithm. Panel shows match rate, unverified/unsigned counts, time-to-verify median + P95, and invalid cross-tabs. Global (whole dataset, not filtered).
+- **Call Pairing** — heuristic per-call matching: signing → verification on `(from, to)` key within a directional time window (default 1000ms, configurable in Settings). First-in-wins (FIFO) algorithm. Panel shows match rate, unverified/unsigned counts, time-to-verify median + P95, and invalid cross-tabs. Global (whole dataset, not filtered).
 - **Dashboard metrics (7 tiles)** — Total Records, Signing Requests, Verification Requests, Gap Count (signed: `signing − verify`), Gap Percentage, Invalid UK Numbers, Slow Requests (>100ms, configurable). Tiles are **click-to-drill-down**. Below the tiles: **Call Pairing** panel + **Invalid UK Numbers breakdown** panel with clickable reason chips.
 - **Configurable thresholds** — Settings modal: processing-time threshold (default 100ms) and pairing window (default 1000ms). Both live-update on change.
 - **Filters** — service type, UK validation status, from/to substring search, status code, customer, source IP substring, processing-time min/max, and **pair status** (Paired / Signed not verified / Verified not signed / Unpairable); one-click **Reset All**. Chart drill-through sets a **bucket filter**.
@@ -111,6 +111,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 | — | `e2e/gap-phase3.spec.js` — Phase 3 event pairing e2e specs (6 specs) |
 | — | `e2e/gap-phase4.spec.js` — Phase 4 layout + pair legibility + banding + switch e2e specs (9 specs) |
 | — | `e2e/gap-phase5.spec.js` — Phase 5 time-series overhaul e2e specs (7 specs) |
+| — | `e2e/gap-phase6.spec.js` — Phase 6 data flexibility e2e specs (7 specs) |
 | — | `e2e/opt-coverage.spec.js` — Optimizer coverage-first objective e2e specs (15 specs) |
 | — | `e2e/opt-ux.spec.js` — Optimizer UX hardening e2e specs (9 specs) |
 
@@ -195,12 +196,12 @@ Every notable decision made during development. If you are unsure whether a beha
 51. **`row.bucketKey`** — derived in `processGapData()` from `row.timestamp` via `new Date(timestamp).toISOString().slice(0, 13)` when `timeValid` is true; `'__unknown__'` otherwise. Used by chart drill-through and bucket filtering.
 
 **Phase 3:**
-52. **Greedy most-recent-match pairing** — no correlation ID in EDR, so pairing is heuristic: match verification to signing on `(from, to)` key within a directional time window. Stream is sorted by timestamp (signings before verifications at equal timestamps); each verification pops the most recent unmatched signing with the same key if within `gapPairWindow`. This is the "last-in-wins on retries" rule — a retry signing pushes onto the stack, and the verification matches the most recent one. After pairing, any unverified signing that has a paired signing with the same key is reclassified as `pairStatus = 'duplicate'` (superseded signing).
+52. **First-in-wins (FIFO) pairing** — no correlation ID in EDR, so pairing is heuristic: match verification to signing on `(from, to)` key within a directional time window. Stream is sorted by timestamp (signings before verifications at equal timestamps); each verification pairs with the earliest (oldest) unmatched signing with the same key if within `gapPairWindow`. Signings older than the window are evicted from the queue and marked `unverified`. After pairing, any unverified signing that has a paired signing with the same key is reclassified as `pairStatus = 'duplicate'` (superseded retry). Rationale: order-preserving matching recovers true pairs in dense same-key bursts (H10).
 53. **Pairing window default 1000ms** — each operation has a 100ms SLA; typical signing→verification handoff is under 500ms (PM domain input). Window covers P99 tail of the handoff distribution (queueing spikes and retries create right-skew). False-pair risk at 1000ms is negligible (same caller + same destination recurs within 1s only in retry storms). The pairing panel's time-to-verify median + P95 is the calibration instrument; the PM will set the production default from observed P99 on real exports. **Calibration result (real EDR data, 41 calls / 82 events):** 1000ms pairs 100% of call outcomes; 500ms pairs only 49.1%. The 500ms misses are a timestamp-resolution artifact — events logged at whole-second granularity, so cross-tick pairs show an apparent 1000ms gap (median time-to-verify 0ms, p95 1000ms). Therefore 1000ms is the minimum usable window with this data and is confirmed as the production default; sub-second latency is not observable from second-resolution EDR timestamps.
 54. **Global pairing panel** — computed from `gapData` (full dataset), not `gapFilteredData`. A signing and its verification may be in different filter buckets. Panel does not recompute on filter changes. Documented exception to §5.24 (metrics on filtered data).
 55. **Unpairable rows** — rows with `timeValid === false` that are signing or verify are marked `pairStatus = 'unpairable'`. They cannot participate in pairing (no timestamp to compare).
 56. **Pair Status filter** — dropdown in the filter bar with options: Paired, Signed not verified, Verified not signed, Duplicates, Unpairable. `applyGapFilters()` checks `pairFilter`. `resetGapFilters()` and `drillDownGap()` clear it. `drillDownPair(status)` sets the filter directly.
-57. **Median convention** — `timeToVerifyMedian` uses the upper-middle value for even-count samples (e.g. `[400,500,600,1500]` → `600`, not `550`). This is the "ceil" median, not the standard statistical median (average of the two middle values). Chosen because pairing is last-in-wins and verification times are discrete integer milliseconds; the upper-middle avoids averaging a near-miss outlier into the median.
+57. **Median convention** — `timeToVerifyMedian` uses the upper-middle value for even-count samples (e.g. `[400,500,600,1500]` → `600`, not `550`). This is the "ceil" median, not the standard statistical median (average of the two middle values). Chosen because verification times are discrete integer milliseconds; the upper-middle avoids averaging a near-miss outlier into the median.
 58. **Group-by-pair** — a render-layer over `gapFilteredData`. Toggled by a switch in the table header. When on, rows are grouped by pair ID (paired rows share a group, orphans are solo). Groups are paginated (page size applies to groups, not rows); indicator reads `A–B of G groups (R rows)`. The page-size label switches from "Rows per page" to "Groups per page" (with tooltip explaining what a group is). Sorting while grouped sorts groups by the representative row's column value (representative = signing row if present, else first row). Toggling resets `gapCurrentPage = 1`.
 59. **Banding (luminance zebra + seams)** — Groups alternate between transparent and `rgba(148,163,184,0.05)` (`gap-group-alt` class). Each group's first row (except the very first) gets a seam (`border-top: 1px solid rgba(71,85,85,0.55)` via `gap-group-seam`). No coloured spines — row banding alone provides structure. Banding is presentation-only; export unchanged.
 60. **Group-by-pair switch** — visually-hidden checkbox (`sr-only`, never visible) driving a styled track+knob (`gap-switch-track` + `::after` pseudo-element). Knob slides via `translateX(16px)` on `:checked`; track turns violet. Focus-visible ring on keyboard tab. Native checkbox never rendered as a visible control.
@@ -398,7 +399,7 @@ Every notable decision made during development. If you are unsure whether a beha
 - Scaffolded `playwright.config.js` (chromium, 1440×900, headless, list reporter).
 - Created `e2e/helpers.js` (openGapAnalyzer, uploadAndAnalyze, tileText).
 - Created `e2e/gap.spec.js` with 5 specs: P2.5 privacy, core tiles, P2.4 filtered strip, P2.6 threshold, P2.3 bucket drill-through.
-- Created `e2e/gap-phase3.spec.js` with 6 specs: pairing summary, correlation, pair status pills (including duplicate), retry last-in-wins (duplicate detection), widening window, signed-not-verified drill-down.
+- Created `e2e/gap-phase3.spec.js` with 6 specs: pairing summary, correlation, pair status pills (including duplicate), retry first-in-wins (FIFO), widening window, signed-not-verified drill-down.
 - Added 9 pairing testids (`gap-pair-matchrate`, `gap-pair-unverified`, `gap-pair-unsigned`, `gap-pair-duplicates`, `gap-pair-unpairable`, `gap-pair-ttv`, `gap-pair-correlation`, `gap-pair-window-input`, `data-pair-status` attribute on pills).
 - Selector fix: privacy note assertion changed from "never leaves" to "never sent" to match actual HTML text.
 - Assertion fix: widened window TTV changed from 550 to 600 to match actual algorithm median (6 paired calls → median 600ms).
@@ -419,6 +420,12 @@ Every notable decision made during development. If you are unsure whether a beha
 
 ### Pairing window calibration
 - Pairing window calibrated against real EDR (41 calls / 82 events): 500ms = 49.1% (resolution artifact), 1000ms = 100%. Default 1000ms confirmed; no longer provisional.
+
+### H10: FIFO pairing rule
+- **Change** — `pairGapCalls()` changed from last-in-wins (stack/LIFO) to first-in-wins (queue/FIFO). Each verification now pairs with the earliest unmatched signing within the window; signings older than the window are evicted as unverified. Rationale: order-preserving matching recovers true pairs in dense same-key bursts where the earliest signing is the true caller.
+- **Counts unchanged** — pairing counts, match rate, duplicate count are all unaffected (only partner assignment changes). TTV median shifts because the retry pair's ttv changes (e.g. 500ms→800ms for the test dataset).
+- **Help drawer** — algorithm line updated to "first-in-wins (FIFO)" wording.
+- **Test update** — `e2e/gap-phase3.spec.js` retry test renamed to "first-in-wins"; TTV assertions updated to reflect new median values.
 
 ### Phase 4 — Layout, pair legibility, median clarity
 - **Task 0**: Verified help prefix (already 1,2,3,7,8), privacy text (already synced), median convention (already documented). All pre-existing from earlier sessions.
@@ -479,11 +486,24 @@ Every notable decision made during development. If you are unsure whether a beha
 - **`row.bucketKey` removed** — no longer stored on each row. Computed dynamically in `applyGapFilters()` and `renderGapCharts()` via `getGapBucketKey()`. `gapBucketFilter` checked against dynamically computed key.
 - **7 e2e tests** in `e2e/gap-phase5.spec.js`: auto-bucketing, UI control re-render, removed chart DOM, gap tile formula, dynamic Y-axis, invalid timestamps excluded, dropdown options. 62 tests total.
 
+### Phase 6 — Data Flexibility & Pairing Generality
+- **Horizontal scroll for wide tables** — `min-w-[1200px]` on `<table>`, `overflow-x-auto` on wrapper. Table scrolls on narrow viewports.
+- **`row.raw` stored on each row** — `raw: row` property in `processGapData()` preserves the original header-keyed CSV values for custom column access.
+- **Additional columns UI** — In the mapping modal, "Additional Columns" section with "+ Add Column" button. Each entry has a header dropdown (`gap-add-col-header`) and display name input (`gap-add-col-name`). `gapAdditionalColumns: [{header, displayName}]` global. `renderAdditionalColumnsUI()` renders entries. `handleAdditionalColHeaderChange()` / `handleAdditionalColNameChange()` update state and preview.
+- **Custom columns in table** — `renderGapTable()` dynamically adds `<th class="gap-custom-col-th">` headers and `<td>` cells using `row.raw[col.header]`. Grouped + flat mode both support custom columns. Sort comparators use `row.raw[col.header]` as fallback. Empty-state colspan updated.
+- **Custom columns in CSV export** — `exportGapData()` appends custom column headers and per-row values from `row.raw[col.header]`.
+- **Generic pairing key (up to 4 components)** — `gapPairingKeys: []` global (default = from+to). Pairing key UI in mapping modal with "+ Add" / remove buttons. `pairGapCalls()` uses `gapPairingKeys.length > 0 ? gapPairingKeys.map(h => row.raw[h]).join('|') : row.from + '|' + row.to`. Duplicate detection and all downstream stats use generic key.
+- **Mapping preview** — Live preview section in mapping modal. `updateGapPreview()` renders headers + first data row from `gapRawData[0]`, updates on every dropdown/input change.
+- **Time to Verify (TTV) chart** — 4th chart: `gap-chart-ttv`. Dual-line (median cyan, P95 pink dashed). Computed from paired rows per time bucket. `gapChartData` extended with `ttvMedian: []` and `ttvP95: []`. Empty-state shows "No paired data" when no TTV values.
+- **`escapeHtml()` helper** — Added for safe rendering of raw CSV values in preview and table cells.
+- **`getUnmappedHeaders()`** — Returns CSV headers not already mapped to the 8 core fields, used for additional column and pairing key dropdowns.
+- **7 e2e tests** in `e2e/gap-phase6.spec.js`: horizontal scroll, modal section, custom column header+cell, live preview, pairing key UI, CSV export includes custom columns, TTV chart canvas. **69 tests total.**
+
 ## 12. Known Limitations & Gotchas
 
 - **Gantt dates are hardcoded 2025 anchors** — "Day N" is generic, but exported JSON carries 2025 start dates; fine for scoping, wrong for real scheduling.
 - **Anomaly leftovers:** `row.anomalyFlags` may exist in pre-removal exported JSONs; harmless, ignored by current code.
-- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 62 specs total.
+- **No tests, no lint config** — ~~verification is manual in-browser; the file must stay a single HTML (open directly, no server needed).~~ **Playwright e2e suite in `e2e/`** — run `npx playwright test` (requires network for CDN deps). The app itself stays a single HTML file (opens directly); the test suite is dev tooling. Covers P2.3–P2.6, Phase 3 pairing, Phase 4 layout/pair legibility + banding + page-size label + switch, duplicate detection, Phase 5 time-series overhaul, Phase 6 data flexibility, Optimizer coverage-first objective (O1), and Optimizer UX hardening (O2) — 69 specs total.
 - **Help drawer `scrollToSection`** depends on TOC links matching section `id`s; keep them in sync when editing help content.
 
 ## 13. Quick Recipes (common extension tasks)
@@ -491,6 +511,8 @@ Every notable decision made during development. If you are unsure whether a beha
 - **Add a metric tile to Gap Analyzer:** add a card div in the metrics grid (lines ~762–841) with a `gap-metric-*` id, compute it in `updateGapMetrics()`, and (optionally) extend `drillDownGap()`.
 - **Add a filter:** add a control in the filters grid, read it in `applyGapFilters()`, reset it in `resetGapFilters()`.
 - **Add a chart:** add a `<canvas>` wrapper div (fixed height 200px required), create the Chart instance in `renderGapCharts()`, destroy via `gapChartInstances`.
+- **Add a custom column:** click Settings (gear icon) → "+ Add Column" → pick header from dropdown → type display name → Analyze Data. Custom columns persist across filter/sort operations and appear in CSV export.
+- **Change pairing key:** click Settings → "+ Add" in Pairing Key section → pick up to 4 CSV headers. Default key is `from|to`. Generic key applies to all pairing, duplicate detection, and TTV calculations.
 - **Add a new module:** copy the module HTML block + header pattern, register in `showModule()`, add a gateway card, add a help tab, extend `openHelpDefault()` mapping, and update this document's file map.
 - **Change UK rules:** edit `validateUKNumber()` only — rules are centralized there.
 - **Change pricing:** edit `AWS_PRICE_INDEX` / `PARIS_DEFAULT_COST`; the baseline system recomputes automatically.
