@@ -431,4 +431,25 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
     const summary = await page.textContent('#upgrade-plan-summary');
     expect(summary).toContain('No upgrades needed');
   });
+
+  test('19. Marginal map markers — yellow exclamation icons on coverage map', async ({ page }) => {
+    await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
+    await page.evaluate(() => window.goToStep(4));
+    await page.waitForFunction(() => document.querySelector('.leaflet-container') !== null, { timeout: 10000 });
+    await page.waitForTimeout(500);
+
+    const result = await page.evaluate(() => {
+      const markers = document.querySelectorAll('.leaflet-marker-icon.custom-div-icon');
+      let marginalMarkers = 0;
+      markers.forEach(m => {
+        const html = m.innerHTML;
+        if (html.includes('!') && html.includes('border-radius:50%')) {
+          marginalMarkers++;
+        }
+      });
+      return { marginalMarkers };
+    });
+
+    expect(result.marginalMarkers).toBe(5);
+  });
 });
