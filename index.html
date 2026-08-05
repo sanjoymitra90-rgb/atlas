@@ -1939,7 +1939,13 @@ window.cancelScopeChange = function() {
 
 function updateOnboardingFinancials() {
   ob_hourlyRate = parseFloat(document.getElementById('ob-rate').value) || 0;
-  ob_margin = parseFloat(document.getElementById('ob-margin').value) || 0;
+  const marginRaw = document.getElementById('ob-margin').value;
+  ob_margin = marginRaw !== '' ? parseFloat(marginRaw) : 0;
+  
+  if (ob_margin >= 100) {
+    showToast('Margin must be below 100%. Cannot quote at zero margin.', true);
+    ob_margin = 99;
+  }
   
   let totalHours = 0;
   let maxDate = gantt.config.start_date;
@@ -3100,24 +3106,26 @@ function computeGreenPlan(input) {
   });
 
   const finiteRelaxations = perEndpoint.filter(e => e.relaxationNeeded < Number.MAX_SAFE_INTEGER).map(e => e.relaxationNeeded);
+  const allUnreachable = perEndpoint.length > 0 && finiteRelaxations.length === 0;
   const globalRelaxation = finiteRelaxations.length > 0 ? Math.max(...finiteRelaxations) : 0;
-  const relaxedSLA = globalSLA + globalRelaxation;
+  const relaxedSLA = allUnreachable ? null : globalSLA + globalRelaxation;
 
-  const relaxedResult = computeCoverage({
+  const relaxedResult = allUnreachable ? null : computeCoverage({
     customers, slaMode, globalSLA: relaxedSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency
   });
-  const relaxedOPEX = relaxedResult.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+  const relaxedOPEX = relaxedResult ? relaxedResult.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0) : 0;
 
   return {
     globalRelaxation,
     relaxedSLA,
     perEndpoint,
     mode: 'global',
+    allUnreachable,
     relaxedResult,
     relaxedOPEX,
     deltaOPEX: relaxedOPEX - baselineOPEX,
-    relaxedMarginal: relaxedResult.marginal,
-    relaxedImpossible: relaxedResult.impossible
+    relaxedMarginal: relaxedResult ? relaxedResult.marginal : [],
+    relaxedImpossible: relaxedResult ? relaxedResult.impossible : []
   };
 }
 window.computeGreenPlan = computeGreenPlan;
@@ -4741,6 +4749,12 @@ function processGapData() {
 function normalizePhoneNumber(value) {
   if (!value) return value;
   if (/[Ee]\+/.test(value)) {
+    const m = /^(\d)(?:\.(\d+))?[Ee]\+(\d+)$/.exec(String(value).trim());
+    if (m) {
+      const mantissaDigits = 1 + (m[2] ? m[2].length : 0);
+      const totalDigits = parseInt(m[3], 10) + 1;
+      if (mantissaDigits < totalDigits) return value; // precision lost — fail closed
+    }
     const num = Number(value);
     if (!isNaN(num)) {
       const full = num.toString();
@@ -4801,8 +4815,10 @@ function applyGapFilters() {
   const statusFilter = document.getElementById("gap-filter-status").value;
   const customerFilter = document.getElementById("gap-filter-customer").value;
   const ipFilter = document.getElementById("gap-filter-ip").value.toLowerCase();
-  const procMin = parseFloat(document.getElementById("gap-filter-proc-min").value) || null;
-  const procMax = parseFloat(document.getElementById("gap-filter-proc-max").value) || null;
+  const procMinRaw = document.getElementById("gap-filter-proc-min").value;
+  const procMaxRaw = document.getElementById("gap-filter-proc-max").value;
+  const procMin = procMinRaw !== '' ? parseFloat(procMinRaw) : null;
+  const procMax = procMaxRaw !== '' ? parseFloat(procMaxRaw) : null;
   const pairFilter = document.getElementById("gap-filter-pair").value;
   let effectiveInterval = '1hour';
   if (gapBucketFilter && gapBucketFilterSource) {
@@ -5090,6 +5106,7 @@ function pairGapCalls() {
     : r.key));
   let duplicateCount = 0;
   gapData.forEach(row => {
+    if (row.pairStatus !== 'unverified' || !row.isSigning) return;
     const rowKey = gapPairingKeys.length > 0
       ? gapPairingKeys.map(h => {
           if (h === gapColumnMapping.from) return row.from;
@@ -5097,7 +5114,15 @@ function pairGapCalls() {
           return row.raw && row.raw[h] != null ? String(row.raw[h]) : '';
         }).join('|')
       : row.key;
-    if (row.pairStatus === 'unverified' && row.isSigning && pairedKeys.has(rowKey)) {
+    const pairedOnKey = pairedSignings.filter(r => {
+      const pk = gapPairingKeys.length > 0 ? gapPairingKeys.map(h => {
+        if (h === gapColumnMapping.from) return r.from;
+        if (h === gapColumnMapping.to) return r.to;
+        return r.raw && r.raw[h] != null ? String(r.raw[h]) : '';
+      }).join('|') : r.key;
+      return pk === rowKey;
+    });
+    if (pairedOnKey.some(p => Math.abs(row.timestamp - p.timestamp) <= gapPairWindow)) {
       row.pairStatus = 'duplicate';
       row.pairId = null;
       row.timeToVerify = null;
@@ -5225,6 +5250,10 @@ function renderGapTable() {
           const oB = pairStatusOrder[repB.pairStatus] ?? 99;
           return gapSortAscending ? oA - oB : oB - oA;
         }
+        if (gapSortColumn === 'time') {
+          const tA = repA.timestamp || 0, tB = repB.timestamp || 0;
+          return gapSortAscending ? tA - tB : tB - tA;
+        }
         let aVal = repA[gapSortColumn] !== undefined ? repA[gapSortColumn] : (repA.raw ? repA.raw[gapSortColumn] : undefined);
         let bVal = repB[gapSortColumn] !== undefined ? repB[gapSortColumn] : (repB.raw ? repB.raw[gapSortColumn] : undefined);
         if (typeof aVal === 'string') aVal = aVal.toLowerCase();
@@ -5316,6 +5345,10 @@ function renderGapTable() {
       sorted.sort((a, b) => {
         if (!a.timeValid && b.timeValid) return 1;
         if (a.timeValid && !b.timeValid) return -1;
+        if (gapSortColumn === 'time') {
+          const tA = a.timestamp || 0, tB = b.timestamp || 0;
+          return gapSortAscending ? tA - tB : tB - tA;
+        }
         let aVal = a[gapSortColumn] !== undefined ? a[gapSortColumn] : (a.raw ? a.raw[gapSortColumn] : undefined);
         let bVal = b[gapSortColumn] !== undefined ? b[gapSortColumn] : (b.raw ? b.raw[gapSortColumn] : undefined);
         if (typeof aVal === 'string') aVal = aVal.toLowerCase();
