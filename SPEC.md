@@ -9,7 +9,7 @@ a bug — fix it in the same commit.
 - Feature behaviour in user language → `FEATURES.md`
 - Known defects and the current work list → `REVIEW.md`
 
-**Last verified against `index.html`:** 2026-08-06 (review pass — ~6,020 lines).
+**Last verified against `index.html`:** 2026-08-06 (review pass — 5,670 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -261,8 +261,9 @@ Escape (`custMapEscHandler`, scoped to step 2), or the "Done placing" button. En
 > falls back to `customerPrice = internalCost`. A quoting tool quietly quoting at cost is the
 > worst failure mode in this file.
 
-> **Planned (R26):** contingency hours as a separate quantity from margin, plus a per-tier
-> assumptions textarea stored in `tierStates`.
+> **R26 implemented:** contingency hours as a separate quantity from margin, plus a per-tier
+> assumptions textarea stored in `tierStates`. Contingency does not pass through the 4-hour
+> ceiling rule and does not inflate duration. Included in JSON export/import, CSV, and PDF.
 
 **Gantt.** Lazy init on first module visit. 60-day runway from `TIMELINE_START` (2025-01-01);
 tasks anchor at `PROJECT_START` (2025-01-02 = Day 1). Scale renders generic "Day N";
