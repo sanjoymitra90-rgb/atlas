@@ -937,7 +937,7 @@ tr.gap-pair-dim { opacity: 0.45; }
             <select id="gap-filter-validation" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none" onchange="gapInvalidReason=''; applyGapFilters()">
               <option value="all">All Numbers</option>
               <option value="valid">Valid UK Numbers</option>
-              <option value="invalid">Invalid UK Numbers</option>
+              <option value="invalid">Destination Issues</option>
             </select>
           </div>
           <div>
@@ -1040,7 +1040,7 @@ tr.gap-pair-dim { opacity: 0.45; }
             <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
               <i class="fas fa-phone-slash text-amber-400"></i>
             </div>
-            <span class="text-xs text-slate-400">Invalid UK Numbers</span>
+            <span class="text-xs text-slate-400">Destination Issues</span>
           </div>
           <div class="text-3xl font-bold text-white" id="gap-metric-invalid" data-testid="gap-tile-invalid">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-invalid-desc">-</div>
@@ -1112,7 +1112,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 
       <!-- Invalid UK Numbers Breakdown -->
       <div id="gap-invalid-reason-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mt-4">
-        <h4 class="text-xs font-semibold text-slate-400 mb-3"><i class="fas fa-layer-group text-amber-400 mr-1"></i>Invalid UK Numbers &mdash; breakdown</h4>
+        <h4 class="text-xs font-semibold text-slate-400 mb-3"><i class="fas fa-layer-group text-amber-400 mr-1"></i>Destination Issues &mdash; breakdown</h4>
         <div class="gap-reason-chips flex flex-wrap gap-2"></div>
       </div>
 
@@ -1580,7 +1580,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
           <li><strong>Gap Count</strong> &mdash; the difference between signing and verification request counts. Positive = more signings than verifications; negative = more verifications than signings; zero = balanced.</li>
-          <li><strong>Invalid UK Numbers</strong> &mdash; destination numbers failing UK format validation. A breakdown panel with clickable reason chips appears below the tiles when invalid numbers are present.</li>
+          <li><strong>Destination Issues</strong> &mdash; destination numbers are categorised three ways: <em>Malformed</em> (fails E.164 structure), <em>Non-UK</em> (valid number, wrong country code), and <em>Suspected</em> (passes structure but shows repeated or sequential digits). A breakdown panel with clickable reason chips appears below the tiles when issues are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the processing-time threshold (configurable in Settings, default 100ms).</li>
         </ul>
         <p>Below the metric tiles, the <strong>Call Pairing</strong> panel shows match-rate statistics, unverified/unsigned counts, and time-to-verify percentiles. Click the red/amber/gray blocks to filter the table. The pairing panel is global (whole dataset) and does not recompute on filter changes.</p>
@@ -4758,6 +4758,7 @@ function processGapData() {
       processingTime: procTime,
       ukValid: ukValid.valid,
       ukValidationReason: ukValid.reason,
+      ukCategory: ukValid.category || 'valid',
       isSigning: svc.includes('sign'),
       isVerify: svc.includes('verif'),
       timestamp: timestamp,
@@ -4823,35 +4824,49 @@ function normalizePhoneNumber(value) {
 }
 
 function validateUKNumber(number) {
-  if (!number) return { valid: false, reason: "Empty number" };
+  if (!number) return { valid: false, category: 'malformed', reason: "Empty number" };
   const cleaned = number.replace(/[\s\-\(\)]/g, "");
-  if (!cleaned.startsWith("+44")) return { valid: false, reason: "Does not start with +44" };
+  // Detect non-UK country codes — valid number, wrong country
+  if (/^\+[1-9]\d+/.test(cleaned) && !cleaned.startsWith("+44")) {
+    const cc = cleaned.match(/^\+(\d{1,3})/);
+    return { valid: false, category: 'non-uk', reason: "Non-UK destination (+" + (cc ? cc[1] : '?') + ")" };
+  }
+  if (!cleaned.startsWith("+44")) return { valid: false, category: 'malformed', reason: "Does not start with +44" };
   const digits = cleaned.replace(/\D/g, "");
-  if (digits.length < 11 || digits.length > 13) return { valid: false, reason: "Invalid length" };
-  const uniqueDigits = new Set(digits.slice(2));
-  if (uniqueDigits.size === 1) return { valid: false, reason: "All digits identical" };
+  if (digits.length < 11 || digits.length > 13) return { valid: false, category: 'malformed', reason: "Invalid length" };
+  const validStarts = ["1", "2", "3", "7", "8"];
   const afterCode = digits.slice(2);
+  if (!validStarts.includes(afterCode[0])) return { valid: false, category: 'malformed', reason: "Invalid UK number prefix" };
+  const uniqueDigits = new Set(afterCode);
+  if (uniqueDigits.size === 1) return { valid: false, category: 'suspected-test', reason: "All digits identical" };
   let maxRun = 1, run = 1;
   for (let i = 1; i < afterCode.length; i++) {
     if (parseInt(afterCode[i]) === parseInt(afterCode[i - 1]) + 1) { run++; if (run > maxRun) maxRun = run; }
     else { run = 1; }
   }
-  if (maxRun >= 5) return { valid: false, reason: "Sequential digits detected" };
-  const validStarts = ["1", "2", "3", "7", "8"];
-  if (!validStarts.includes(afterCode[0])) return { valid: false, reason: "Invalid UK number prefix" };
-  return { valid: true, reason: "Valid" };
+  if (maxRun >= 5) return { valid: false, category: 'suspected-test', reason: "Sequential digits detected" };
+  return { valid: true, category: 'valid', reason: "Valid" };
 }
 
 function gapReasonBucket(reason) {
   if (!reason || reason === 'Valid') return 'other';
   const r = reason.toLowerCase();
   if (r === 'empty number') return 'empty';
-  if (r.includes('start with +44') || r.includes('+44')) return 'not +44';
-  if (r.includes('length')) return 'wrong length';
-  if (r.includes('identical')) return 'identical digits';
-  if (r.includes('sequential')) return 'sequential run';
-  if (r.includes('prefix')) return 'bad prefix';
+  if (r.includes('non-uk')) return 'non-uk';
+  if (r.includes('start with +44') || r.includes('+44')) return 'malformed';
+  if (r.includes('length')) return 'malformed';
+  if (r.includes('identical')) return 'suspected-test';
+  if (r.includes('sequential')) return 'suspected-test';
+  if (r.includes('prefix')) return 'malformed';
+  if (r.includes('truncated')) return 'truncated';
   return 'other';
+}
+
+function ukPillHtml(row) {
+  const cat = row.ukCategory || (row.ukValid ? 'valid' : 'malformed');
+  const labels = { valid: 'Valid', malformed: 'Malformed', 'non-uk': 'Non-UK', 'suspected-test': 'Suspected', truncated: 'Truncated' };
+  const styles = { valid: 'bg-emerald-900/50 text-emerald-400', malformed: 'bg-red-900/50 text-red-400', 'non-uk': 'bg-amber-900/50 text-amber-400', 'suspected-test': 'bg-blue-900/50 text-blue-400', truncated: 'bg-slate-800 text-slate-400' };
+  return '<span class="px-2 py-1 rounded-full text-xs ' + (styles[cat] || styles.malformed) + '" title="' + escapeHtml(row.ukValidationReason || '') + '">' + (labels[cat] || 'Invalid') + '</span>';
 }
 
 function populateGapFilterDropdowns() {
@@ -5385,7 +5400,7 @@ function renderGapTable() {
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
-      <td class="py-3 px-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4 whitespace-nowrap">${ukPillHtml(row)}</td>
       <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(pillTitle)}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
       ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
@@ -5429,7 +5444,7 @@ function renderGapTable() {
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
-      <td class="py-3 px-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
+      <td class="py-3 px-4 whitespace-nowrap">${ukPillHtml(row)}</td>
       <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp')}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
       ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
@@ -5540,7 +5555,7 @@ function renderGapCharts() {
       data: {
         labels: chartData.invalid.displayLabels,
         datasets: [{
-          label: 'Invalid UK Numbers',
+          label: 'Destination Issues',
           data: chartData.invalid.invalidTotal,
           borderColor: '#f59e0b',
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
@@ -5680,7 +5695,7 @@ function renderSingleChart(chartType) {
     const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
     gapChartInstances.invalid = new Chart(ctx, {
       type: 'line',
-      data: { labels: displayLabels, datasets: [{ label: 'Invalid UK Numbers', data: invalidTotal, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 }] },
+      data: { labels: displayLabels, datasets: [{ label: 'Destination Issues', data: invalidTotal, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 }] },
       options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('invalid'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'volume') {
@@ -5767,7 +5782,7 @@ function exportGapData() {
   const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
   const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.duplicates + ' duplicates, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
   const csvRows = [
-    'Total Records,Signing,Verification,Gap,Invalid UK Numbers,Processing Time Outliers',
+    'Total Records,Signing,Verification,Gap,Destination Issues,Processing Time Outliers',
     [total, signing, verify, gap, invalid, outliers].join(','),
     '',
     ...(breakdownLine ? [breakdownLine, ''] : []),
@@ -5785,7 +5800,7 @@ function exportGapData() {
       row.customer || '',
       row.sourceIP || '',
       row.processingTime != null ? row.processingTime : 0,
-      row.ukValid ? 'Valid' : 'Invalid',
+      row.ukCategory || (row.ukValid ? 'Valid' : 'Malformed'),
       row.pairStatus || '',
       row.pairId || '',
       row.timeToVerify != null ? row.timeToVerify : ''
