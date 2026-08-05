@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
 
 <!-- Content Security Policy -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'none';">
 
 <!-- Leaflet Config -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -436,7 +436,7 @@ tr.gap-pair-dim { opacity: 0.45; }
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full z-10">
-    <div class="gateway-card" onclick="showModule('optimizer')">
+    <div class="gateway-card" role="button" tabindex="0" data-testid="gateway-optimizer" onclick="showModule('optimizer')" onkeydown="event.key==='Enter'&&showModule('optimizer')">
       <div class="gateway-icon opt">
         <i class="fas fa-network-wired"></i>
       </div>
@@ -449,7 +449,7 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
     </div>
 
-    <div class="gateway-card" onclick="showModule('onboarding')">
+    <div class="gateway-card" role="button" tabindex="0" onclick="showModule('onboarding')" onkeydown="event.key==='Enter'&&showModule('onboarding')">
       <div class="gateway-icon onb">
         <i class="fas fa-file-invoice-dollar"></i>
       </div>
@@ -462,7 +462,7 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
     </div>
     
-    <div class="gateway-card" onclick="showModule('gap-analyzer')" data-testid="gap-launch" style="border-color: rgba(139, 92, 246, 0.6);">
+    <div class="gateway-card" role="button" tabindex="0" data-testid="gap-launch" onclick="showModule('gap-analyzer')" onkeydown="event.key==='Enter'&&showModule('gap-analyzer')"> style="border-color: rgba(139, 92, 246, 0.6);">
       <div class="gateway-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); color: #a78bfa;">
         <i class="fas fa-chart-line"></i>
       </div>
@@ -1649,7 +1649,7 @@ function showModule(moduleName) {
   }
   _moduleEls.forEach(el => {
     el.style.display = 'none';
-    if (el.id === 'main-content') el.id = el.getAttribute('data-module-id') || '';
+    if (el.id === 'main-content') { const dataId = el.getAttribute('data-module-id'); if (dataId) el.id = dataId; }
     if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
   });
   
@@ -4356,6 +4356,10 @@ function parseGapCSV(text) {
 
 function readGapFile(file) {
   if (!file) return;
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('File exceeds 50 MB limit. Large files may cause the browser to freeze.', true);
+    return;
+  }
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -4363,6 +4367,15 @@ function readGapFile(file) {
       const result = parseGapCSV(text);
       if (result.rows.length < 1 && result.headers.length < 2) { showToast('CSV file appears to be empty or invalid.', true); return; }
       gapRawHeaders = result.headers;
+      const seen = {};
+      let duped = 0;
+      gapRawHeaders = gapRawHeaders.map(h => {
+        if (!h) h = '';
+        if (seen[h]) { duped++; return h + ' (' + (seen[h] + 1) + ')'; }
+        seen[h] = 1;
+        return h;
+      });
+      if (duped > 0) window._dupedHeaders = duped;
       gapRawData = result.rows.map(r => {
         const row = {};
         gapRawHeaders.forEach((header, idx) => { row[header] = r[idx] || ''; });
@@ -4686,8 +4699,14 @@ function processGapData() {
         timestamp = parseInt(trimmed, 10);
         timeValid = true;
       } else {
-        const d = new Date(trimmed);
-        if (!isNaN(d.getTime())) { timestamp = d.getTime(); timeValid = true; }
+        const dd = /^(\d{1,2})\/(\d{1,2})\/(\d{4})[\sT]?(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
+        if (dd) {
+          timestamp = Date.UTC(+dd[3], +dd[2] - 1, +dd[1], +dd[4] || 0, +dd[5] || 0, +dd[6] || 0);
+          timeValid = true;
+        } else {
+          const d = new Date(trimmed);
+          if (!isNaN(d.getTime())) { timestamp = d.getTime(); timeValid = true; }
+        }
       }
     }
     return {
