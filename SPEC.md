@@ -88,13 +88,13 @@ CDN, no build step. **No other libraries may be assumed.**
 | Tailwind CSS | CDN runtime | all | no — rolling; requires CSP `unsafe-eval` |
 | Font Awesome | 6.5.1 | all | yes |
 | Leaflet | 1.9.4 | Optimizer | yes |
-| DHTMLX Gantt | **edge** | Onboarding | no — **unpinned, moving target** |
-| Chart.js | 4.4.1 | Gap Analyzer | yes — **hash is WRONG; script blocked, R3** |
-| chartjs-plugin-annotation | 3.0.1 | **nothing — dead since Phase 5** | remove the tag, R3 |
-| html2pdf.js | 0.10.1 | Proposal PDF | yes — **unverified, R3** |
+| DHTMLX Gantt | 8.0 | Onboarding | no — no SRI available |
+| Chart.js | 4.4.1 | Gap Analyzer | no — recalled hashes removed (R3) |
+| html2pdf.js | 0.10.1 | Proposal PDF | no |
 
-The CSV parser is hand-rolled (`parseGapCSV`) — there is no PapaParse. CSP currently allows
-`https:` + `data:` + `blob:`, which is permissive enough to be a no-op.
+The CSV parser is hand-rolled (`parseGapCSV`) — there is no PapaParse. CSP sets
+`connect-src 'none'` to enforce the privacy claim at browser level; `img-src` covers
+Leaflet tile loading. DHTMLX does not XHR at runtime.
 
 The app requires network access for these CDNs; it is **not** offline-capable despite being
 a single file.
@@ -122,10 +122,11 @@ live region. On `optimizer` it invalidates Leaflet maps via nested `requestAnima
 never `setTimeout`; layout must settle before measuring. On `onboarding` it lazily initialises
 the Gantt on first visit.
 
-**Test surface.** Playwright e2e in `e2e/gap/` and `e2e/optimizer/`, fixtures in `fixtures/`,
-projects `gap` and `optimizer` in `playwright.config.js`. Run `npm test`, `npm run test:gap`,
-`npm run test:optimizer`. The app stays a single HTML file openable from disk; tests are dev
-tooling and require network for CDNs.
+**Test surface.** Playwright e2e in `e2e/gap/`, `e2e/optimizer/`, and `e2e/onboarding/`,
+fixtures in `fixtures/`, projects `gap`, `optimizer`, and `onboarding` in `playwright.config.js`.
+`globalSetup` runs a CDN dependency check before any tests execute. Run `npm test`,
+`npm run test:gap`, `npm run test:optimizer`. The app stays a single HTML file openable from
+disk; tests are dev tooling and require network for CDNs.
 
 Optimizer module-scope `let` bindings are mirrored onto `window` with a `_` prefix
 (`_customers`, `_globalSLA`, `_selectedFootprint`, …) plus `window._regions` and
@@ -216,11 +217,10 @@ without visiting step 4), `computeGreenPlan()`, `toggleUpgradePlan()`.
   (marginal: `safetyFloor − bestHeadroom`; impossible: `bestPossibleLatency + safetyFloor − SLA`;
   covered: 0), unreachable endpoints carrying a `Number.MAX_SAFE_INTEGER` sentinel.
   `globalRelaxation = max(finite values)`, then `computeCoverage` re-runs at the relaxed SLA.
-  **Known defect:** all-sentinel input yields `globalRelaxation = 0` and reports success — R14.
+  When every endpoint is unreachable, returns `allUnreachable: true` and `relaxedSLA: null`.
 - **Marginal Upgrade Plan** — sliding switch on the Marginal card, default OFF, session-only.
   Runs a parallel `computeCoverage()` with `safetyFloor = 0`. Read-only: never mutates the
-  primary analysis or globals, and exports stay strict. **Known defect:** hard-locks the app on
-  the no-marginals path — R1.
+  primary analysis or globals, and exports stay strict. No-marginals path shows an empty state.
 
 ### 5.6 State, persistence, export
 
@@ -255,11 +255,8 @@ Escape (`custMapEscHandler`, scoped to step 2), or the "Done placing" button. En
 
 **Math.** Hours snap **up** to multiples of 4, minimum 4 ("17" → 20). When linked,
 `duration = ceil(hours / 8)`. `internalCost = Σhours × rate`;
-`customerPrice = internalCost ÷ (1 − margin/100)`.
-
-> **Known defect (R18):** margin = 100 makes the divisor non-positive and the code silently
-> falls back to `customerPrice = internalCost`. A quoting tool quietly quoting at cost is the
-> worst failure mode in this file.
+`customerPrice = internalCost ÷ (1 − margin/100)`. Margin ≥ 100 shows an error toast and
+clamps to 99.
 
 > **R26 implemented:** contingency hours as a separate quantity from margin, plus a per-tier
 > assumptions textarea stored in `tierStates`. Contingency does not pass through the 4-hour
@@ -333,10 +330,14 @@ Rules are centralised here and **must not change without sign-off**:
 6. First digit after `44` must be one of `1, 2, 3, 7, 8`.
 
 `normalizePhoneNumber()` recovers Excel scientific notation and re-prefixes bare `44…` numbers.
-`from` numbers are normalised but never validated. **Known defects:** scientific-notation recovery
-silently truncates and the result is then reported Valid (R9); rules 4–5 are heuristics for
-synthetic test data and rule 2 rejects legitimate non-UK destinations, all surfaced as one red
-"Invalid" pill (R25 splits them).
+Precision loss in scientific notation is detected and the original value is returned (fails
+validation). `from` numbers are normalised but never validated.
+
+`validateUKNumber()` returns `{valid, category, reason}` with categories:
+- `valid` — passes all checks (green pill)
+- `malformed` — fails E.164 structure (red pill)
+- `non-uk` — valid number, non-UK country code (amber pill)
+- `suspected-test` — passes structure but sequential/identical digits (blue pill)
 
 ### 7.4 Pairing — `pairGapCalls()`
 
@@ -360,10 +361,8 @@ near-miss outlier into the median.
 
 **The pairing panel is global** — computed from `gapData`, not `gapFilteredData`, because a
 signing and its verification may sit in different filter buckets. This is the documented exception
-to invariant 5.
-
-**Known defects:** keys use un-normalised `row.raw` values (R10); duplicate reclassification is
-time-unbounded (R11).
+to invariant 5. Pairing keys use normalised phone numbers for `from`/`to` headers (not `row.raw`).
+Duplicate reclassification checks `gapPairWindow` between the unverified and paired signing.
 
 ### 7.5 Charts
 
@@ -393,8 +392,10 @@ off-page partners are noted in the pill tooltip.
 
 Export is a modal choosing Filtered or All scope, producing CSV with a metrics summary block, an
 invalid-reason breakdown line, a pairing summary line, then quoted data rows including pair status,
-pair ID, time-to-verify and any custom columns. **Known defects:** no formula-injection guard
-(R16); 0 ms exports as blank; the summary uses an unsigned gap while the UI tile shows a signed one.
+pair ID, time-to-verify and any custom columns. Values beginning with `=`, `+`, `-`, or `@` are
+guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
+**Note:** the CSV summary gap count uses `Math.abs(signing - verify)` (unsigned) while the UI
+tile shows the signed difference. This is a known discrepancy.
 
 ---
 
@@ -404,7 +405,7 @@ pair ID, time-to-verify and any custom columns. **Known defects:** no formula-in
   section ids. Keep them in sync when editing help content. Opened per module via `openHelp()`;
   the FAB opens the current module's tab.
 - **Toast** — single `#toast-msg`, 3 s auto-hide, `_toastTimer` cleared before each new timer.
-- **Loading overlay** — `showLoading()` / `hideLoading()`. Currently unsound; see R1 and R2.
+- **Loading overlay** — `showLoading()` / `hideLoading()`. All call sites wrapped in `try/finally`.
 - **Proposal modal (BETA)** — three independent include toggles; infra section built headlessly
   so it works without visiting the dashboard. Internal cost and blended rate never appear;
   invoicing language is 50% kickoff / 50% Go-Live.
