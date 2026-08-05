@@ -149,6 +149,13 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 .cost-accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
 .cost-accordion.open .cost-accordion-body{max-height:2000px}
 .cost-accordion-content{padding:0 18px 18px;border-top:1px solid rgba(51,65,85,0.4)}
+
+/* Dashboard collapsible sections */
+.dash-section-toggle{background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;transition:transform .2s}
+.dash-section-toggle:hover{color:#e2e8f0}
+.dash-section-toggle[aria-expanded="false"]{transform:rotate(-90deg)}
+.dash-section-body{transition:max-height .3s ease;overflow:hidden}
+.dash-section-body.collapsed{max-height:0!important}
 .cost-default-banner{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 14px;margin-top:14px;font-size:13px;color:#cbd5e1;line-height:1.5}
 .cost-cell-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(30,41,59,0.4);border:1px solid rgba(51,65,85,0.4);border-radius:8px;margin-top:10px}
 .cost-cell-row .cell-name{flex:1;min-width:0}
@@ -321,12 +328,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 .gap-switch-input:checked + .gap-switch-track::after { transform: translateX(16px); }
 .gap-switch-input:focus-visible + .gap-switch-track { outline: 2px solid var(--gap-accent-strong); outline-offset: 2px; }
 
-/* Upgrade plan switch (optimizer) */
-.upgrade-switch-track { position: relative; display: inline-block; width: 36px; height: 20px; border-radius: 9999px; background: #334155; transition: background-color .2s ease; cursor: pointer; vertical-align: middle; }
-.upgrade-switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 9999px; background: #e2e8f0; transition: transform .2s ease; }
-.upgrade-switch-input:checked + .upgrade-switch-track { background: #10b981; }
-.upgrade-switch-input:checked + .upgrade-switch-track::after { transform: translateX(16px); }
-.upgrade-switch-input:focus-visible + .upgrade-switch-track { outline: 2px solid #34d399; outline-offset: 2px; }
+
 
 /* ─── Gap Theme Tokens (dark default) ─── */
 :root {
@@ -693,17 +695,8 @@ tr.gap-pair-dim { opacity: 0.45; }
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
         <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-check text-emerald-400"></i></div><h3 class="font-semibold text-white">Already Covered</h3></div><div id="dash-covered-list" class="space-y-2"></div></div>
         <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i class="fas fa-clock text-amber-400"></i></div><h3 class="font-semibold text-white">Pending Coverage</h3></div><div id="dash-pending-list" class="space-y-2"></div></div>
-        <div class="result-card" id="marginal-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-yellow-400"></i></div><h3 class="font-semibold text-white">Marginal Headroom</h3><label class="flex items-center gap-2 ml-auto cursor-pointer select-none" title="Show upgrade plan: what cells would cover marginal endpoints if safety floor were 0"><input type="checkbox" class="upgrade-switch-input sr-only" data-testid="upgrade-plan-toggle" onchange="toggleUpgradePlan(this.checked)"><span class="upgrade-switch-track" aria-hidden="true"></span><span class="text-[10px] text-slate-400 whitespace-nowrap">Upgrades</span></label></div><div id="dash-marginal-list" class="space-y-2"></div></div>
+        <div class="result-card" id="marginal-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-orange-400"></i></div><h3 class="font-semibold text-white">Marginal Headroom</h3></div><div id="dash-marginal-list" class="space-y-2"></div></div>
         <div class="result-card" id="impossible-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center"><i class="fas fa-ban text-red-400"></i></div><h3 class="font-semibold text-white">Impossible SLA</h3></div><div id="dash-impossible-list" class="space-y-2"></div></div>
-      </div>
-      <div id="upgrade-plan-card" class="glass rounded-2xl p-5 mb-8 border-l-4 border-amber-500 hidden">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i class="fas fa-arrow-up text-amber-400"></i></div>
-          <div><h3 class="font-semibold text-white">Marginal Upgrade Plan</h3><p class="text-xs text-slate-400">What-if: safety floor relaxed to 0ms (pass/fail). Strict plan unchanged.</p></div>
-        </div>
-        <div id="upgrade-plan-summary" class="mb-4"></div>
-        <div id="upgrade-plan-cells" class="space-y-3 mb-4"></div>
-        <div id="upgrade-plan-endpoints" class="space-y-2"></div>
       </div>
       <div id="green-plan-card" class="glass rounded-2xl p-5 mb-8 border-l-4 border-emerald-500 hidden">
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -713,8 +706,8 @@ tr.gap-pair-dim { opacity: 0.45; }
         <div id="green-plan-summary"></div>
         <div id="green-plan-details"></div>
       </div>
-      <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered endpoint (including existing ones)</p></div></div><div id="explorer-list" class="space-y-5"></div></div>
-      <div class="glass rounded-2xl p-6 mb-8"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fas fa-lightbulb text-blue-400"></i></div><h3 class="font-semibold text-white text-lg">Recommended New Cells</h3></div><div id="dash-recommendations" class="space-y-4"></div></div>
+      <div class="glass rounded-2xl p-6 mb-8"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fas fa-lightbulb text-blue-400"></i></div><div class="flex-1"><h3 class="font-semibold text-white text-lg">Recommended New Cells</h3></div><button class="dash-section-toggle" aria-expanded="true" onclick="toggleDashSection(this, 'dash-recommendations')" title="Collapse/expand"><i class="fas fa-chevron-down"></i></button></div><div id="dash-recommendations" class="space-y-4 dash-section-body"></div></div>
+      <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div class="flex-1"><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered endpoint (including existing ones)</p></div><button class="dash-section-toggle" aria-expanded="true" onclick="toggleDashSection(this, 'explorer-list')" title="Collapse/expand"><i class="fas fa-chevron-down"></i></button></div><div id="explorer-list" class="space-y-5 dash-section-body"></div></div>
       <div class="flex justify-between"><button class="btn-ghost px-6 py-3" onclick="goToStep(3)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-secondary px-6 py-3 rounded-xl" onclick="goToStep(1)"><i class="fas fa-redo mr-2"></i>Start Over</button></div>
     </div>
   </main>
@@ -3176,6 +3169,18 @@ function computeGreenPlan(input) {
 window.computeGreenPlan = computeGreenPlan;
 
 let greenPlanMode = 'global';
+function toggleDashSection(btn, bodyId) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!expanded));
+  if (expanded) {
+    body.classList.add('collapsed');
+  } else {
+    body.classList.remove('collapsed');
+  }
+}
+
 function toggleGreenPlanMode() {
   const btn = document.getElementById('green-plan-toggle');
   if (!btn) return;
@@ -3183,70 +3188,6 @@ function toggleGreenPlanMode() {
   showLoading();
   try { renderDashboard(); } finally { hideLoading(); }
 }
-
-function toggleUpgradePlan(checked) {
-  const card = document.getElementById('upgrade-plan-card');
-  if (!card) return;
-  if (!checked) {
-    card.classList.add('hidden');
-    return;
-  }
-  showLoading();
-  try {
-    const strict = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
-    const relaxed = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor: 0, selectedFootprint, getLatency: getCustomerLatency });
-    const strictOPEX = strict.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
-    const relaxedOPEX = relaxed.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
-    const deltaOPEX = relaxedOPEX - strictOPEX;
-
-    const strictCellIds = new Set(strict.recommendations.map(r => r.cellIdx));
-    const addedCells = relaxed.recommendations.filter(r => !strictCellIds.has(r.cellIdx));
-    const hasMarginals = strict.marginal.length > 0 || strict.covered.some(c => c.marginalExisting);
-
-    const summaryEl = document.getElementById('upgrade-plan-summary');
-    const cellsEl = document.getElementById('upgrade-plan-cells');
-    const endpointsEl = document.getElementById('upgrade-plan-endpoints');
-
-    if (!hasMarginals) {
-      summaryEl.innerHTML = '<p class="text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 mr-2"></i>No upgrades needed — all covered endpoints meet the safety floor.</p>';
-      cellsEl.innerHTML = '';
-      endpointsEl.innerHTML = '';
-      card.classList.remove('hidden');
-      return;
-    }
-
-  summaryEl.innerHTML = '<div class="flex items-center gap-4 flex-wrap">' +
-    '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Added cells:</span><span class="font-bold text-white">' + addedCells.length + '</span></div>' +
-    '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Added OPEX:</span><span class="text-amber-400 font-bold">+' + formatMoney(deltaOPEX) + '/mo</span></div>' +
-    '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Marginal resolved:</span><span class="text-emerald-400 font-bold">' + (strict.marginal.length + strict.covered.filter(c => c.marginalExisting).length) + '</span></div>' +
-    '</div>';
-
-  cellsEl.innerHTML = addedCells.length > 0 ? addedCells.map(r => {
-    const cost = estimateRegionCost(r.cellIdx);
-    return '<div class="py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/20">' +
-      '<div class="flex items-center justify-between mb-1">' +
-      '<span class="text-sm font-medium text-white">' + r.cellName + ' <span class="text-xs text-slate-500">' + r.cellCode + '</span></span>' +
-      '<span class="text-xs text-amber-400">~' + formatMoney(cost) + '/mo</span></div>' +
-      '<div class="text-xs text-slate-400">Covers ' + r.covers.length + ' endpoint' + (r.covers.length > 1 ? 's' : '') + '</div></div>';
-  }).join('') : '<p class="text-xs text-slate-500 italic">No additional cells needed — existing recommendations already cover marginals.</p>';
-
-  const marginals = [...strict.marginal, ...strict.covered.filter(c => c.marginalExisting).map(c => ({ ...c, idx: c.idx, name: c.name, sla: c.sla, bestHeadroom: c.sla - c.serving.breakdown.total }))];
-  endpointsEl.innerHTML = marginals.length > 0 ? '<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Per-Endpoint</h4>' +
-    marginals.map(m => {
-      const relaxedCovered = relaxed.pendingCovered.find(p => p.idx === m.idx) || relaxed.covered.find(c => c.idx === m.idx);
-      if (relaxedCovered) {
-        const cellName = relaxedCovered.coveredByCell || (relaxedCovered.serving ? regions[relaxedCovered.serving.cellIdx].name : '');
-        return '<div class="py-1.5 px-3 rounded-lg bg-slate-800/40 text-xs"><span class="text-white">' + m.name + '</span> <span class="text-slate-500">→</span> <span class="text-emerald-400">covered by ' + cellName + '</span></div>';
-      }
-      return '<div class="py-1.5 px-3 rounded-lg bg-slate-800/40 text-xs"><span class="text-white">' + m.name + '</span> <span class="text-slate-500">→</span> <span class="text-amber-400">requires +' + m.relaxationNeeded + 'ms SLA relaxation</span></div>';
-    }).join('') : '';
-
-  card.classList.remove('hidden');
-  } finally {
-    hideLoading();
-  }
-}
-window.toggleUpgradePlan = toggleUpgradePlan;
 
 function getOptScenarios() {
   try { return JSON.parse(localStorage.getItem('atlas-opt-scenarios') || '[]'); }
@@ -3403,7 +3344,7 @@ function renderDashboard() {
 
   const covList = document.getElementById('dash-covered-list');
   covList.innerHTML = covered.length > 0 ? covered.map(c => {
-    const marginalTag = c.marginalExisting ? '<span class="text-[10px] font-semibold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded ml-2 uppercase tracking-wide">Marginal</span>' : '';
+    const marginalTag = c.marginalExisting ? '<span class="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded ml-2 uppercase tracking-wide">Marginal</span>' : '';
     const headroom = c.sla - c.serving.breakdown.total;
     return `<div class="py-2 px-3 rounded-lg ${c.marginalExisting ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}"><div class="flex items-center gap-2"><i class="fas ${c.marginalExisting ? 'fa-exclamation-triangle text-amber-400' : 'fa-check-circle text-emerald-400'}"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}${marginalTag}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name} · headroom ${headroom}ms</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`;
   }).join('') : '<p class="text-sm text-slate-500 italic">No endpoints covered by existing cells.</p>';
@@ -3428,7 +3369,7 @@ function renderDashboard() {
   if (marginal.length > 0) {
     margCard.classList.remove('hidden');
     margList.innerHTML = marginal.map(c => {
-      return `<div class="py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-yellow-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms · Best headroom: <span class="text-yellow-400">${c.bestHeadroom}ms</span> · Relax by ${c.relaxationNeeded}ms</div></div></div></div>`;
+      return `<div class="py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20"><div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-orange-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms · Best headroom: <span class="text-orange-400">${c.bestHeadroom}ms</span> · Relax by ${c.relaxationNeeded}ms</div></div></div></div>`;
     }).join('');
   } else {
     margCard.classList.add('hidden');
@@ -3571,9 +3512,9 @@ function initDashMap(covered, pendingCovered, impossible, recommendations, margi
     dashMapMarkers.push(marker);
   });
 
-  (marginal || []).forEach(c => {
-    const marker = L.marker([c.lat, c.lng], { icon: createExclamationIcon('#eab308') }).addTo(dashMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-yellow-400">Marginal ⚠</span><br><span class="text-xs text-slate-400">Best headroom: ${c.bestHeadroom}ms · Needs +${c.relaxationNeeded}ms</span>`);
+    (marginal || []).forEach(c => {
+    const marker = L.marker([c.lat, c.lng], { icon: createExclamationIcon('#f97316') }).addTo(dashMap);
+    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-orange-400">Marginal ⚠</span><br><span class="text-xs text-slate-400">Best headroom: ${c.bestHeadroom}ms · Needs +${c.relaxationNeeded}ms</span>`);
     dashMapMarkers.push(marker);
   });
 

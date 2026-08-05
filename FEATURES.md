@@ -12,7 +12,7 @@ the same fact.
 - What changed and when → `CHANGELOG.md`
 - Known defects → `REVIEW.md`
 
-**Last verified against the app:** 2026-08-06 (review pass — all ⚠ resolved).
+**Last verified against the app:** 2026-08-06 (upgrade plan removed, marginal orange, collapsible sections).
 
 > Where behaviour below is currently defective, it is marked ⚠ with the `REVIEW.md` reference.
 > The description is of *intended* behaviour; the marker says don't trust it yet.
@@ -104,19 +104,21 @@ clear the marginal cases.
 
 A **coverage map** plots endpoints by state — covered, pending, marginal, impossible — with
 recommended new cells shown as diamonds carrying a monthly cost chip and dashed lines to the
-endpoints they serve. Marginal endpoints appear as yellow exclamation markers whose popup gives
+endpoints they serve. Marginal endpoints appear as orange exclamation markers whose popup gives
 the best available headroom and the relaxation required.
 
 Four result lists follow: **Already Covered** (with a "Marginal" badge where an existing cell
 only just meets the SLA), **Pending Coverage**, **Marginal Headroom** with relaxation hints, and
 **Impossible SLA** for endpoints no region can serve.
 
+**Recommended New Cells** are cards giving the cell, its tier, its cost, how many endpoints it
+covers, minimum and average headroom, and per-endpoint detail. Both this section and the
+**Latency Explorer** are collapsible (chevron toggle) and can be collapsed to reduce scrolling.
+Recommended New Cells appears above Latency Explorer in the dashboard.
+
 The **Latency Explorer** shows the five best candidate cells for each uncovered endpoint with a
 full breakdown — backbone, distance, infrastructure tax, processing — as coloured segments with
 tooltips, plus a cost chip. It exists to make the recommendation legible rather than oracular.
-
-**Recommended New Cells** are cards giving the cell, its tier, its cost, how many endpoints it
-covers, minimum and average headroom, and per-endpoint detail.
 
 Edge cases are handled explicitly: everything already covered shows a success state; nothing
 coverable shows an "Impossible SLA" explanation.
@@ -127,13 +129,6 @@ coverable shows an "Impossible SLA" explanation.
 compliance — either one relaxed global SLA, or the exact relaxation each endpoint needs — and
 shows the extra OPEX that buys. When no endpoint is reachable at any SLA, the panel reports
 this explicitly.
-
-**Marginal Upgrade Plan.** A switch on the Marginal Headroom card. Switched on, it re-runs the
-analysis with the safety margin removed and shows what would change: how many cells get added,
-the cost difference, and for each marginal endpoint either the cell that would cover it or the
-relaxation it still needs. Read-only — it never alters the real analysis, and exports stay
-strict. Off by default on every load. When there are no marginal endpoints, the panel shows a
-no-upgrades-needed message.
 
 ### Saving and sharing
 

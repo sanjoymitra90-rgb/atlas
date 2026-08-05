@@ -370,82 +370,7 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
     expect(pageContent).toContain('computeCoverage');
   });
 
-  test('15. Upgrade plan — default OFF, panel hidden', async ({ page }) => {
-    await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
-    await page.evaluate(() => window.goToStep(4));
-    await page.waitForSelector('#upgrade-plan-card', { state: 'attached', timeout: 10000 });
-
-    const card = page.locator('#upgrade-plan-card');
-    await expect(card).toHaveClass(/hidden/);
-    const toggle = page.locator('[data-testid="upgrade-plan-toggle"]');
-    await expect(toggle).not.toBeChecked();
-  });
-
-  test('16. Upgrade plan — toggle ON shows added cells + cost + per-endpoint', async ({ page }) => {
-    await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
-    await page.evaluate(() => window.goToStep(4));
-    await page.waitForSelector('#upgrade-plan-card', { state: 'attached', timeout: 10000 });
-
-    await page.evaluate(() => {
-      const cb = document.querySelector('[data-testid="upgrade-plan-toggle"]');
-      cb.checked = true;
-      cb.dispatchEvent(new Event('change'));
-    });
-
-    const card = page.locator('#upgrade-plan-card');
-    await expect(card).not.toHaveClass(/hidden/);
-
-    const summary = await page.textContent('#upgrade-plan-summary');
-    expect(summary).toContain('Added cells');
-    expect(summary).toContain('Added OPEX');
-
-    const cells = await page.textContent('#upgrade-plan-cells');
-    expect(cells.length).toBeGreaterThan(0);
-
-    const endpoints = await page.textContent('#upgrade-plan-endpoints');
-    expect(endpoints).toContain('covered by');
-  });
-
-  test('17. Upgrade plan — toggle OFF hides panel, no state leakage', async ({ page }) => {
-    await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
-    await page.evaluate(() => window.goToStep(4));
-    await page.waitForSelector('#upgrade-plan-card', { state: 'attached', timeout: 10000 });
-
-    await page.evaluate(() => {
-      const cb = document.querySelector('[data-testid="upgrade-plan-toggle"]');
-      cb.checked = true;
-      cb.dispatchEvent(new Event('change'));
-    });
-    await page.evaluate(() => {
-      const cb = document.querySelector('[data-testid="upgrade-plan-toggle"]');
-      cb.checked = false;
-      cb.dispatchEvent(new Event('change'));
-    });
-
-    const card = page.locator('#upgrade-plan-card');
-    await expect(card).toHaveClass(/hidden/);
-
-    const strictResult = await page.evaluate(() => {
-      return window._customers.length;
-    });
-    expect(strictResult).toBe(34);
-  });
-
-  test('18. Upgrade plan — no marginals shows empty state', async ({ page }) => {
-    await setupSession(page, session34, { selectedFootprint: [], globalSLA: 200, safetyFloor: 0 });
-    await page.evaluate(() => window.goToStep(4));
-    await page.waitForSelector('#upgrade-plan-card', { state: 'attached', timeout: 10000 });
-
-    await page.evaluate(() => {
-      const cb = document.querySelector('[data-testid="upgrade-plan-toggle"]');
-      cb.checked = true;
-      cb.dispatchEvent(new Event('change'));
-    });
-    const summary = await page.textContent('#upgrade-plan-summary');
-    expect(summary).toContain('No upgrades needed');
-  });
-
-  test('19. Marginal map markers — yellow exclamation icons on coverage map', async ({ page }) => {
+  test('15. Marginal map markers — orange exclamation icons on coverage map', async ({ page }) => {
     await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
     await page.evaluate(() => window.goToStep(4));
     await page.waitForFunction(() => document.querySelector('.leaflet-container') !== null, { timeout: 10000 });
@@ -464,5 +389,61 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
     });
 
     expect(result.marginalMarkers).toBe(5);
+  });
+
+  test('16. Recommended New Cells and Latency Explorer are collapsible', async ({ page }) => {
+    await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
+    await page.evaluate(() => window.goToStep(4));
+    await page.waitForFunction(() => document.querySelector('#dash-recommendations') !== null, { timeout: 10000 });
+
+    // Both sections have toggle buttons with aria-expanded
+    const recExpanded = await page.evaluate(() => {
+      const rec = document.getElementById('dash-recommendations');
+      const toggle = rec.parentElement.querySelector('.dash-section-toggle');
+      return toggle ? toggle.getAttribute('aria-expanded') : null;
+    });
+    expect(recExpanded).toBe('true');
+
+    // Collapse via JS
+    await page.evaluate(() => {
+      const rec = document.getElementById('dash-recommendations');
+      const toggle = rec.parentElement.querySelector('.dash-section-toggle');
+      toggle.click();
+    });
+    const afterCollapse = await page.evaluate(() => {
+      const rec = document.getElementById('dash-recommendations');
+      const toggle = rec.parentElement.querySelector('.dash-section-toggle');
+      return { expanded: toggle.getAttribute('aria-expanded'), collapsed: rec.classList.contains('collapsed') };
+    });
+    expect(afterCollapse.expanded).toBe('false');
+    expect(afterCollapse.collapsed).toBe(true);
+
+    // Expand again
+    await page.evaluate(() => {
+      const rec = document.getElementById('dash-recommendations');
+      const toggle = rec.parentElement.querySelector('.dash-section-toggle');
+      toggle.click();
+    });
+    const afterExpand = await page.evaluate(() => {
+      const rec = document.getElementById('dash-recommendations');
+      const toggle = rec.parentElement.querySelector('.dash-section-toggle');
+      return { expanded: toggle.getAttribute('aria-expanded'), collapsed: rec.classList.contains('collapsed') };
+    });
+    expect(afterExpand.expanded).toBe('true');
+    expect(afterExpand.collapsed).toBe(false);
+  });
+
+  test('17. Recommended New Cells precedes Latency Explorer in DOM', async ({ page }) => {
+    await setupSession(page, session34, { selectedFootprint: [22], globalSLA: 100, safetyFloor: 20 });
+    await page.evaluate(() => window.goToStep(4));
+    await page.waitForFunction(() => document.querySelector('#dash-recommendations') !== null, { timeout: 10000 });
+
+    const order = await page.evaluate(() => {
+      const rec = document.getElementById('dash-recommendations');
+      const exp = document.getElementById('explorer-list');
+      if (!rec || !exp) return null;
+      return !!(rec.compareDocumentPosition(exp) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(order).toBe(true);
   });
 });

@@ -212,7 +212,7 @@ Greedy set cover is a heuristic, not optimal. Returns `{covered, uncovered, reco
 pendingCovered, marginal, impossible, avgLatency, minHeadroomAll, avgHeadroomAll}`.
 
 Consumers: `renderDashboard()` (UI), `generateHeadlessAnalysis()` (JSON/CSV/PDF export, works
-without visiting step 4), `computeGreenPlan()`, `toggleUpgradePlan()`.
+without visiting step 4), `computeGreenPlan()`.
 
 ### 5.5 What-if surfaces
 
@@ -221,9 +221,6 @@ without visiting step 4), `computeGreenPlan()`, `toggleUpgradePlan()`.
   covered: 0), unreachable endpoints carrying a `Number.MAX_SAFE_INTEGER` sentinel.
   `globalRelaxation = max(finite values)`, then `computeCoverage` re-runs at the relaxed SLA.
   When every endpoint is unreachable, returns `allUnreachable: true` and `relaxedSLA: null`.
-- **Marginal Upgrade Plan** — sliding switch on the Marginal card, default OFF, session-only.
-  Runs a parallel `computeCoverage()` with `safetyFloor = 0`. Read-only: never mutates the
-  primary analysis or globals, and exports stay strict. No-marginals path shows an empty state.
 
 ### 5.6 State, persistence, export
 

@@ -47,35 +47,6 @@ test.describe('Review pass — optimizer tests', () => {
     expect(violations.distance).toBeGreaterThan(0);
   });
 
-  // R1: Upgrade plan no-marginals correctly shows empty state, overlay dismissed
-  test('R1 — upgrade plan on no-marginals shows empty state, overlay not stuck', async ({ page }) => {
-    await loadApp(page);
-    await page.evaluate(() => {
-      window.showModule('optimizer');
-      window._customers = [{ name: 'Test', lat: 10, lng: 10, type: 'city', tier: 1 }];
-      window._selectedFootprint = [0];
-      window._safetyFloor = 20;
-      window._globalSLA = 200;
-    });
-    await page.evaluate(() => window.goToStep(4));
-    await page.waitForSelector('#upgrade-plan-card', { state: 'attached', timeout: 10000 });
-
-    // Toggle ON
-    await page.evaluate(() => {
-      const cb = document.querySelector('[data-testid="upgrade-plan-toggle"]');
-      cb.checked = true;
-      cb.dispatchEvent(new Event('change'));
-    });
-    await page.waitForTimeout(300);
-
-    // Overlay must not be visible (R1 fix)
-    const overlay = await page.locator('#loading-overlay');
-    await expect(overlay).not.toBeVisible();
-
-    const summary = await page.textContent('#upgrade-plan-summary');
-    expect(summary).toContain('No upgrades needed');
-  });
-
   // R13: Import with out-of-range region index drops it with toast
   test('R13 — import with out-of-range region index drops it', async ({ page }) => {
     await loadApp(page);

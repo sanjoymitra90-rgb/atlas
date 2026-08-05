@@ -7,7 +7,16 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-06 (unified latency model — Naive mode removed)
+**Last updated:** 2026-08-06 (optimizer: upgrade plan removed, marginal recolored, collapsible sections)
+
+---
+
+### Optimizer: Marginal Upgrade Plan removed, marginal recolor, collapsible sections
+- **Marginal Upgrade Plan removed** — Deleted the upgrade switch, `toggleUpgradePlan()`, upgrade-plan-card HTML, and `.upgrade-switch-*` CSS. R1 resolved by removal. Green-Plan ("Make Everything Green") untouched.
+- **Marginal accents yellow → orange** — Map pins (`createExclamationIcon`), popup text, Marginal Headroom card icon, result list items, and `marginalExisting` badge all changed from yellow/amber to orange.
+- **Collapsible sections** — Recommended New Cells and Latency Explorer each get a chevron toggle button (`aria-expanded`, default expanded). Reuses the existing accordion pattern. Added `toggleDashSection()` function and `.dash-section-*` CSS.
+- **Dashboard reordered** — Recommended New Cells now appears above Latency Explorer.
+- **Tests** — Removed 4 upgrade-plan specs, updated marginal marker spec to assert orange, added collapse/expand spec and DOM order spec. Total optimizer specs: 48 (was 52).
 
 ---
 
