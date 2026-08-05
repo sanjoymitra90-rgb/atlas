@@ -67,11 +67,10 @@ test.describe('Optimizer: UX Hardening (O2)', () => {
     expect(mode).toBe(false);
   });
 
-  test('4. JSON round-trip: Naive + per-endpoint SLA + safety 30 → export → import → restored', async ({ page }) => {
+  test('4. JSON round-trip: per-endpoint SLA + safety 30 → export → import → restored', async ({ page }) => {
     await enterOptimizer(page);
 
     const result = await page.evaluate(async () => {
-      setRealisticMode(false);
       setSLAMode('per-customer');
       customers = [{ name: 'TestCity', lat: 40, lng: -74, type: 'city', tier: 1 }];
       perCustomerSLA[0] = 100;
@@ -80,20 +79,15 @@ test.describe('Optimizer: UX Hardening (O2)', () => {
       document.getElementById('global-sla-input').value = 200;
       globalSLA = 200;
 
-      const dataStr = exportSessionJSON.__original
-        ? null
-        : (() => {
-            const results = generateHeadlessAnalysis();
-            const customersExport = customers.map((c, i) => ({ ...c, sla: perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150 }));
-            return {
-              version: "2.1",
-              selectedFootprint, cellCosts, baselineMode, specificBaselineIdx,
-              customers: customersExport, slaMode, globalSLA, perCustomerSLA,
-              processingTime, realisticMode, safetyFloor, analysisResults: results
-            };
-          })();
+      const results = generateHeadlessAnalysis();
+      const customersExport = customers.map((c, i) => ({ ...c, sla: perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150 }));
+      const dataStr = {
+        version: "2.2",
+        selectedFootprint, cellCosts, baselineMode, specificBaselineIdx,
+        customers: customersExport, slaMode, globalSLA, perCustomerSLA,
+        processingTime, safetyFloor, analysisResults: results
+      };
 
-      realisticMode = true;
       slaMode = 'global';
       perCustomerSLA = {};
       safetyFloor = 20;
@@ -117,19 +111,17 @@ test.describe('Optimizer: UX Hardening (O2)', () => {
         });
       }
 
-      setRealisticMode(dataStr.realisticMode);
       document.getElementById('global-sla-input').value = globalSLA;
       document.getElementById('processing-time-input').value = processingTime;
       document.getElementById('safety-floor-input').value = safetyFloor;
       setSLAMode(slaMode);
 
       return {
-        realisticMode, slaMode, globalSLA, safetyFloor, perCustomerSLA: { ...perCustomerSLA },
+        slaMode, globalSLA, safetyFloor, perCustomerSLA: { ...perCustomerSLA },
         customerCount: customers.length, customerSLA: perCustomerSLA[0]
       };
     });
 
-    expect(result.realisticMode).toBe(false);
     expect(result.slaMode).toBe('per-customer');
     expect(result.globalSLA).toBe(200);
     expect(result.safetyFloor).toBe(30);

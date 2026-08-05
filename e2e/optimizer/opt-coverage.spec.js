@@ -588,8 +588,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         slaMode: 'global',
         globalSLA: 150,
         perCustomerSLA: {},
-        processingTime: 10,
-        realisticMode: true
+        processingTime: 10
         // NOTE: no safetyFloor field
       };
 
@@ -738,8 +737,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         slaMode: 'global',
         globalSLA: 150,
         safetyFloor: 20,
-        processingTime: 10,
-        realisticMode: true
+        processingTime: 10
       };
 
       const blob = new Blob([JSON.stringify(sessionJSON)], { type: 'application/json' });

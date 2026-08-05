@@ -39,7 +39,7 @@ async function setupSession(page, session, overrides = {}) {
     window._globalSLA = o.globalSLA !== undefined ? o.globalSLA : (s.globalSLA || 150);
     window._perCustomerSLA = o.perCustomerSLA || s.perCustomerSLA || {};
     window._processingTime = o.processingTime !== undefined ? o.processingTime : (s.processingTime || 10);
-    window._realisticMode = o.realisticMode !== undefined ? o.realisticMode : (s.realisticMode !== false);
+    window._realisticMode = true; // kept for backward compat, always true now
     window._safetyFloor = o.safetyFloor !== undefined ? o.safetyFloor : (s.safetyFloor || 20);
     if (o.perCustomerSLA) {
       window._perCustomerSLA = o.perCustomerSLA;
@@ -192,31 +192,44 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
     expect(costs.specific).not.toBe(costs.blended);
   });
 
-  test('9. Realistic vs Naive — latencies differ', async ({ page }) => {
+  test('9. Unified model — same city from different add paths gives identical latency', async ({ page }) => {
     await loadApp(page);
-    const customers = [{ name: 'TestCity', lat: 10, lng: 10, type: 'city', tier: 4 }];
-
-    const realResult = await page.evaluate((c) => {
-      window.setRealisticMode(true);
-      return window.computeCoverage({
-        customers: c, slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
+    const result = await page.evaluate(() => {
+      // Paris via World Cities (city type)
+      const cityResult = window.computeCoverage({
+        customers: [{ name: 'Paris, France', lat: 48.8566, lng: 2.3522, type: 'city', tier: 1 }],
+        slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency
       });
-    }, customers);
+      // Paris via AWS Regions (aws type with regionIdx)
+      const awsResult = window.computeCoverage({
+        customers: [{ name: 'Paris', lat: 48.8566, lng: 2.3522, type: 'aws', regionIdx: 22 }],
+        slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
+        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency
+      });
+      const cityLat = cityResult.pendingCovered.length > 0 ? cityResult.pendingCovered[0].recBreakdown.total : 0;
+      const awsLat = awsResult.pendingCovered.length > 0 ? awsResult.pendingCovered[0].recBreakdown.total : 0;
+      return { cityLat, awsLat, cityPath: cityResult.pendingCovered[0]?.recBreakdown.isDirect, awsPath: awsResult.pendingCovered[0]?.recBreakdown.isDirect };
+    });
+    expect(result.cityLat).toBe(result.awsLat);
+    expect(result.awsPath).toBe(false);
+  });
 
-    const naiveResult = await page.evaluate((c) => {
-      window.setRealisticMode(false);
+  test('9b. Unified model — non-matrix city uses direct path with tier tax', async ({ page }) => {
+    await loadApp(page);
+    const result = await page.evaluate(() => {
+      // Lagos is not near any AWS region (no region within 50km)
       const r = window.computeCoverage({
-        customers: c, slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
+        customers: [{ name: 'Lagos, Nigeria', lat: 6.5244, lng: 3.3792, type: 'city', tier: 3 }],
+        slaMode: 'global', globalSLA: 300, perCustomerSLA: {},
         safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency
       });
-      window.setRealisticMode(true);
-      return r;
-    }, customers);
-
-    const realLat = realResult.pendingCovered.length > 0 ? realResult.pendingCovered[0].recBreakdown.total : (realResult.marginal.length > 0 ? realResult.marginal[0].bestHeadroom : 0);
-    const naiveLat = naiveResult.pendingCovered.length > 0 ? naiveResult.pendingCovered[0].recBreakdown.total : (naiveResult.marginal.length > 0 ? naiveResult.marginal[0].bestHeadroom : 0);
-    expect(realLat).not.toBe(naiveLat);
+      const ep = r.pendingCovered.length > 0 ? r.pendingCovered[0] : null;
+      return ep ? { total: ep.recBreakdown.total, isDirect: ep.recBreakdown.isDirect, infra: ep.recBreakdown.infra } : null;
+    });
+    expect(result).not.toBeNull();
+    expect(result.isDirect).toBe(true);
+    expect(result.infra).toBe(40); // Tier 3 = +40ms
   });
 
   test('10. v2.0 import — no crash, safetyFloor defaults 20, perCustomerSLA empty', async ({ page }) => {
@@ -253,7 +266,7 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
         globalSLA: window._globalSLA,
         perCustomerSLA: JSON.parse(JSON.stringify(window._perCustomerSLA)),
         processingTime: window._processingTime,
-        realisticMode: window._realisticMode,
+        realisticMode: true, // kept for backward compat
         safetyFloor: window._safetyFloor,
         analysisResults: results
       };

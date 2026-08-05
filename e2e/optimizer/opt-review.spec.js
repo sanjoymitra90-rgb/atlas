@@ -56,8 +56,6 @@ test.describe('Review pass — optimizer tests', () => {
       window._selectedFootprint = [0];
       window._safetyFloor = 20;
       window._globalSLA = 200;
-      window._slaMode = 'global';
-      window._realisticMode = true;
     });
     await page.evaluate(() => window.goToStep(4));
     await page.waitForSelector('#upgrade-plan-card', { state: 'attached', timeout: 10000 });
