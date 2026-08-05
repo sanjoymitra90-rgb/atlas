@@ -643,14 +643,10 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
       <div class="max-w-2xl mx-auto space-y-6">
         <div class="glass rounded-2xl p-6">
-          <div class="flex items-center gap-2 mb-4"><h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Latency Estimation Model</h3></div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="mode-card" onclick="setRealisticMode(false)" id="mode-naive-card"><div class="mode-icon"><i class="fas fa-bolt"></i></div><div><div class="font-semibold text-white">Naive Mode</div><div class="text-xs text-slate-400">AWS region proxy only</div></div></div>
-            <div class="mode-card selected" onclick="setRealisticMode(true)" id="mode-realistic-card"><div class="mode-icon"><i class="fas fa-globe-africa"></i></div><div><div class="font-semibold text-white">Realistic Mode</div><div class="text-xs text-slate-400">Direct distance + infra tax</div></div></div>
-          </div>
-          <div id="realistic-info" class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><b>Realistic Mode</b> adds:</p>
-            <ul class="text-xs text-blue-200/80 space-y-1 ml-4 list-disc"><li><b>Direct Distance Model:</b> Bypasses the AWS matrix for non-AWS cities and calculates exact distance penalty (0.012 ms/km).</li><li><b>Infrastructure tax:</b> Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms</li></ul>
+          <div class="flex items-center gap-2 mb-4"><h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Latency Estimation</h3></div>
+          <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><b>Unified model:</b> When a city endpoint resolves to an AWS region within 50 km, the measured matrix latency is used directly. Otherwise, distance-based estimation applies (0.012 ms/km + infrastructure tier tax).</p>
+            <ul class="text-xs text-blue-200/80 space-y-1 ml-4 list-disc"><li><b>AWS region or resolved city:</b> Uses the measured backbone matrix — most accurate.</li><li><b>Unresolved city:</b> Haversine distance × 0.012 ms/km + Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms</li></ul>
           </div>
         </div>
         <div class="glass rounded-2xl p-6">
@@ -674,7 +670,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           <div class="flex items-center gap-3"><input type="number" id="safety-floor-input" value="20" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
         </div>
         <div class="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300/80">
-          <i class="fas fa-triangle-exclamation mr-1"></i> The underlying latency data disagrees with itself by <strong>30–60 ms</strong> — more than the default safety margin above. Treat single-millisecond figures as indicative. City endpoints added from the World Cities tab are estimated differently than AWS region references, even at the same physical location.
+          <i class="fas fa-info-circle mr-1"></i> The latency matrix has internal disagreement of <strong>30–60 ms</strong> — more than the default safety margin above. Treat single-millisecond figures as indicative. Cities within 50 km of an AWS region use the measured matrix directly.
         </div>
       </div>
       <div class="flex justify-between mt-8 max-w-2xl mx-auto"><button class="btn-ghost px-6 py-3" onclick="goToStep(2)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-primary px-6 py-3 rounded-xl" onclick="analyzeCoverage()">Analyze Coverage <i class="fas fa-chart-line ml-2"></i></button></div>
@@ -1493,9 +1489,9 @@ tr.gap-pair-dim { opacity: 0.45; }
       <section class="help-section" id="step1"><h3><span class="step-num">1</span> Current Footprint</h3><p>Tell the tool where you <strong>already</strong> have cells deployed. This is optional.</p><p>Use <strong>List View</strong> to browse regions by continent, or <strong>Map View</strong> to visualize your selections.</p><p>Below the cell selection, you'll find the <strong>Infrastructure Cost Profile</strong> accordion — see the next section for details.</p></section>
       <section class="help-section" id="cost"><h3><i class="fas fa-dollar-sign text-amber-400"></i> Cost Calculator</h3><p>The cost calculator is <strong>optional but powerful</strong>. It lets you estimate the monthly OPEX impact of deploying new cells.</p><h4>The "Hidden Global Index"</h4><p>The tool has a hardcoded <strong>AWS Regional Price Index</strong> anchored to <strong>US East (N. Virginia) = 1.00x</strong>. Every other region is priced relative to it:</p><div class="help-index-grid"><div class="help-index-row"><span class="region">US East (Virginia)</span><span class="idx discount">1.00x</span></div><div class="help-index-row"><span class="region">Europe (Paris)</span><span class="idx parity">1.10x</span></div><div class="help-index-row"><span class="region">Asia Pacific (Tokyo)</span><span class="idx premium">1.25x</span></div><div class="help-index-row"><span class="region">South America (São Paulo)</span><span class="idx premium">1.50x</span></div><div class="help-index-row"><span class="region">Africa (Cape Town)</span><span class="idx premium">1.30x</span></div><div class="help-index-row"><span class="region">Middle East (Dubai)</span><span class="idx premium">1.25x</span></div></div><h4>Reverse-Engineering the Global Base</h4><p>When you input a cost for Paris ($2,674), the tool knows Paris is 1.10x. It <strong>reverse-engineers</strong> the normalized base:</p><div class="help-formula">$2,674 ÷ 1.10 = <strong>$2,430</strong> (True Global Base)</div><h4>Blended vs. Specific Baseline</h4><ul><li><strong>Blended:</strong> Averages reverse-engineered base costs from all inputted cells.</li><li><strong>Specific:</strong> Anchors to one specific cell of your choice.</li></ul></section>
       <section class="help-section" id="step2"><h3><span class="step-num">2</span> Endpoint Locations</h3><p>Add endpoints via the <strong>AWS Regions</strong> tab or <strong>World Cities</strong> tab. You can also click anywhere on the map to snap to the nearest major city.</p></section>
-      <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>Choose how the tool calculates latency between your infrastructure and end users:</p><ul><li><b>Naive Mode:</b> Uses a simplified "proxy" approach. If an endpoint is in a non-AWS city, the tool finds the geographically closest AWS region to them and uses the known AWS backbone latency from your cell to that proxy region. It ignores exact fiber distances and local internet infrastructure quality.</li><li><b>Realistic Mode</b> (recommended) introduces an intelligent hybrid distance model:<ul><li><b>Direct Distance Model:</b> For non-AWS locations (like world cities), the matrix is bypassed in favor of a direct Haversine formula distance calculation combined with a 0.012 ms/km fiber speed penalty.</li><li><b>Infrastructure tax:</b> Adds penalty latency based on the tier of the city (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul></li></ul></section>
+      <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>The tool uses a unified latency model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly — most accurate.</li><li><b>Unresolved city:</b> Haversine distance × 0.012 ms/km + infrastructure tier tax.</li></ul></section>
       <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <b>Latency Explorer</b> to debug exactly why a cell passed or failed for a given endpoint.</p></section>
-      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <b>coverage-first</b> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol style="margin-left:18px;list-style-type:decimal;"><li><b>Eligibility gate:</b> A (region, endpoint) pair is eligible only if <code>headroom = SLA − latency ≥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><b>Selection priority:</b> Among regions covering ≥1 eligible uncovered endpoint:<ul style="list-style-type:disc;margin-left:18px;"><li>1st: MAX endpoints covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered endpoints</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered endpoints; repeat until nothing more can be covered.</li></ol><p><b>Marginal bucket:</b> Endpoints with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal — not impossible, but requiring SLA relaxation. Existing cells still cover endpoints even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly.</p><h4>Legacy Mode</h4><p>Set the safety margin to <b>0ms</b> to restore classic pass/fail SLA behavior with cost-per-customer scoring.</p><h4>Direct Distance vs AWS Backbone</h4><p>When computing latency, the tool checks the entity type of both endpoints:</p><ul><li><b>AWS to AWS:</b> Uses a hardcoded 32x32 ping matrix representing the true latency of the AWS global backbone.</li><li><b>AWS to City (Naive Mode):</b> Finds the nearest AWS region to the target city and uses the 32x32 backbone matrix latency directly to that proxy region.</li><li><b>AWS to City (Realistic Mode):</b> Defaults to the Direct Distance Model. It calculates the exact Haversine geographic distance between the data center and the city coordinates, multiplies it by 0.012 ms per kilometer, and adds a last-mile infrastructure tier tax.</li></ul>
+      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <b>coverage-first</b> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol style="margin-left:18px;list-style-type:decimal;"><li><b>Eligibility gate:</b> A (region, endpoint) pair is eligible only if <code>headroom = SLA − latency ≥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><b>Selection priority:</b> Among regions covering ≥1 eligible uncovered endpoint:<ul style="list-style-type:disc;margin-left:18px;"><li>1st: MAX endpoints covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered endpoints</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered endpoints; repeat until nothing more can be covered.</li></ol><p><b>Marginal bucket:</b> Endpoints with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal — not impossible, but requiring SLA relaxation. Existing cells still cover endpoints even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly.</p><h4>Legacy Mode</h4><p>Set the safety margin to <b>0ms</b> to restore classic pass/fail SLA behavior with cost-per-customer scoring.</p><h4>Latency Model</h4><p>One unified model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly. This is the most accurate path.</li><li><b>Unresolved city (no region within 50 km):</b> Haversine distance × 0.012 ms/km + infrastructure tier tax (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul><p>Adding the same city from the World Cities tab, the AWS Regions tab, or by clicking on the map all produce identical latency — the tool resolves to the same region.</p>
       <h4>Why 0.012 ms/km? (The Physics)</h4>
       <p>This propagation delay factor is mathematically grounded in the physics of fiber optic networking:</p>
       <ul>
@@ -2185,7 +2181,6 @@ let processingTime = 10;
 let footprintView = 'list';
 let custSource = 'aws';
 let clickPlaceMode = false;
-let realisticMode = true;
 let cellCosts = {};
 let baselineMode = 'blended';
 let specificBaselineIdx = null;
@@ -2200,7 +2195,6 @@ Object.defineProperty(window, '_slaMode', { get: () => slaMode, set: (v) => { sl
 Object.defineProperty(window, '_globalSLA', { get: () => globalSLA, set: (v) => { globalSLA = v; } });
 Object.defineProperty(window, '_perCustomerSLA', { get: () => perCustomerSLA, set: (v) => { perCustomerSLA = v; } });
 Object.defineProperty(window, '_processingTime', { get: () => processingTime, set: (v) => { processingTime = v; } });
-Object.defineProperty(window, '_realisticMode', { get: () => realisticMode, set: (v) => { realisticMode = v; } });
 Object.defineProperty(window, '_cellCosts', { get: () => cellCosts, set: (v) => { cellCosts = v; } });
 Object.defineProperty(window, '_baselineMode', { get: () => baselineMode, set: (v) => { baselineMode = v; } });
 Object.defineProperty(window, '_specificBaselineIdx', { get: () => specificBaselineIdx, set: (v) => { specificBaselineIdx = v; } });
@@ -2426,6 +2420,16 @@ function findNearestRegionIdx(lat, lng) {
   return nearestIdx;
 }
 
+function resolveCityToRegion(customer) {
+  if (customer.regionIdx !== undefined) return customer.regionIdx;
+  let minDist = Infinity, nearestIdx = null;
+  regions.forEach((r, i) => {
+    const d = haversine(r.lat, r.lng, customer.lat, customer.lng);
+    if (d < minDist) { minDist = d; nearestIdx = i; }
+  });
+  return minDist < 50 ? nearestIdx : null;
+}
+
 function getCustomerTier(customer) {
   if (customer.tier !== undefined) return customer.tier;
   if (customer.regionIdx !== undefined) return 1;
@@ -2433,54 +2437,44 @@ function getCustomerTier(customer) {
 }
 
 function latencyBand(cellIdx, customer) {
-  const saved = realisticMode;
-  realisticMode = true;
-  const real = getCustomerLatency(cellIdx, customer, true);
-  realisticMode = false;
-  const naive = getCustomerLatency(cellIdx, customer, true);
-  realisticMode = saved;
-  const lo = Math.min(real.total, naive.total);
-  const hi = Math.max(real.total, naive.total);
-  const band = hi - lo;
-  return { lo, hi, band, point: real.total };
+  const regionIdx = resolveCityToRegion(customer);
+  if (regionIdx !== null) {
+    const total = matrix[cellIdx][regionIdx] + processingTime;
+    return { lo: total, hi: total, band: 0, point: total, isDirect: false };
+  }
+  const tier = getCustomerTier(customer);
+  const distanceKm = haversine(regions[cellIdx].lat, regions[cellIdx].lng, customer.lat, customer.lng);
+  const point = Math.round(distanceKm * 0.012 + TIER_TAX[tier] + processingTime);
+  const band = Math.round(point * 0.2);
+  return { lo: point - band, hi: point + band, band, point, isDirect: true };
 }
 
 function getCustomerLatency(cellIdx, customer, withBreakdown = false) {
   const cell = regions[cellIdx];
   const tier = getCustomerTier(customer);
+  const regionIdx = resolveCityToRegion(customer);
 
-  if (customer.regionIdx !== undefined) {
-    const baseLatency = matrix[cellIdx][customer.regionIdx];
-    if (!realisticMode) {
-      return withBreakdown ? { base: baseLatency, distance: 0, infra: 0, proc: processingTime, total: baseLatency + processingTime, nearestRegionIdx: customer.regionIdx, distanceKm: 0, tier, isDirect: false } : baseLatency + processingTime;
+  if (regionIdx !== null) {
+    const baseLatency = matrix[cellIdx][regionIdx];
+    const total = baseLatency + processingTime;
+    if (withBreakdown) {
+      return { base: baseLatency, distance: 0, infra: 0, proc: processingTime, total, nearestRegionIdx: regionIdx, distanceKm: 0, tier, isDirect: false, resolvedRegion: regions[regionIdx].code };
     }
-    const infraTax = TIER_TAX[tier];
-    const total = baseLatency + infraTax + processingTime;
-    return withBreakdown ? { base: baseLatency, distance: 0, infra: infraTax, proc: processingTime, total: Math.round(total), nearestRegionIdx: customer.regionIdx, distanceKm: 0, tier, isDirect: false } : Math.round(total);
-  } else {
-    const distanceKm = haversine(cell.lat, cell.lng, customer.lat, customer.lng);
-    
-    if (!realisticMode) {
-      const nearestRegionIdx = findNearestRegionIdx(customer.lat, customer.lng);
-      const proxyLatency = matrix[cellIdx][nearestRegionIdx];
-      return withBreakdown ? { base: proxyLatency, distance: 0, infra: 0, proc: processingTime, total: proxyLatency + processingTime, nearestRegionIdx, distanceKm, tier, isDirect: false } : proxyLatency + processingTime;
-    }
-    
-    const FIBER_SPEED_MS_PER_KM = 0.012;
-    const distancePenalty = distanceKm * FIBER_SPEED_MS_PER_KM;
-    const infraTax = TIER_TAX[tier];
-    const total = distancePenalty + infraTax + processingTime;
-    
-    return withBreakdown ? { base: 0, distance: Math.round(distancePenalty), infra: infraTax, proc: processingTime, total: Math.round(total), nearestRegionIdx: null, distanceKm: Math.round(distanceKm), tier, isDirect: true } : Math.round(total);
+    return total;
   }
+
+  const distanceKm = haversine(cell.lat, cell.lng, customer.lat, customer.lng);
+  const FIBER_SPEED_MS_PER_KM = 0.012;
+  const distancePenalty = distanceKm * FIBER_SPEED_MS_PER_KM;
+  const infraTax = TIER_TAX[tier];
+  const total = distancePenalty + infraTax + processingTime;
+  if (withBreakdown) {
+    return { base: 0, distance: Math.round(distancePenalty), infra: infraTax, proc: processingTime, total: Math.round(total), nearestRegionIdx: null, distanceKm: Math.round(distanceKm), tier, isDirect: true, resolvedRegion: null };
+  }
+  return Math.round(total);
 }
 
 function renderBreakdown(b) {
-  if (!realisticMode) {
-      if (b.proc > 0) return `<div class="breakdown-bar"><span class="breakdown-seg base" title="AWS Backbone">${b.base}ms</span><span class="text-slate-600 mx-1">+</span><span class="breakdown-seg proc" title="Processing Time">${b.proc}ms</span><span class="text-slate-600 mx-1">=</span><span class="breakdown-seg total">${b.total}ms</span></div>`;
-      return `<span class="breakdown-seg total">${b.total}ms</span>`;
-  }
-  
   let parts = [];
   if (b.base > 0) parts.push(`<span class="breakdown-seg base" title="AWS Backbone">${b.base}ms</span>`);
   if (b.distance > 0 || b.isDirect) parts.push(`<span class="breakdown-seg dist" title="${b.distanceKm}km Direct Distance">${b.distance}ms</span>`);
@@ -2771,7 +2765,7 @@ function renderCustList() {
         if (d < minDist) { minDist = d; nearestCode = r.code; }
       });
       if (minDist < 50) {
-        proximityNote = `<div class="text-xs text-amber-400/80 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>Within ${Math.round(minDist)}km of AWS ${nearestCode}. Realistic vs. Naive estimates will differ.</div>`;
+        proximityNote = `<div class="text-xs text-blue-400/80 mt-1"><i class="fas fa-info-circle mr-1"></i>Uses measured ${nearestCode} backbone latency (${Math.round(minDist)}km proximity)</div>`;
       }
     }
     return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${escapeHtml(c.name)}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div>${proximityNote}</div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
@@ -2912,14 +2906,6 @@ function updateCustMap() {
   }
 }
 
-function setRealisticMode(mode) {
-  realisticMode = mode;
-  document.getElementById('mode-naive-card').className = !mode ? 'mode-card selected' : 'mode-card';
-  document.getElementById('mode-realistic-card').className = mode ? 'mode-card selected' : 'mode-card';
-  document.getElementById('realistic-info').className = mode ? 'mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg' : 'hidden mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg';
-  if (slaMode === 'per-customer') renderSLAPerList();
-}
-
 function setSLAMode(mode) {
   slaMode = mode;
   document.getElementById('sla-global-card').className = mode === 'global' ? 'mode-card selected' : 'mode-card';
@@ -2950,7 +2936,7 @@ function renderSLAPerList() {
       const b = getCustomerLatency(findNearestRegionIdx(c.lat, c.lng), c, true);
       preview = renderBreakdown(b);
     }
-    const tierBadge = c.tier && realisticMode ? `<span class="tier-badge tier-${c.tier} ml-2">T${c.tier}</span>` : '';
+    const tierBadge = c.tier ? `<span class="tier-badge tier-${c.tier} ml-2">T${c.tier}</span>` : '';
     return `<div class="flex flex-col gap-2 py-2 px-3 rounded-lg bg-slate-800/40"><div class="flex items-center gap-3"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm flex items-center">${c.name}${tierBadge}</div>${preview}</div><div class="flex items-center gap-2"><input type="number" value="${val}" min="1" class="w-20 text-sm" onchange="perCustomerSLA[${i}]=parseInt(this.value)"><span class="text-slate-400 text-sm">ms</span></div></div></div>`;
   }).join('');
 }
@@ -3280,7 +3266,7 @@ function saveOptScenario(name) {
     slaMode, globalSLA, perCustomerSLA: JSON.parse(JSON.stringify(perCustomerSLA)),
     safetyFloor, selectedFootprint: [...selectedFootprint],
     cellCosts: JSON.parse(JSON.stringify(cellCosts)),
-    baselineMode, specificBaselineIdx, processingTime, realisticMode,
+    baselineMode, specificBaselineIdx, processingTime,
     summary: { covered: result.covered.length, marginal: result.marginal.length, impossible: result.impossible.length, opex }
   });
   localStorage.setItem('atlas-opt-scenarios', JSON.stringify(scenarios));
@@ -3301,11 +3287,9 @@ function loadOptScenario(index) {
   baselineMode = s.baselineMode || 'blended';
   specificBaselineIdx = s.specificBaselineIdx !== undefined ? s.specificBaselineIdx : null;
   processingTime = s.processingTime !== undefined ? s.processingTime : 10;
-  realisticMode = s.realisticMode !== undefined ? s.realisticMode : true;
   document.getElementById('global-sla-input').value = globalSLA;
   document.getElementById('processing-time-input').value = processingTime;
   document.getElementById('safety-floor-input').value = safetyFloor;
-  setRealisticMode(realisticMode);
   setSLAMode(slaMode);
   goToStep(1);
   showToast('Scenario "' + s.name + '" loaded');
@@ -3375,7 +3359,7 @@ function renderDashboard() {
 
   const recommendedTotalOPEX = recommendations.reduce((sum, r) => sum + estimateRegionCost(r.cellIdx), 0);
 
-  document.getElementById('dash-subtitle').textContent = realisticMode ? 'Realistic Mode · Coverage Optimization' : 'Naive Mode · Coverage Optimization';
+  document.getElementById('dash-subtitle').textContent = 'Coverage Optimization';
 
   document.getElementById('stat-total').textContent = customers.length;
   document.getElementById('stat-covered').textContent = covered.length;
@@ -3536,7 +3520,7 @@ function renderDashboard() {
         </div>
         <div class="space-y-2">${r.covers.map((c, ci) => {
           const b = bands[ci];
-          return `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500" title="Point estimate ${b.point}ms">(est. ${b.lo}–${b.hi}ms, headroom ${c.headroom}ms)</span></div>${renderBreakdown(c.breakdown)}</div>`;
+          return `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500" title="Point estimate ${b.point}ms">${b.isDirect ? `(est. ${b.lo}–${b.hi}ms, headroom ${c.headroom}ms)` : `(measured backbone, headroom ${c.headroom}ms)`}</span></div>${renderBreakdown(c.breakdown)}</div>`;
         }).join('')}</div>
       </div>`;
     }).join('');
@@ -3861,7 +3845,7 @@ function exportSessionJSON() {
   const customersExport = customers.map((c, i) => ({ ...c, sla: perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150 }));
   
   const sessionData = {
-    version: "2.1",
+    version: "2.2",
     selectedFootprint,
     cellCosts,
     baselineMode,
@@ -3871,7 +3855,6 @@ function exportSessionJSON() {
     globalSLA,
     perCustomerSLA,
     processingTime,
-    realisticMode,
     safetyFloor,
     analysisResults: results 
   };
@@ -3931,7 +3914,7 @@ function exportSessionCSV() {
   if (slaMode === 'global') csvContent += `Global SLA Limit (ms),${globalSLA}\n`;
   csvContent += `Internal Processing Time (ms),${processingTime}\n`;
   csvContent += `Safety Margin (ms),${safetyFloor}\n`;
-  csvContent += `Latency Model,${realisticMode ? 'Realistic (Distance + Infra Tax)' : 'Naive (AWS Proxy)'}\n`;
+  csvContent += `Latency Model,Unified (Matrix + Haversine Fallback)\n`;
   csvContent += `Optimization Strategy,Cost-Effective Coverage\n\n`;
   
   csvContent += "--- EXISTING INFRASTRUCTURE FOOTPRINT ---\n";
@@ -4001,7 +3984,7 @@ function exportShareReport() {
   const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
   const opex = result.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
   const slaLabel = slaMode === 'global' ? globalSLA + 'ms (Global)' : 'Per-Endpoint';
-  const modeLabel = realisticMode ? 'Realistic' : 'Naive';
+  const modeLabel = 'Unified';
   const date = new Date().toLocaleString();
 
   const escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -4219,10 +4202,6 @@ function handleImport(event) {
         customers.forEach((c, i) => {
           if (c.sla !== undefined) perCustomerSLA[i] = c.sla;
         });
-      }
-      
-      if (data.realisticMode !== undefined) {
-         setRealisticMode(data.realisticMode);
       }
       
       document.getElementById('global-sla-input').value = globalSLA;
