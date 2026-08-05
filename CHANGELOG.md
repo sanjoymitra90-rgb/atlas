@@ -7,7 +7,7 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-06 (review pass)
+**Last updated:** 2026-08-06 (review pass complete — 26 of 27 findings resolved)
 
 ---
 
@@ -41,12 +41,17 @@ to stay true, only to stay complete.
 - **R23 Duplicate pillTitle drift** — Added missing 'duplicate' case to grouped-mode pillTitle tooltip.
 - **R24 showModule guard** — ID restore now checks `data-module-id` exists before assignment, preventing permanently blank element ID.
 
-### Outstanding findings (deferred to follow-up)
-- **R6/R7**: Latency model documentation fix + precision bands (product change, Sanjoy priority)
-- **R25**: Pill split (malformed/non-UK/suspected-test)
-- **R26**: Contingency + assumptions textarea
+### Review pass — R6, R7, R25, R26 (model honesty + product changes)
+- **R6 Model honesty** — Added amber uncertainty note in Step 3 explaining 30–60ms internal disagreement exceeds default safety margin. Proximity detection in step 2 warns when a city endpoint is within 50km of an AWS region (estimates will differ by model).
+- **R7 Precision bands** — Added `latencyBand(cellIdx, customer)` helper computing both Realistic and Naive estimates. Recommendation cards now display per-endpoint latency bands (`est. 80–110ms`) with point estimate as tooltip. Per-recommendation confidence chip (High/Medium/Low) based on max band-to-SLA ratio.
+- **R25 Pill split** — `validateUKNumber()` now returns `{valid, category, reason}` with categories: `malformed` (red), `non-uk` (amber), `suspected-test` (blue). Added `ukPillHtml()` helper. Tile renamed to "Destination Issues." Non-UK country codes now detected as valid-but-wrong-country.
+- **R26 Contingency + assumptions** — Contingency % input in Onboarding ribbon, structurally separate from margin. Billable hours = base + contingency (derived, not through 4hr ceiling). Per-tier assumptions textarea stored in `tierStates[tier].assumptions`. Included in CSV export, JSON export/import, and PDF proposal. Change-order language added ("additional work beyond scope at $X/hr").
+
+### Outstanding (deferred to follow-up)
+- **R23 full extract** — `gapRowTemplate()`/`gapGroupKey()`/`clearGapFilterInputs()` helper extraction (drift fix landed; full refactor deferred)
 - **New e2e specs** and Onboarding smoke suite
 - **DHTMLX version pinning** (edge → numbered version)
+- **UK Valid column sortability** (nine columns sortable; docs claim ten)
 
 ---
 
@@ -64,7 +69,7 @@ to stay true, only to stay complete.
 - **Loading overlay** — Global `#loading-overlay` + `showLoading()`/`hideLoading()` utilities. Wrapped into `goToStep(4)`, `toggleGreenPlanMode()`, `toggleUpgradePlan()`.
 - **handleGapPagination group-mode** — Page count now computed from unique groups (not raw row count) when `gapGroupMode` is active.
 - **drillDownGap var → let** — All five `var` declarations replaced with `let`.
-- **SRI integrity hashes** — Added `integrity` + `crossorigin` attributes to Leaflet 1.9.4, Font Awesome 6.5.1, Chart.js 4.4.1, chartjs-plugin-annotation 3.0.1, html2pdf.js 0.10.1. Tailwind CDN, DHTMLX edge, and Google Fonts excluded (dynamic content).
+- **SRI integrity hashes** — Added `integrity` + `crossorigin` to Leaflet 1.9.4 and Font Awesome 6.5.1 (canonical published hashes). Chart.js and html2pdf hashes later removed in R3 (recalled, not computed). Deleted dead `chartjs-plugin-annotation` tag.
 - **Gap settings modal Escape** — Global `keydown` handler extended to close `#gap-column-modal` via `closeGapColumnModal()` when Escape is pressed and modal is open.
 - **buildAndDownloadPDF guard** — Infrastructure section checks `infraData.summary.totalEndpoints > 0` before rendering; shows explanatory note when no endpoints are configured.
 - **Dead variable removed** — `hasTtvData` in `renderGapCharts()` TTV block removed.
