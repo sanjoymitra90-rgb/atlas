@@ -4472,6 +4472,12 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function csvCell(v) {
+  const s = String(v ?? '');
+  const guarded = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+  return '"' + guarded.replace(/"/g, '""') + '"';
+}
+
 function getUnmappedHeaders() {
   const mapped = new Set();
   ['time','service','from','to','status','customer','sourceIP','processingTime'].forEach(key => {
@@ -4783,8 +4789,8 @@ function populateGapFilterDropdowns() {
   const customers = [...new Set(gapData.map(d => d.customer))].filter(Boolean).sort();
   const statusSelect = document.getElementById("gap-filter-status");
   const customerSelect = document.getElementById("gap-filter-customer");
-  statusSelect.innerHTML = "<option value=\"all\">All Statuses</option>" + statuses.map(s => "<option value=\"" + s + "\">" + s + "</option>").join("");
-  customerSelect.innerHTML = "<option value=\"all\">All Customers</option>" + customers.map(c => "<option value=\"" + c + "\">" + c + "</option>").join("");
+  statusSelect.innerHTML = "<option value=\"all\">All Statuses</option>" + statuses.map(s => "<option value=\"" + escapeHtml(s) + "\">" + escapeHtml(s) + "</option>").join("");
+  customerSelect.innerHTML = "<option value=\"all\">All Customers</option>" + customers.map(c => "<option value=\"" + escapeHtml(c) + "\">" + escapeHtml(c) + "</option>").join("");
 }
 
 function applyGapFilters() {
@@ -4833,6 +4839,7 @@ function applyGapFilters() {
   gapCurrentPage = 1;
   updateGapMetrics();
   renderGapTable();
+  renderGapCharts();
 }
 
 function resetGapFilters() {
@@ -5040,7 +5047,11 @@ function pairGapCalls() {
   let pairCount = 0;
   pairable.forEach(row => {
     const key = gapPairingKeys.length > 0
-      ? gapPairingKeys.map(h => (row.raw && row.raw[h] != null ? row.raw[h] : '')).join('|')
+      ? gapPairingKeys.map(h => {
+          if (h === gapColumnMapping.from) return row.from;
+          if (h === gapColumnMapping.to) return row.to;
+          return row.raw && row.raw[h] != null ? String(row.raw[h]) : '';
+        }).join('|')
       : row.from + '|' + row.to;
     if (!unmatched[key]) unmatched[key] = [];
     if (row.isSigning) {
@@ -5071,12 +5082,20 @@ function pairGapCalls() {
   });
   const pairedSignings = gapData.filter(r => r.pairStatus === 'paired' && r.isSigning);
   const pairedKeys = new Set(pairedSignings.map(r => gapPairingKeys.length > 0
-    ? gapPairingKeys.map(h => (r.raw && r.raw[h] != null ? r.raw[h] : '')).join('|')
+    ? gapPairingKeys.map(h => {
+        if (h === gapColumnMapping.from) return r.from;
+        if (h === gapColumnMapping.to) return r.to;
+        return r.raw && r.raw[h] != null ? String(r.raw[h]) : '';
+      }).join('|')
     : r.key));
   let duplicateCount = 0;
   gapData.forEach(row => {
     const rowKey = gapPairingKeys.length > 0
-      ? gapPairingKeys.map(h => (row.raw && row.raw[h] != null ? row.raw[h] : '')).join('|')
+      ? gapPairingKeys.map(h => {
+          if (h === gapColumnMapping.from) return row.from;
+          if (h === gapColumnMapping.to) return row.to;
+          return row.raw && row.raw[h] != null ? String(row.raw[h]) : '';
+        }).join('|')
       : row.key;
     if (row.pairStatus === 'unverified' && row.isSigning && pairedKeys.has(rowKey)) {
       row.pairStatus = 'duplicate';
@@ -5273,16 +5292,16 @@ function renderGapTable() {
         }
       }
       return `<tr class="${trClasses}" data-pair-group="${groupKey}">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.service || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.from || '-'}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.status || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.customer || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.status || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${pillTitle}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
+      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(pillTitle)}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
       ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
     }).join('');
@@ -5313,16 +5332,16 @@ function renderGapTable() {
 
     tableBody.innerHTML = pageData.map(row => {
       return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + (row.time || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.service || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.from || '-'}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${row.to || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.status || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.customer || '-'}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${row.sourceIP || '-'}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
+      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.status || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
       <td class="py-3 px-4 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${row.ukValid ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}">${row.ukValid ? 'Valid' : 'Invalid'}</span></td>
-      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp'}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
+      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp')}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
       ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
     }).join('');
@@ -5676,7 +5695,7 @@ function exportGapData() {
       row.status || '',
       row.customer || '',
       row.sourceIP || '',
-      row.processingTime || '',
+      row.processingTime != null ? row.processingTime : 0,
       row.ukValid ? 'Valid' : 'Invalid',
       row.pairStatus || '',
       row.pairId || '',
@@ -5684,8 +5703,7 @@ function exportGapData() {
     ];
     const customVals = gapAdditionalColumns.map(col => row.raw && row.raw[col.header] != null ? row.raw[col.header] : '');
     const allVals = [...coreVals, ...customVals];
-    const csvRow = allVals.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
-    csvRows.push(csvRow);
+    csvRows.push(allVals.map(v => csvCell(v)).join(','));
   });
   
   const csvContent = csvRows.join('\n');
