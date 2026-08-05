@@ -5,6 +5,7 @@ module.exports = defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: 1,
   reporter: [['list']],
+  globalSetup: require.resolve('./e2e/global-setup.js'),
   use: { headless: true, viewport: { width: 1440, height: 900 } },
   projects: [
     {
@@ -14,6 +15,10 @@ module.exports = defineConfig({
     {
       name: 'optimizer',
       testDir: './e2e/optimizer',
+    },
+    {
+      name: 'onboarding',
+      testDir: './e2e/onboarding',
     },
   ],
 });
