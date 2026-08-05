@@ -1203,7 +1203,7 @@ tr.gap-pair-dim { opacity: 0.45; }
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:120px" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i></th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:120px" onclick="handleGapSort('sourceIP')">Source IP <i class="fas fa-sort text-xs ml-1"></i></th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:90px" onclick="handleGapSort('processingTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i></th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap relative" style="min-width:80px" title="UK number validation: checks E.164 format (+44 prefix), correct length (11-13 digits), valid prefix digit (1, 2, 3, 7, or 8), and rejects test/placeholder numbers with sequential or repeated digits.">
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('ukCategory')" title="Destination validation categories: Valid, Malformed, Non-UK, or Suspected test data.">
                   UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400"></i>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white" style="min-width:140px" onclick="handleGapSort('pairStatus')">Pair <i class="fas fa-sort text-xs ml-1"></i></th>
@@ -4918,6 +4918,10 @@ function ukPillHtml(row) {
   return '<span class="px-2 py-1 rounded-full text-xs ' + (styles[cat] || styles.malformed) + '" title="' + escapeHtml(row.ukValidationReason || '') + '">' + (labels[cat] || 'Invalid') + '</span>';
 }
 
+function gapGroupKey(row) {
+  return row.pairStatus === 'paired' ? 'g-' + row.pairId : 'g-o-' + row._gapIdx;
+}
+
 function populateGapFilterDropdowns() {
   const statuses = [...new Set(gapData.map(d => d.status))].filter(Boolean).sort();
   const customers = [...new Set(gapData.map(d => d.customer))].filter(Boolean).sort();
@@ -5352,7 +5356,7 @@ function renderGapTable() {
     const groupMap = {};
     const groupOrder = [];
     sorted.forEach(row => {
-      const key = row.pairStatus === 'paired' ? 'g-' + row.pairId : 'g-o-' + row._gapIdx;
+      const key = gapGroupKey(row);
       if (!groupMap[key]) { groupMap[key] = []; groupOrder.push(key); }
       groupMap[key].push(row);
     });
@@ -5360,6 +5364,7 @@ function renderGapTable() {
     // Sort groups by representative row's column value
     if (gapSortColumn) {
       const pairStatusOrder = { paired: 0, unverified: 1, unsigned: 2, unpairable: 3 };
+      const ukCatOrder = { valid: 0, 'suspected-test': 1, 'non-uk': 2, malformed: 3 };
       groupOrder.sort((a, b) => {
         const gA = groupMap[a], gB = groupMap[b];
         const repA = gA.find(r => r.isSigning) || gA[0];
@@ -5368,6 +5373,11 @@ function renderGapTable() {
         if (gapSortColumn === 'pairStatus') {
           const oA = pairStatusOrder[repA.pairStatus] ?? 99;
           const oB = pairStatusOrder[repB.pairStatus] ?? 99;
+          return gapSortAscending ? oA - oB : oB - oA;
+        }
+        if (gapSortColumn === 'ukCategory') {
+          const oA = ukCatOrder[repA.ukCategory] ?? 99;
+          const oB = ukCatOrder[repB.ukCategory] ?? 99;
           return gapSortAscending ? oA - oB : oB - oA;
         }
         if (gapSortColumn === 'time') {
@@ -5420,7 +5430,7 @@ function renderGapTable() {
     });
 
     tableBody.innerHTML = pageData.map(row => {
-      const groupKey = row.pairStatus === 'paired' ? 'g-' + row.pairId : 'g-o-' + row._gapIdx;
+      const groupKey = gapGroupKey(row);
       const gi = rowGroupIdx[row._gapIdx] || 0;
       const isAlt = gi % 2 === 1;
       const isFirst = rowIsFirstInGroup[row._gapIdx] && gi > 0;
@@ -5468,6 +5478,11 @@ function renderGapTable() {
         if (gapSortColumn === 'time') {
           const tA = a.timestamp || 0, tB = b.timestamp || 0;
           return gapSortAscending ? tA - tB : tB - tA;
+        }
+        if (gapSortColumn === 'ukCategory') {
+          const o = { valid: 0, 'suspected-test': 1, 'non-uk': 2, malformed: 3 };
+          const oA = o[a.ukCategory] ?? 99, oB = o[b.ukCategory] ?? 99;
+          return gapSortAscending ? oA - oB : oB - oA;
         }
         let aVal = a[gapSortColumn] !== undefined ? a[gapSortColumn] : (a.raw ? a.raw[gapSortColumn] : undefined);
         let bVal = b[gapSortColumn] !== undefined ? b[gapSortColumn] : (b.raw ? b.raw[gapSortColumn] : undefined);
@@ -5883,7 +5898,7 @@ function handleGapPagination(direction) {
   if (gapGroupMode) {
     const groups = new Map();
     gapFilteredData.forEach(row => {
-      const pg = row.pairId ? ('g-' + row.pairId) : ('g-o-' + row._gapIdx);
+      const pg = gapGroupKey(row);
       if (!groups.has(pg)) groups.set(pg, []);
       groups.get(pg).push(row);
     });
@@ -5968,7 +5983,7 @@ function initGapHoverHighlight() {
           let partnerPage = 1;
           if (gapGroupMode) {
             const gm = {}, go = [];
-            sorted.forEach(r => { const k = r.pairStatus === 'paired' ? 'g-' + r.pairId : 'g-o-' + r._gapIdx; if (!gm[k]) { gm[k] = []; go.push(k); } gm[k].push(r); });
+            sorted.forEach(r => { const k = gapGroupKey(r); if (!gm[k]) { gm[k] = []; go.push(k); } gm[k].push(r); });
             go.forEach((k, gi) => { const pg = Math.floor(gi / pageSize) + 1; gm[k].forEach(r => { if (r._gapIdx === partnerRow._gapIdx) partnerPage = pg; }); });
           } else {
             if (gapSortColumn) { sorted.sort((a, b) => { let av = a[gapSortColumn], bv = b[gapSortColumn]; if (typeof av === 'string') av = av.toLowerCase(); if (typeof bv === 'string') bv = bv.toLowerCase(); return av < bv ? (gapSortAscending ? -1 : 1) : av > bv ? (gapSortAscending ? 1 : -1) : 0; }); }
