@@ -7,7 +7,7 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-06 (review pass complete — 26 of 27 findings resolved)
+**Last updated:** 2026-08-06 (review pass complete — 26 of 27 resolved, 115 specs)
 
 ---
 
@@ -48,9 +48,21 @@ to stay true, only to stay complete.
 - **R26 Contingency + assumptions** — Contingency % input in Onboarding ribbon, structurally separate from margin. Billable hours = base + contingency (derived, not through 4hr ceiling). Per-tier assumptions textarea stored in `tierStates[tier].assumptions`. Included in CSV export, JSON export/import, and PDF proposal. Change-order language added ("additional work beyond scope at $X/hr").
 
 ### Outstanding (deferred to follow-up)
-- **R23 full extract** — `gapRowTemplate()`/`gapGroupKey()`/`clearGapFilterInputs()` helper extraction (drift fix landed; full refactor deferred)
-- **New e2e specs** and Onboarding smoke suite
-- **DHTMLX version pinning** (edge → numbered version)
+- **R23 full extract** — `gapRowTemplate()`/`clearGapFilterInputs()` helper extraction (drift fix `gapGroupKey()` landed; row template and filter reset refactor deferred)
+
+---
+
+### Post-review fixes and hardening
+- **Gateway card code leak** — Gap Analyzer card had malformed HTML (`>` before `style="..."`), exposing style attribute as visible text on the tile.
+- **Step 2 map spacing** — Grid layout stretched map column to match taller right column. Added `items-start` to grid parent.
+- **Click-to-place undo** — Canceling placement mode now reverts endpoints placed during that session. Escape calls `toggleClickPlace()` (with undo) instead of `exitClickPlace()`.
+- **UK Valid column sortable** — Added onclick handler and `ukCategory` sort order in both grouped and flat sort paths. All 10 columns now sortable.
+- **R23 gapGroupKey helper** — Extracted `gapGroupKey(row)` function. Table rendering, pagination, and share report all use the same key construction, fixing the R23 drift between pagination (used `pairId ?`) and table (used `pairStatus === 'paired'`).
+- **DHTMLX pinned** — Gantt CDN changed from `edge` to `8.0`.
+- **CDN setup check** — Playwright global setup launches a browser, loads the page, and fails fast with clear message ("Dependency unavailable: Chart.js") if any expected global is missing.
+- **New e2e specs** — 4 optimizer review tests (R1 overlay, R4 region labels, R5 physics, R13 import bounds), 5 gap review tests (R3/R27 dep guard, R8 charts filter, R9 precision, R15 escaping, R16 csvCell).
+- **Onboarding smoke suite** — 7 specs: 4-hour snapping, margin math, margin-100 error, tier dropdown, ribbon inputs, contingency field, assumptions textarea.
+- **Playwright config** — Added `onboarding` project, `globalSetup` for CDN check.
 - **UK Valid column sortability** (nine columns sortable; docs claim ten)
 
 ---
