@@ -1,0 +1,566 @@
+{
+  "version": "2.1",
+  "selectedFootprint": [
+    22
+  ],
+  "cellCosts": {},
+  "baselineMode": "blended",
+  "specificBaselineIdx": null,
+  "customers": [
+    {
+      "name": "Paris, France",
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Nairobi, Kenya",
+      "lat": -1.2921,
+      "lng": 36.8219,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Houston, USA",
+      "lat": 29.7604,
+      "lng": -95.3698,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Rome, Italy",
+      "lat": 41.9028,
+      "lng": 12.4964,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Zurich, Switzerland",
+      "lat": 47.3769,
+      "lng": 8.5417,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Oslo, Norway",
+      "lat": 59.9139,
+      "lng": 10.7522,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Abidjan, Ivory Coast",
+      "lat": 5.36,
+      "lng": -4.0083,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Accra, Ghana",
+      "lat": 5.6037,
+      "lng": -0.187,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Addis Ababa, Ethiopia",
+      "lat": 9.032,
+      "lng": 38.7469,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Dakar, Senegal",
+      "lat": 14.7167,
+      "lng": -17.4677,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Kampala, Uganda",
+      "lat": 0.3476,
+      "lng": 32.5825,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Dar es Salaam, Tanzania",
+      "lat": -6.7924,
+      "lng": 39.2083,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Lusaka, Zambia",
+      "lat": -15.3875,
+      "lng": 28.3228,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Gaborone, Botswana",
+      "lat": -24.6282,
+      "lng": 25.9231,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Windhoek, Namibia",
+      "lat": -22.5609,
+      "lng": 17.0658,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Maputo, Mozambique",
+      "lat": -25.9692,
+      "lng": 32.5732,
+      "type": "city",
+      "tier": 4,
+      "sla": 150
+    },
+    {
+      "name": "Jeddah, Saudi Arabia",
+      "lat": 21.4858,
+      "lng": 39.1925,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Riyadh, Saudi Arabia",
+      "lat": 24.7136,
+      "lng": 46.6753,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Beirut, Lebanon",
+      "lat": 33.8938,
+      "lng": 35.5018,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Tel Aviv, Israel",
+      "lat": 32.0853,
+      "lng": 34.7818,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Amman, Jordan",
+      "lat": 31.9454,
+      "lng": 35.9284,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Chennai, India",
+      "lat": 13.0827,
+      "lng": 80.2707,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    },
+    {
+      "name": "Kolkata, India",
+      "lat": 22.5726,
+      "lng": 88.3639,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    },
+    {
+      "name": "Hyderabad, India",
+      "lat": 17.385,
+      "lng": 78.4867,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    },
+    {
+      "name": "Pune, India",
+      "lat": 18.5204,
+      "lng": 73.8567,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    },
+    {
+      "name": "Guangzhou, China",
+      "lat": 23.1291,
+      "lng": 113.2644,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    },
+    {
+      "name": "Shanghai, China",
+      "lat": 31.2304,
+      "lng": 121.4737,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    },
+    {
+      "name": "Singapore",
+      "lat": 1.3521,
+      "lng": 103.8198,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Seoul, South Korea",
+      "lat": 37.5665,
+      "lng": 126.978,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Hanoi, Vietnam",
+      "lat": 21.0285,
+      "lng": 105.8542,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Jakarta, Indonesia",
+      "lat": -6.2088,
+      "lng": 106.8456,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Bangkok, Thailand",
+      "lat": 13.7563,
+      "lng": 100.5018,
+      "type": "city",
+      "tier": 2,
+      "sla": 150
+    },
+    {
+      "name": "Brisbane, Australia",
+      "lat": -27.4698,
+      "lng": 153.0251,
+      "type": "city",
+      "tier": 1,
+      "sla": 150
+    },
+    {
+      "name": "Dhaka, Bangladesh",
+      "lat": 23.8103,
+      "lng": 90.4125,
+      "type": "city",
+      "tier": 3,
+      "sla": 150
+    }
+  ],
+  "slaMode": "global",
+  "globalSLA": 100,
+  "perCustomerSLA": {},
+  "processingTime": 10,
+  "realisticMode": true,
+  "safetyFloor": 20,
+  "analysisResults": {
+    "summary": {
+      "totalEndpoints": 34,
+      "alreadyCoveredCount": 9,
+      "newRecommendationsCount": 4,
+      "marginalCount": 5,
+      "impossibleToCoverCount": 6,
+      "estimatedNewMonthlyOpex": 11133,
+      "safetyFloor": 20,
+      "avgHeadroom": 45,
+      "minHeadroom": 14
+    },
+    "alreadyCovered": [
+      {
+        "name": "Paris, France",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 15,
+        "headroom": 85,
+        "marginalExisting": false
+      },
+      {
+        "name": "Rome, Italy",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 28,
+        "headroom": 72,
+        "marginalExisting": false
+      },
+      {
+        "name": "Zurich, Switzerland",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 21,
+        "headroom": 79,
+        "marginalExisting": false
+      },
+      {
+        "name": "Oslo, Norway",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 31,
+        "headroom": 69,
+        "marginalExisting": false
+      },
+      {
+        "name": "Jeddah, Saudi Arabia",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 83,
+        "headroom": 17,
+        "marginalExisting": true
+      },
+      {
+        "name": "Riyadh, Saudi Arabia",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 86,
+        "headroom": 14,
+        "marginalExisting": true
+      },
+      {
+        "name": "Beirut, Lebanon",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 68,
+        "headroom": 32,
+        "marginalExisting": false
+      },
+      {
+        "name": "Tel Aviv, Israel",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 69,
+        "headroom": 31,
+        "marginalExisting": false
+      },
+      {
+        "name": "Amman, Jordan",
+        "slaThreshold": 100,
+        "servedByCell": "eu-west-3",
+        "actualLatency": 70,
+        "headroom": 30,
+        "marginalExisting": false
+      }
+    ],
+    "recommendedNewCells": [
+      {
+        "cellCode": "ap-south-2",
+        "cellName": "Hyderabad",
+        "estimatedMonthlyCost": 2552,
+        "endpointsCoveredCount": 10,
+        "minHeadroom": 21,
+        "avgHeadroom": 37,
+        "endpointsCovered": [
+          {
+            "name": "Chennai, India",
+            "slaThreshold": 100,
+            "actualLatency": 56,
+            "headroom": 44
+          },
+          {
+            "name": "Kolkata, India",
+            "slaThreshold": 100,
+            "actualLatency": 64,
+            "headroom": 36
+          },
+          {
+            "name": "Hyderabad, India",
+            "slaThreshold": 100,
+            "actualLatency": 50,
+            "headroom": 50
+          },
+          {
+            "name": "Pune, India",
+            "slaThreshold": 100,
+            "actualLatency": 56,
+            "headroom": 44
+          },
+          {
+            "name": "Singapore",
+            "slaThreshold": 100,
+            "actualLatency": 55,
+            "headroom": 45
+          },
+          {
+            "name": "Seoul, South Korea",
+            "slaThreshold": 100,
+            "actualLatency": 78,
+            "headroom": 22
+          },
+          {
+            "name": "Hanoi, Vietnam",
+            "slaThreshold": 100,
+            "actualLatency": 65,
+            "headroom": 35
+          },
+          {
+            "name": "Jakarta, Indonesia",
+            "slaThreshold": 100,
+            "actualLatency": 79,
+            "headroom": 21
+          },
+          {
+            "name": "Bangkok, Thailand",
+            "slaThreshold": 100,
+            "actualLatency": 59,
+            "headroom": 41
+          },
+          {
+            "name": "Dhaka, Bangladesh",
+            "slaThreshold": 100,
+            "actualLatency": 67,
+            "headroom": 33
+          }
+        ]
+      },
+      {
+        "cellCode": "ap-east-1",
+        "cellName": "Hong Kong",
+        "estimatedMonthlyCost": 2868,
+        "endpointsCoveredCount": 2,
+        "minHeadroom": 35,
+        "avgHeadroom": 42,
+        "endpointsCovered": [
+          {
+            "name": "Guangzhou, China",
+            "slaThreshold": 100,
+            "actualLatency": 52,
+            "headroom": 48
+          },
+          {
+            "name": "Shanghai, China",
+            "slaThreshold": 100,
+            "actualLatency": 65,
+            "headroom": 35
+          }
+        ]
+      },
+      {
+        "cellCode": "ap-southeast-2",
+        "cellName": "Sydney",
+        "estimatedMonthlyCost": 2917,
+        "endpointsCoveredCount": 1,
+        "minHeadroom": 76,
+        "avgHeadroom": 76,
+        "endpointsCovered": [
+          {
+            "name": "Brisbane, Australia",
+            "slaThreshold": 100,
+            "actualLatency": 24,
+            "headroom": 76
+          }
+        ]
+      },
+      {
+        "cellCode": "mx-central-1",
+        "cellName": "Mexico City",
+        "estimatedMonthlyCost": 2796,
+        "endpointsCoveredCount": 1,
+        "minHeadroom": 70,
+        "avgHeadroom": 70,
+        "endpointsCovered": [
+          {
+            "name": "Houston, USA",
+            "slaThreshold": 100,
+            "actualLatency": 30,
+            "headroom": 70
+          }
+        ]
+      }
+    ],
+    "marginalSLAs": [
+      {
+        "name": "Addis Ababa, Ethiopia",
+        "slaThreshold": 100,
+        "bestHeadroom": 3,
+        "relaxationNeeded": 17
+      },
+      {
+        "name": "Lusaka, Zambia",
+        "slaThreshold": 100,
+        "bestHeadroom": 3,
+        "relaxationNeeded": 17
+      },
+      {
+        "name": "Gaborone, Botswana",
+        "slaThreshold": 100,
+        "bestHeadroom": 15,
+        "relaxationNeeded": 5
+      },
+      {
+        "name": "Windhoek, Namibia",
+        "slaThreshold": 100,
+        "bestHeadroom": 15,
+        "relaxationNeeded": 5
+      },
+      {
+        "name": "Maputo, Mozambique",
+        "slaThreshold": 100,
+        "bestHeadroom": 11,
+        "relaxationNeeded": 9
+      }
+    ],
+    "impossibleSLAs": [
+      {
+        "name": "Nairobi, Kenya",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 148
+      },
+      {
+        "name": "Abidjan, Ivory Coast",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 128
+      },
+      {
+        "name": "Accra, Ghana",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 128
+      },
+      {
+        "name": "Dakar, Senegal",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 120
+      },
+      {
+        "name": "Kampala, Uganda",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 143
+      },
+      {
+        "name": "Dar es Salaam, Tanzania",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 156
+      }
+    ]
+  }
+}

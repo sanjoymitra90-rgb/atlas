@@ -1,7 +1,9 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const { pathToFileURL } = require('url');
 
-const APP = 'file:///C:/Users/Sanjoy/Documents/Default%20Project/qwen-test-atlas/index.html';
+const APP = pathToFileURL(path.resolve(__dirname, '..', '..', 'index.html')).href;
 
 // Helper: navigate to app and wait for load
 async function loadApp(page) {

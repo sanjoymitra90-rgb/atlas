@@ -303,24 +303,115 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 .callout-title { font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
 
 /* Pair hover cross-highlight */
-tr.gap-pair-highlight { outline: 1px solid rgba(167,139,250,0.7); background: rgba(139,92,246,0.10) !important; }
+tr.gap-pair-highlight { outline: 1px solid var(--gap-accent-strong); background: rgba(139,92,246,0.10) !important; }
 tr.gap-pair-dim { opacity: 0.45; }
 
 /* Group-by banding: luminance zebra + seams */
-.gap-group-alt { background: rgba(148,163,184,0.05); }
-.gap-group-seam { border-top: 1px solid rgba(71,85,85,0.55); }
+.gap-group-alt { background: var(--gap-group-alt); }
+.gap-group-seam { border-top: 1px solid var(--gap-group-seam); }
 
 /* Group-by-pair switch */
 .gap-switch-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
   appearance: none; -webkit-appearance: none; }
 .gap-switch-track { position: relative; display: inline-block; width: 36px; height: 20px;
-  border-radius: 9999px; background: #334155; transition: background-color .2s ease; cursor: pointer; }
+  border-radius: 9999px; background: var(--gap-switch-track); transition: background-color .2s ease; cursor: pointer; }
 .gap-switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
-  border-radius: 9999px; background: #e2e8f0; transition: transform .2s ease; }
-.gap-switch-input:checked + .gap-switch-track { background: #8b5cf6; }
+  border-radius: 9999px; background: var(--gap-switch-knob); transition: transform .2s ease; }
+.gap-switch-input:checked + .gap-switch-track { background: var(--gap-accent); }
 .gap-switch-input:checked + .gap-switch-track::after { transform: translateX(16px); }
-.gap-switch-input:focus-visible + .gap-switch-track { outline: 2px solid #a78bfa; outline-offset: 2px; }
+.gap-switch-input:focus-visible + .gap-switch-track { outline: 2px solid var(--gap-accent-strong); outline-offset: 2px; }
+
+/* Upgrade plan switch (optimizer) */
+.upgrade-switch-track { position: relative; display: inline-block; width: 36px; height: 20px; border-radius: 9999px; background: #334155; transition: background-color .2s ease; cursor: pointer; vertical-align: middle; }
+.upgrade-switch-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 9999px; background: #e2e8f0; transition: transform .2s ease; }
+.upgrade-switch-input:checked + .upgrade-switch-track { background: #10b981; }
+.upgrade-switch-input:checked + .upgrade-switch-track::after { transform: translateX(16px); }
+.upgrade-switch-input:focus-visible + .upgrade-switch-track { outline: 2px solid #34d399; outline-offset: 2px; }
+
+/* ─── Gap Theme Tokens (dark default) ─── */
+:root {
+  --gap-canvas: #020617;
+  --gap-panel: rgba(15,23,42,0.5);
+  --gap-panel-solid: #0f172a;
+  --gap-input: #1e293b;
+  --gap-border: #1e293b;
+  --gap-border-strong: #334155;
+  --gap-text-1: #ffffff;
+  --gap-text-2: #cbd5e1;
+  --gap-text-3: #94a3b8;
+  --gap-text-4: #64748b;
+  --gap-accent: #8b5cf6;
+  --gap-accent-strong: #a78bfa;
+  --gap-valid-text: #34d399;
+  --gap-valid-bg: rgba(16,185,129,0.15);
+  --gap-invalid-text: #f87171;
+  --gap-invalid-bg: rgba(239,68,68,0.15);
+  --gap-warn-text: #fbbf24;
+  --gap-warn-bg: rgba(245,158,11,0.15);
+  --gap-group-alt: rgba(148,163,184,0.05);
+  --gap-group-seam: rgba(71,85,85,0.55);
+  --gap-switch-track: #334155;
+  --gap-switch-knob: #e2e8f0;
+  --gap-chart-grid: #1e293b;
+  --gap-chart-tick: #64748b;
+  --gap-chart-legend: #94a3b8;
+  --gap-chart-threshold: #ef4444;
+  --gap-chart-zero-line: #64748b;
+}
+
+/* ─── Gap Semantic Classes ─── */
+.gap-canvas  { background: var(--gap-canvas); }
+.gap-header  { background: color-mix(in srgb, var(--gap-canvas) 85%, transparent); }
+.gap-panel   { background: var(--gap-panel); border: 1px solid var(--gap-border); }
+.gap-raised  { background: var(--gap-panel-solid); border: 1px solid var(--gap-border-strong); }
+.gap-input   { background: var(--gap-input); border: 1px solid var(--gap-border-strong); color: var(--gap-text-1); }
+.gap-label   { color: var(--gap-text-3); }
+.gap-desc    { color: var(--gap-text-4); }
+.gap-muted   { color: var(--gap-text-2); }
+.gap-heading { color: var(--gap-text-1); }
+.gap-divider { border-color: var(--gap-border); }
+.gap-divider-strong { border-color: var(--gap-border-strong); }
+.gap-placeholder::placeholder { color: var(--gap-text-4); }
+.gap-pill-ok  { background: var(--gap-valid-bg); color: var(--gap-valid-text); }
+.gap-pill-bad { background: var(--gap-invalid-bg); color: var(--gap-invalid-text); }
+.gap-pill-warn { background: var(--gap-warn-bg); color: var(--gap-warn-text); }
+.gap-pill-muted { background: var(--gap-input); color: var(--gap-text-3); }
+.gap-chip     { background: var(--gap-input); color: var(--gap-text-2); }
+
+/* ─── Light Theme Overrides ─── */
+[data-theme="light"] {
+  --gap-canvas: #f8fafc;
+  --gap-panel: rgba(255,255,255,0.8);
+  --gap-panel-solid: #ffffff;
+  --gap-input: #f1f5f9;
+  --gap-border: #e2e8f0;
+  --gap-border-strong: #cbd5e1;
+  --gap-text-1: #0f172a;
+  --gap-text-2: #334155;
+  --gap-text-3: #475569;
+  --gap-text-4: #64748b;
+  --gap-accent: #7c3aed;
+  --gap-accent-strong: #6d28d9;
+  --gap-valid-text: #059669;
+  --gap-valid-bg: rgba(16,185,129,0.12);
+  --gap-invalid-text: #dc2626;
+  --gap-invalid-bg: rgba(239,68,68,0.12);
+  --gap-warn-text: #d97706;
+  --gap-warn-bg: rgba(245,158,11,0.12);
+  --gap-group-alt: rgba(100,116,139,0.06);
+  --gap-group-seam: rgba(148,163,184,0.3);
+  --gap-switch-track: #cbd5e1;
+  --gap-switch-knob: #ffffff;
+  --gap-chart-grid: #e2e8f0;
+  --gap-chart-tick: #64748b;
+  --gap-chart-legend: #475569;
+  --gap-chart-threshold: #dc2626;
+  --gap-chart-zero-line: #94a3b8;
+}
+[data-theme="light"] .gap-header { background: rgba(248,250,252,0.85); }
+[data-theme="light"] .gap-group-alt { background: var(--gap-group-alt); }
+[data-theme="light"] tr.gap-pair-highlight { outline-color: var(--gap-accent-strong); }
 </style>
 
 <!-- ARIA Live Region for Screen Reader Announcements -->
@@ -421,10 +512,15 @@ tr.gap-pair-dim { opacity: 0.45; }
             <div class="export-option-title"><i class="fas fa-table text-emerald-400"></i> CSV File</div>
             <div class="export-option-desc">Exports a spreadsheet-friendly report of your current endpoints, SLA, and footprint. Cannot be imported back.</div>
           </button>
+          <button class="export-option" onclick="exportShareReport()">
+            <div class="export-option-title"><i class="fas fa-share-alt text-emerald-400"></i> Share Report (HTML)</div>
+            <div class="export-option-desc">Generates a self-contained HTML file with your analysis results. Opens in any browser — no internet or ATLAS access required. Ideal for sharing with stakeholders.</div>
+          </button>
         </div>
       </div>
   
       <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('optimizer')"><i class="fas fa-book-open text-emerald-400"></i><span class="hidden sm:inline">Guide</span></button>
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openScenariosModal()" data-testid="scenarios-btn" title="Saved Scenarios"><i class="fas fa-bookmark text-amber-400"></i><span class="hidden sm:inline">Scenarios</span></button>
     </div>
   </header>
   <main class="max-w-[1680px] mx-auto px-4 sm:px-6 py-8">
@@ -602,8 +698,25 @@ tr.gap-pair-dim { opacity: 0.45; }
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
         <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-check text-emerald-400"></i></div><h3 class="font-semibold text-white">Already Covered</h3></div><div id="dash-covered-list" class="space-y-2"></div></div>
         <div class="result-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i class="fas fa-clock text-amber-400"></i></div><h3 class="font-semibold text-white">Pending Coverage</h3></div><div id="dash-pending-list" class="space-y-2"></div></div>
-        <div class="result-card" id="marginal-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-yellow-400"></i></div><h3 class="font-semibold text-white">Marginal Headroom</h3></div><div id="dash-marginal-list" class="space-y-2"></div></div>
+        <div class="result-card" id="marginal-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-exclamation-triangle text-yellow-400"></i></div><h3 class="font-semibold text-white">Marginal Headroom</h3><label class="flex items-center gap-2 ml-auto cursor-pointer select-none" title="Show upgrade plan: what cells would cover marginal endpoints if safety floor were 0"><input type="checkbox" class="upgrade-switch-input sr-only" data-testid="upgrade-plan-toggle" onchange="toggleUpgradePlan(this.checked)"><span class="upgrade-switch-track" aria-hidden="true"></span><span class="text-[10px] text-slate-400 whitespace-nowrap">Upgrades</span></label></div><div id="dash-marginal-list" class="space-y-2"></div></div>
         <div class="result-card" id="impossible-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center"><i class="fas fa-ban text-red-400"></i></div><h3 class="font-semibold text-white">Impossible SLA</h3></div><div id="dash-impossible-list" class="space-y-2"></div></div>
+      </div>
+      <div id="upgrade-plan-card" class="glass rounded-2xl p-5 mb-8 border-l-4 border-amber-500 hidden">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i class="fas fa-arrow-up text-amber-400"></i></div>
+          <div><h3 class="font-semibold text-white">Marginal Upgrade Plan</h3><p class="text-xs text-slate-400">What-if: safety floor relaxed to 0ms (pass/fail). Strict plan unchanged.</p></div>
+        </div>
+        <div id="upgrade-plan-summary" class="mb-4"></div>
+        <div id="upgrade-plan-cells" class="space-y-3 mb-4"></div>
+        <div id="upgrade-plan-endpoints" class="space-y-2"></div>
+      </div>
+      <div id="green-plan-card" class="glass rounded-2xl p-5 mb-8 border-l-4 border-emerald-500 hidden">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-leaf text-emerald-400"></i></div><h3 class="font-semibold text-white">What-if: Make Everything Green</h3></div>
+          <button id="green-plan-toggle" class="btn-ghost text-xs px-3 py-1.5 rounded-lg border border-slate-700 hover:border-emerald-500" data-mode="global" onclick="toggleGreenPlanMode()">Switch to Per-Endpoint</button>
+        </div>
+        <div id="green-plan-summary"></div>
+        <div id="green-plan-details"></div>
       </div>
       <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered endpoint (including existing ones)</p></div></div><div id="explorer-list" class="space-y-5"></div></div>
       <div class="glass rounded-2xl p-6 mb-8"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fas fa-lightbulb text-blue-400"></i></div><h3 class="font-semibold text-white text-lg">Recommended New Cells</h3></div><div id="dash-recommendations" class="space-y-4"></div></div>
@@ -616,16 +729,36 @@ tr.gap-pair-dim { opacity: 0.45; }
   </footer>
 </div>
 
+<!-- SAVED SCENARIOS MODAL -->
+<div id="scenarios-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[3000] hidden items-center justify-center p-4" role="dialog" aria-labelledby="scenarios-modal-title" aria-modal="true" data-testid="scenarios-modal">
+  <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+      <h2 id="scenarios-modal-title" class="text-lg font-bold text-white"><i class="fas fa-bookmark text-amber-400 mr-2"></i>Saved Scenarios</h2>
+      <button class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center" onclick="closeScenariosModal()" aria-label="Close modal">
+        <i class="fas fa-times text-slate-400"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-xs text-slate-400 mb-4">Save and restore analysis configurations. Stored locally in this browser only.</p>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="scenario-name-input" placeholder="Scenario name..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none">
+        <button class="btn-primary px-4 py-2 rounded-lg text-sm" onclick="handleSaveScenario()"><i class="fas fa-save mr-1"></i>Save</button>
+      </div>
+      <div id="scenario-list" class="space-y-2"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODULE: GAP ANALYZER -->
 <div id="module-gap-analyzer" tabindex="-1" style="display: none;">
-  <div class="flex flex-col min-h-screen">
-  <header class="border-b border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-[2000] bg-[#020617]/85 backdrop-blur-lg">
+  <div class="flex flex-col min-h-screen gap-canvas">
+  <header class="gap-divider border-b px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-[2000] gap-header backdrop-blur-lg">
     <div class="flex items-center gap-3">
       <button class="btn-ghost w-10 h-10 rounded-xl flex items-center justify-center mr-2 bg-slate-800/50 hover:bg-slate-700/80" onclick="showModule('gateway')" title="Back to ATLAS Home">
-        <i class="fas fa-home text-slate-300"></i>
+        <i class="fas fa-home gap-muted"></i>
       </button>
       <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center"><i class="fas fa-chart-line text-violet-400 text-lg"></i></div>
-      <div><h1 class="text-base sm:text-lg font-bold text-white">Gap Analyzer</h1><p class="text-xs text-slate-400">EDR Call Data Analysis & Validation</p></div>
+      <div><h1 class="text-base sm:text-lg font-bold gap-heading">Gap Analyzer</h1><p class="text-xs gap-label">EDR Call Data Analysis & Validation</p></div>
     </div>
     <div class="flex items-center gap-1 sm:gap-2 relative" id="header-actions-gap">
       <input type="file" id="gap-csv-upload" accept=".csv" class="hidden" data-testid="gap-upload-input" onchange="handleGapCSVUpload(event)">
@@ -649,6 +782,9 @@ tr.gap-pair-dim { opacity: 0.45; }
       <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="openHelp('gap')" title="User Guide">
         <i class="fas fa-book-open text-violet-400"></i>
         <span class="hidden sm:inline">Guide</span>
+      </button>
+      <button class="btn-ghost text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-800/50" onclick="toggleGapTheme()" id="gap-theme-toggle" data-testid="gap-theme-toggle" title="Toggle light/dark theme">
+        <i class="fas fa-sun text-violet-400" id="gap-theme-icon"></i>
       </button>
     </div>
   </header>
@@ -1327,7 +1463,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 
   <!-- HELP CONTENT: OPTIMIZER -->
   <div id="help-content-optimizer" class="flex-1 overflow-y-auto flex flex-col">
-    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">💡 Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">💰 Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Endpoints</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">🔧 How It Works</a></div></div>
+    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">💡 Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">💰 Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Endpoints</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">🔧 How It Works</a><a class="help-toc-link" onclick="scrollToSection('greenplan')">🌿 Green-Plan</a><a class="help-toc-link" onclick="scrollToSection('scenarios')">🔖 Scenarios</a><a class="help-toc-link" onclick="scrollToSection('sharereport')">📤 Share Report</a></div></div>
     <div class="help-body" id="help-body-optimizer">
       <section class="help-section" id="intro"><h3><i class="fas fa-book-open text-emerald-400"></i> What Is This Tool?</h3><p>This tool helps you figure out <strong>where to place your infrastructure ("cells")</strong> around the world so that your endpoints get fast, reliable connections.</p><p>You tell the tool:</p><ul><li>Where your <em>existing cells</em> are today</li><li>Where your <em>endpoints</em> are located</li><li>What <em>latency</em> (in milliseconds) you promised them in your SLA</li><li>Optionally, how much your current cells <em>cost</em> per month</li></ul><p>The tool then uses realistic distance parameters and a 32x32 AWS latency matrix to recommend exactly where to deploy new cells — optimizing to strictly meet your SLA for the lowest possible cost.</p></section>
       <section class="help-section" id="concepts"><h3><i class="fas fa-lightbulb text-amber-400"></i> Key Concepts</h3><h4>Cell</h4><p>A server or piece of infrastructure you deploy in an AWS data center.</p><h4>Endpoint</h4><p>An integration partner, service consumer, or client application that needs to connect to your cell.</p><h4>SLA (Service Level Agreement)</h4><p>The maximum latency (in milliseconds) you've promised your endpoints.</p><h4>Latency</h4><p>The round-trip time (in milliseconds) for data to travel from your cell to your endpoint and back.</p></section>
@@ -1346,6 +1482,9 @@ tr.gap-pair-dim { opacity: 0.45; }
         <li><b>Round-Trip Time (RTT):</b> Networking latency measures the time to go and come back. Doubling the one-way time: 0.005 ms × 2 = 0.01 ms per km.</li>
       </ul>
       <div class="help-callout success"><div class="callout-title"><i class="fas fa-heart text-emerald-400"></i> That's it!</div>Close this guide and start planning your next cell deployment.</div></section>
+      <section class="help-section" id="greenplan"><h3><i class="fas fa-leaf text-emerald-400"></i> Green-Plan What-If</h3><p>After running a coverage analysis, the dashboard shows a <b>"What-if: Make Everything Green"</b> section. This tells you exactly how much you'd need to relax your SLA to eliminate all marginal and impossible endpoints.</p><h4>Two modes</h4><ul><li><b>Global:</b> One relaxed SLA for all endpoints. Simple — just raise the SLA threshold and everything turns green.</li><li><b>Per-Endpoint:</b> Each endpoint gets its own minimal relaxation. More precise — some endpoints need only 5ms more, others need 50ms.</li></ul><p>The section also shows the <b>extra OPEX</b> — the cost difference between your current plan and the green plan.</p></section>
+      <section class="help-section" id="scenarios"><h3><i class="fas fa-bookmark text-amber-400"></i> Saved Scenarios</h3><p>On the SLA Configuration step (step 3), you'll find a <b>Saved Scenarios</b> section. Save your current analysis configuration — endpoints, SLA, safety floor, footprint, costs — and reload it later.</p><p><b>Important:</b> Scenarios are stored in your browser's localStorage. They are <b>per-machine</b> — if you switch browsers or clear your browser data, scenarios are lost. Use session JSON export for portable backups.</p></section>
+      <section class="help-section" id="sharereport"><h3><i class="fas fa-share-alt text-emerald-400"></i> Share Report</h3><p>On the Coverage Analysis dashboard (step 4), click <b>"Share Report"</b> to download a standalone HTML file. This file contains all your analysis results — endpoints, coverage, recommendations, costs — in a self-contained format.</p><p>The report opens in any browser with no internet connection required. Share it with stakeholders who don't have access to ATLAS.</p></section>
     </div>
   </div>
 
@@ -2003,6 +2142,21 @@ let fpMap, custMap, dashMap;
 let fpMapMarkers = [], custMapMarkers = [], availableCityMarkers = [], dashMapMarkers = [];
 let custMapEscHandler = null;
 
+// Test compatibility bridge: expose module-scope variables on window
+Object.defineProperty(window, '_customers', { get: () => customers, set: (v) => { customers = v; } });
+Object.defineProperty(window, '_slaMode', { get: () => slaMode, set: (v) => { slaMode = v; } });
+Object.defineProperty(window, '_globalSLA', { get: () => globalSLA, set: (v) => { globalSLA = v; } });
+Object.defineProperty(window, '_perCustomerSLA', { get: () => perCustomerSLA, set: (v) => { perCustomerSLA = v; } });
+Object.defineProperty(window, '_processingTime', { get: () => processingTime, set: (v) => { processingTime = v; } });
+Object.defineProperty(window, '_realisticMode', { get: () => realisticMode, set: (v) => { realisticMode = v; } });
+Object.defineProperty(window, '_cellCosts', { get: () => cellCosts, set: (v) => { cellCosts = v; } });
+Object.defineProperty(window, '_baselineMode', { get: () => baselineMode, set: (v) => { baselineMode = v; } });
+Object.defineProperty(window, '_specificBaselineIdx', { get: () => specificBaselineIdx, set: (v) => { specificBaselineIdx = v; } });
+Object.defineProperty(window, '_safetyFloor', { get: () => safetyFloor, set: (v) => { safetyFloor = v; } });
+Object.defineProperty(window, '_selectedFootprint', { get: () => selectedFootprint, set: (v) => { selectedFootprint = v; } });
+window._regions = regions;
+window._AWS_PRICE_INDEX = AWS_PRICE_INDEX;
+
 const MAP_BOUNDS = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
 const TIER_TAX = { 1: 5, 2: 20, 3: 40, 4: 60 };
 
@@ -2608,8 +2762,6 @@ function initCustMap() {
     if (!customers.some(k => k.name === nearest.name)) {
       tryAddEndpoint({ name: nearest.name, lat: nearest.lat, lng: nearest.lng, type: 'city', tier: nearest.tier });
     }
-    
-    toggleClickPlace();
   });
   
   updateCustMap();
@@ -2861,6 +3013,235 @@ function computeCoverage(input) {
 }
 window.computeCoverage = computeCoverage;
 
+function computeGreenPlan(input) {
+  const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency } = input;
+  const baseline = computeCoverage(input);
+  const baselineOPEX = baseline.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+
+  const perEndpoint = customers.map((c, i) => {
+    const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150);
+    let status = 'covered', relaxationNeeded = 0, currentLatency = null, currentHeadroom = null;
+
+    const coveredEntry = baseline.covered.find(x => x.idx === i);
+    if (coveredEntry) {
+      currentLatency = coveredEntry.serving.breakdown.total;
+      currentHeadroom = sla - currentLatency;
+      if (coveredEntry.marginalExisting) {
+        status = 'marginal';
+        relaxationNeeded = safetyFloor - currentHeadroom;
+      }
+    } else {
+      const margEntry = baseline.marginal.find(x => x.idx === i);
+      if (margEntry) {
+        status = 'marginal';
+        currentLatency = null;
+        currentHeadroom = margEntry.bestHeadroom;
+        relaxationNeeded = safetyFloor - margEntry.bestHeadroom;
+      } else {
+        const impEntry = baseline.impossible.find(x => x.idx === i);
+        if (impEntry) {
+          status = 'impossible';
+          const bestFrom = impEntry.bestFrom;
+          currentLatency = bestFrom ? bestFrom.breakdown.total : null;
+          currentHeadroom = bestFrom ? (sla - bestFrom.breakdown.total) : null;
+          relaxationNeeded = bestFrom ? (bestFrom.breakdown.total + safetyFloor - sla) : Infinity;
+        }
+      }
+    }
+
+    return { name: c.name, idx: i, currentSLA: sla, currentLatency, currentHeadroom, relaxationNeeded, relaxedSLA: sla + relaxationNeeded, status };
+  });
+
+  const globalRelaxation = perEndpoint.length > 0 ? Math.max(...perEndpoint.map(e => e.relaxationNeeded)) : 0;
+  const relaxedSLA = globalSLA + globalRelaxation;
+
+  const relaxedResult = computeCoverage({
+    customers, slaMode, globalSLA: relaxedSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency
+  });
+  const relaxedOPEX = relaxedResult.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+
+  return {
+    globalRelaxation,
+    relaxedSLA,
+    perEndpoint,
+    mode: 'global',
+    relaxedResult,
+    relaxedOPEX,
+    deltaOPEX: relaxedOPEX - baselineOPEX,
+    relaxedMarginal: relaxedResult.marginal,
+    relaxedImpossible: relaxedResult.impossible
+  };
+}
+window.computeGreenPlan = computeGreenPlan;
+
+let greenPlanMode = 'global';
+function toggleGreenPlanMode() {
+  const btn = document.getElementById('green-plan-toggle');
+  if (!btn) return;
+  btn.dataset.mode = btn.dataset.mode === 'per-endpoint' ? 'global' : 'per-endpoint';
+  renderDashboard();
+}
+
+function toggleUpgradePlan(checked) {
+  const card = document.getElementById('upgrade-plan-card');
+  if (!card) return;
+  if (!checked) {
+    card.classList.add('hidden');
+    return;
+  }
+  const strict = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+  const relaxed = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor: 0, selectedFootprint, getLatency: getCustomerLatency });
+  const strictOPEX = strict.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+  const relaxedOPEX = relaxed.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+  const deltaOPEX = relaxedOPEX - strictOPEX;
+
+  const strictCellIds = new Set(strict.recommendations.map(r => r.cellIdx));
+  const addedCells = relaxed.recommendations.filter(r => !strictCellIds.has(r.cellIdx));
+  const hasMarginals = strict.marginal.length > 0 || strict.covered.some(c => c.marginalExisting);
+
+  const summaryEl = document.getElementById('upgrade-plan-summary');
+  const cellsEl = document.getElementById('upgrade-plan-cells');
+  const endpointsEl = document.getElementById('upgrade-plan-endpoints');
+
+  if (!hasMarginals) {
+    summaryEl.innerHTML = '<p class="text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 mr-2"></i>No upgrades needed — all covered endpoints meet the safety floor.</p>';
+    cellsEl.innerHTML = '';
+    endpointsEl.innerHTML = '';
+    card.classList.remove('hidden');
+    return;
+  }
+
+  summaryEl.innerHTML = '<div class="flex items-center gap-4 flex-wrap">' +
+    '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Added cells:</span><span class="font-bold text-white">' + addedCells.length + '</span></div>' +
+    '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Added OPEX:</span><span class="text-amber-400 font-bold">+' + formatMoney(deltaOPEX) + '/mo</span></div>' +
+    '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Marginal resolved:</span><span class="text-emerald-400 font-bold">' + (strict.marginal.length + strict.covered.filter(c => c.marginalExisting).length) + '</span></div>' +
+    '</div>';
+
+  cellsEl.innerHTML = addedCells.length > 0 ? addedCells.map(r => {
+    const cost = estimateRegionCost(r.cellIdx);
+    return '<div class="py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/20">' +
+      '<div class="flex items-center justify-between mb-1">' +
+      '<span class="text-sm font-medium text-white">' + r.cellName + ' <span class="text-xs text-slate-500">' + r.cellCode + '</span></span>' +
+      '<span class="text-xs text-amber-400">~' + formatMoney(cost) + '/mo</span></div>' +
+      '<div class="text-xs text-slate-400">Covers ' + r.covers.length + ' endpoint' + (r.covers.length > 1 ? 's' : '') + '</div></div>';
+  }).join('') : '<p class="text-xs text-slate-500 italic">No additional cells needed — existing recommendations already cover marginals.</p>';
+
+  const marginals = [...strict.marginal, ...strict.covered.filter(c => c.marginalExisting).map(c => ({ ...c, idx: c.idx, name: c.name, sla: c.sla, bestHeadroom: c.sla - c.serving.breakdown.total }))];
+  endpointsEl.innerHTML = marginals.length > 0 ? '<h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Per-Endpoint</h4>' +
+    marginals.map(m => {
+      const relaxedCovered = relaxed.pendingCovered.find(p => p.idx === m.idx) || relaxed.covered.find(c => c.idx === m.idx);
+      if (relaxedCovered) {
+        const cellName = relaxedCovered.coveredByCell || (relaxedCovered.serving ? regions[relaxedCovered.serving.cellIdx].name : '');
+        return '<div class="py-1.5 px-3 rounded-lg bg-slate-800/40 text-xs"><span class="text-white">' + m.name + '</span> <span class="text-slate-500">→</span> <span class="text-emerald-400">covered by ' + cellName + '</span></div>';
+      }
+      return '<div class="py-1.5 px-3 rounded-lg bg-slate-800/40 text-xs"><span class="text-white">' + m.name + '</span> <span class="text-slate-500">→</span> <span class="text-amber-400">requires +' + m.relaxationNeeded + 'ms SLA relaxation</span></div>';
+    }).join('') : '';
+
+  card.classList.remove('hidden');
+}
+window.toggleUpgradePlan = toggleUpgradePlan;
+
+function getOptScenarios() {
+  try { return JSON.parse(localStorage.getItem('atlas-opt-scenarios') || '[]'); }
+  catch { return []; }
+}
+
+function saveOptScenario(name) {
+  const scenarios = getOptScenarios();
+  const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+  const opex = result.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+  scenarios.push({
+    name, ts: Date.now(),
+    customers: JSON.parse(JSON.stringify(customers)),
+    slaMode, globalSLA, perCustomerSLA: JSON.parse(JSON.stringify(perCustomerSLA)),
+    safetyFloor, selectedFootprint: [...selectedFootprint],
+    cellCosts: JSON.parse(JSON.stringify(cellCosts)),
+    baselineMode, specificBaselineIdx, processingTime, realisticMode,
+    summary: { covered: result.covered.length, marginal: result.marginal.length, impossible: result.impossible.length, opex }
+  });
+  localStorage.setItem('atlas-opt-scenarios', JSON.stringify(scenarios));
+  renderScenarioList();
+}
+
+function loadOptScenario(index) {
+  const scenarios = getOptScenarios();
+  const s = scenarios[index];
+  if (!s) return;
+  customers = s.customers || [];
+  slaMode = s.slaMode || 'global';
+  globalSLA = s.globalSLA || 150;
+  perCustomerSLA = s.perCustomerSLA || {};
+  safetyFloor = s.safetyFloor !== undefined ? s.safetyFloor : 20;
+  selectedFootprint = s.selectedFootprint || [];
+  cellCosts = s.cellCosts || {};
+  baselineMode = s.baselineMode || 'blended';
+  specificBaselineIdx = s.specificBaselineIdx !== undefined ? s.specificBaselineIdx : null;
+  processingTime = s.processingTime !== undefined ? s.processingTime : 10;
+  realisticMode = s.realisticMode !== undefined ? s.realisticMode : true;
+  document.getElementById('global-sla-input').value = globalSLA;
+  document.getElementById('processing-time-input').value = processingTime;
+  document.getElementById('safety-floor-input').value = safetyFloor;
+  setRealisticMode(realisticMode);
+  setSLAMode(slaMode);
+  goToStep(1);
+  showToast('Scenario "' + s.name + '" loaded');
+}
+
+function deleteOptScenario(index) {
+  const scenarios = getOptScenarios();
+  const name = scenarios[index] ? scenarios[index].name : '';
+  scenarios.splice(index, 1);
+  localStorage.setItem('atlas-opt-scenarios', JSON.stringify(scenarios));
+  renderScenarioList();
+  showToast('Scenario "' + name + '" deleted');
+}
+
+function handleSaveScenario() {
+  const input = document.getElementById('scenario-name-input');
+  const name = (input && input.value.trim()) || 'Scenario ' + new Date().toLocaleString();
+  if (input) input.value = '';
+  saveOptScenario(name);
+  showToast('Scenario "' + name + '" saved');
+}
+
+function openScenariosModal() {
+  const modal = document.getElementById('scenarios-modal');
+  if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+  renderScenarioList();
+}
+
+function closeScenariosModal() {
+  const modal = document.getElementById('scenarios-modal');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+function renderScenarioList() {
+  const list = document.getElementById('scenario-list');
+  if (!list) return;
+  const scenarios = getOptScenarios();
+  if (scenarios.length === 0) {
+    list.innerHTML = '<p class="text-xs text-slate-500 italic">No saved scenarios.</p>';
+    return;
+  }
+  list.innerHTML = scenarios.map((s, i) => {
+    const date = new Date(s.ts).toLocaleString();
+    const sum = s.summary || {};
+    return '<div class="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-800/40 border border-slate-700/50">' +
+      '<div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">' + s.name + '</div>' +
+      '<div class="text-xs text-slate-500">' + date + ' · ' + (sum.covered || 0) + ' covered · ' + (sum.marginal || 0) + ' marginal · ' + (sum.impossible || 0) + ' impossible · ' + formatMoney(sum.opex || 0) + '/mo</div></div>' +
+      '<div class="flex gap-2 ml-3"><button class="text-xs text-emerald-400 hover:text-emerald-300" onclick="loadOptScenario(' + i + '); closeScenariosModal();">Load</button>' +
+      '<button class="text-xs text-red-400 hover:text-red-300" onclick="deleteOptScenario(' + i + ')">Delete</button></div></div>';
+  }).join('');
+}
+window.getOptScenarios = getOptScenarios;
+window.saveOptScenario = saveOptScenario;
+window.loadOptScenario = loadOptScenario;
+window.deleteOptScenario = deleteOptScenario;
+window.handleSaveScenario = handleSaveScenario;
+window.openScenariosModal = openScenariosModal;
+window.closeScenariosModal = closeScenariosModal;
+window.renderScenarioList = renderScenarioList;
+
 function renderDashboard() {
   const result = computeCoverage({
     customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint,
@@ -2946,6 +3327,36 @@ function renderDashboard() {
     }).join('');
   } else {
     margCard.classList.add('hidden');
+  }
+
+  const gpCard = document.getElementById('green-plan-card');
+  if (gpCard && (marginal.length > 0 || impossible.length > 0)) {
+    gpCard.classList.remove('hidden');
+    const gp = computeGreenPlan({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+    const gpSummary = document.getElementById('green-plan-summary');
+    const gpDetails = document.getElementById('green-plan-details');
+    const gpToggle = document.getElementById('green-plan-toggle');
+    const isPerEndpoint = gpToggle && gpToggle.dataset.mode === 'per-endpoint';
+    if (gpToggle) gpToggle.textContent = isPerEndpoint ? 'Switch to Global' : 'Switch to Per-Endpoint';
+
+    if (!isPerEndpoint) {
+      gpSummary.innerHTML = `<div class="flex items-center gap-4 flex-wrap mb-3">
+        <div class="flex items-center gap-2"><i class="fas fa-arrow-up text-emerald-400"></i><span class="text-xs text-slate-400">Relax SLA:</span><span class="font-bold text-white">${globalSLA}ms → ${gp.relaxedSLA}ms</span><span class="text-xs text-emerald-400">(+${gp.globalRelaxation}ms)</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-dollar-sign text-amber-400"></i><span class="text-xs text-slate-400">Extra OPEX:</span><span class="cost-tag">${gp.deltaOPEX > 0 ? '+' + formatMoney(gp.deltaOPEX) + '/mo' : '$0'}</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i><span class="text-xs text-slate-400">Marginal:</span><span class="text-emerald-400 font-bold">${gp.relaxedMarginal.length}</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-ban text-red-400"></i><span class="text-xs text-slate-400">Impossible:</span><span class="text-red-400 font-bold">${gp.relaxedImpossible.length}</span></div>
+      </div>`;
+      gpDetails.innerHTML = '';
+    } else {
+      gpSummary.innerHTML = `<div class="text-xs text-slate-400 mb-3">Per-endpoint relaxation: each endpoint gets exactly enough SLA headroom to be green.</div>`;
+      gpDetails.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="text-left text-slate-400">
+        <th class="py-1 pr-3">Endpoint</th><th class="py-1 pr-3">Current SLA</th><th class="py-1 pr-3">Relax by</th><th class="py-1">Relaxed SLA</th>
+      </tr></thead><tbody>${gp.perEndpoint.filter(e => e.relaxationNeeded > 0).map(e =>
+        `<tr class="border-t border-slate-700/50"><td class="py-1 pr-3 text-white">${e.name}</td><td class="py-1 pr-3">${e.currentSLA}ms</td><td class="py-1 pr-3 text-amber-400">+${e.relaxationNeeded}ms</td><td class="py-1 text-emerald-400">${e.relaxedSLA}ms</td></tr>`
+      ).join('')}</tbody></table></div>`;
+    }
+  } else if (gpCard) {
+    gpCard.classList.add('hidden');
   }
 
   const explorerDiv = document.getElementById('latency-explorer');
@@ -3428,6 +3839,54 @@ function exportSessionCSV() {
   link.remove();
   showToast("CSV report exported successfully!");
 }
+
+function exportShareReport() {
+  const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+  const opex = result.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+  const slaLabel = slaMode === 'global' ? globalSLA + 'ms (Global)' : 'Per-Endpoint';
+  const modeLabel = realisticMode ? 'Realistic' : 'Naive';
+  const date = new Date().toLocaleString();
+
+  const escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const coveredRows = result.covered.map(c => '<tr><td>' + escHtml(c.name) + '</td><td>' + c.sla + 'ms</td><td>' + regions[c.serving.cellIdx].code + '</td><td>' + c.serving.breakdown.total + 'ms</td><td>' + (c.sla - c.serving.breakdown.total) + 'ms</td><td>' + (c.marginalExisting ? 'Marginal' : 'Green') + '</td></tr>').join('');
+  const pendingRows = result.pendingCovered.map(c => '<tr><td>' + escHtml(c.name) + '</td><td>' + c.sla + 'ms</td><td>' + c.coveredByCellCode + '</td><td>' + c.recBreakdown.total + 'ms</td><td>' + c.headroom + 'ms</td></tr>').join('');
+  const marginalRows = result.marginal.map(c => '<tr><td>' + escHtml(c.name) + '</td><td>' + c.sla + 'ms</td><td>' + c.bestHeadroom + 'ms</td><td>' + c.relaxationNeeded + 'ms</td></tr>').join('');
+  const impossibleRows = result.impossible.map(c => '<tr><td>' + escHtml(c.name) + '</td><td>' + c.sla + 'ms</td><td>' + c.bestFrom.breakdown.total + 'ms</td><td>+' + (c.bestFrom.breakdown.total - c.sla) + 'ms</td></tr>').join('');
+  const recRows = result.recommendations.map(r => '<tr><td>' + escHtml(r.cellName) + '</td><td>' + r.cellCode + '</td><td>' + r.covers.length + '</td><td>' + r.minHeadroom + 'ms</td><td>' + r.avgHeadroom + 'ms</td><td>$' + estimateRegionCost(r.cellIdx) + '</td></tr>').join('');
+
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>ATLAS Coverage Report</title><style>' +
+    'body{font-family:system-ui,sans-serif;background:#0b1120;color:#e2e8f0;padding:40px;max-width:1000px;margin:0 auto}' +
+    'h1{color:#10b981;font-size:24px;margin-bottom:4px}h2{color:#f59e0b;font-size:16px;margin:24px 0 8px;border-bottom:1px solid #334155;padding-bottom:4px}' +
+    'p{font-size:13px;color:#94a3b8;margin:4px 0}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}' +
+    'th,td{padding:6px 10px;border:1px solid #334155;text-align:left}th{background:#1e293b;color:#94a3b8;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.5px}' +
+    '.stats{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.stat{padding:10px 18px;background:#1e293b;border-radius:8px;font-size:13px}' +
+    '.stat b{display:block;font-size:20px;color:#fff;margin-top:2px}footer{margin-top:40px;padding-top:12px;border-top:1px solid #334155;font-size:11px;color:#64748b}' +
+    '</style></head><body>' +
+    '<h1>ATLAS Coverage Report</h1>' +
+    '<p>Generated: ' + date + ' · SLA: ' + slaLabel + ' · Safety Floor: ' + safetyFloor + 'ms · Mode: ' + modeLabel + '</p>' +
+    '<div class="stats"><div class="stat">Endpoints<b>' + customers.length + '</b></div><div class="stat">Already Covered<b style="color:#10b981">' + result.covered.length + '</b></div>' +
+    '<div class="stat">Pending<b style="color:#f59e0b">' + result.pendingCovered.length + '</b></div><div class="stat">Marginal<b style="color:#eab308">' + result.marginal.length + '</b></div>' +
+    '<div class="stat">Impossible<b style="color:#ef4444">' + result.impossible.length + '</b></div><div class="stat">New OPEX<b>$' + opex + '/mo</b></div></div>' +
+    '<h2>Already Covered (' + result.covered.length + ')</h2>' + (coveredRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th><th>Status</th></tr>' + coveredRows + '</table>' : '<p>None</p>') +
+    '<h2>Pending Coverage (' + result.pendingCovered.length + ')</h2>' + (pendingRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th></tr>' + pendingRows + '</table>' : '<p>None</p>') +
+    '<h2>Marginal (' + result.marginal.length + ')</h2>' + (marginalRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Best Headroom</th><th>Relax by</th></tr>' + marginalRows + '</table>' : '<p>None</p>') +
+    '<h2>Impossible (' + result.impossible.length + ')</h2>' + (impossibleRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Best Latency</th><th>Overshoot</th></tr>' + impossibleRows + '</table>' : '<p>None</p>') +
+    '<h2>Recommended New Cells (' + result.recommendations.length + ')</h2>' + (recRows ? '<table><tr><th>Cell</th><th>Code</th><th>Covers</th><th>Min Headroom</th><th>Avg Headroom</th><th>Cost</th></tr>' + recRows + '</table>' : '<p>None</p>') +
+    '<footer>Generated by ATLAS · Provenant Inc. · ' + date + '</footer></body></html>';
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'atlas_coverage_report_' + getTimestamp() + '.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Share report exported!');
+}
+window.exportShareReport = exportShareReport;
 
 function exportOnboardingJSON() {
   document.getElementById('export-menu-onb').classList.remove('show');
@@ -4781,6 +5240,17 @@ function renderGapTable() {
   }
 }
 
+function gapChartTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  return {
+    grid: cs.getPropertyValue('--gap-chart-grid').trim() || '#1e293b',
+    tick: cs.getPropertyValue('--gap-chart-tick').trim() || '#64748b',
+    legend: cs.getPropertyValue('--gap-chart-legend').trim() || '#94a3b8',
+    threshold: cs.getPropertyValue('--gap-chart-threshold').trim() || '#ef4444',
+    zeroLine: cs.getPropertyValue('--gap-chart-zero-line').trim() || '#64748b'
+  };
+}
+
 function renderGapCharts() {
   const validData = gapFilteredData.filter(row => row.timeValid && row.timestamp);
   if (!validData.length) {
@@ -4860,6 +5330,7 @@ function renderGapCharts() {
   gapChartInstances = {};
 
   const invalidCtx = document.getElementById('gap-chart-invalid');
+  const th = gapChartTheme();
   if (invalidCtx) {
     gapChartInstances.invalid = new Chart(invalidCtx, {
       type: 'line',
@@ -4878,10 +5349,10 @@ function renderGapCharts() {
         responsive: true,
         maintainAspectRatio: false,
         onClick: makeChartClickHandler('invalid'),
-        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid } }
         }
       }
     });
@@ -4904,10 +5375,10 @@ function renderGapCharts() {
         responsive: true,
         maintainAspectRatio: false,
         onClick: makeChartClickHandler('volume'),
-        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+          x: { stacked: true, ticks: { color: th.tick }, grid: { color: th.grid } },
+          y: { stacked: true, ticks: { color: th.tick }, grid: { color: th.grid } }
         }
       }
     });
@@ -4932,10 +5403,10 @@ function renderGapCharts() {
         responsive: true,
         maintainAspectRatio: false,
         onClick: makeChartClickHandler('proc'),
-        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid } }
         }
       }
     });
@@ -4957,10 +5428,10 @@ function renderGapCharts() {
         responsive: true,
         maintainAspectRatio: false,
         onClick: makeChartClickHandler('ttv'),
-        plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
+        plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
-          y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true, title: { display: true, text: 'ms', color: '#64748b' } }
+          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th.tick } }
         }
       }
     });
@@ -5003,13 +5474,15 @@ function renderSingleChart(chartType) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
   if (chartType === 'invalid') {
+    const th2 = gapChartTheme();
     const invalidTotal = labels.map(k => timeBuckets[k].signingInvalid + timeBuckets[k].verifyInvalid);
     gapChartInstances.invalid = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: [{ label: 'Invalid UK Numbers', data: invalidTotal, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 }] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('invalid'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('invalid'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'volume') {
+    const th2 = gapChartTheme();
     const signingValid = labels.map(k => timeBuckets[k].signingValid);
     const signingInvalid = labels.map(k => timeBuckets[k].signingInvalid);
     const verifyValid = labels.map(k => timeBuckets[k].verifyValid);
@@ -5022,14 +5495,15 @@ function renderSingleChart(chartType) {
         { label: 'Verification (Valid)', data: verifyValid, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: '#10b981', borderWidth: 1, stack: 'verify' },
         { label: 'Verification (Invalid)', data: verifyInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'verify' }
       ] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { stacked: true, ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { stacked: true, ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'proc') {
+    const th2 = gapChartTheme();
     const processing = labels.map(k => { const arr = timeBuckets[k].processing; return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0; });
     gapChartInstances.processing = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: [{ label: 'Avg Processing Time (ms)', data: processing, borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)', fill: true, tension: 0.4 }] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('proc'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('proc'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'ttv') {
     const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.timeToVerify != null);
@@ -5044,7 +5518,7 @@ function renderSingleChart(chartType) {
         { label: 'Median TTV (ms)', data: ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false },
         { label: 'P95 TTV (ms)', data: ttvP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false }
       ] },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('ttv'), plugins: { legend: { display: true, labels: { color: '#94a3b8' } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, beginAtZero: true, title: { display: true, text: 'ms', color: '#64748b' } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('ttv'), plugins: { legend: { display: true, labels: { color: gapChartTheme().legend } } }, scales: { x: { ticks: { color: gapChartTheme().tick }, grid: { color: gapChartTheme().grid } }, y: { ticks: { color: gapChartTheme().tick }, grid: { color: gapChartTheme().grid }, beginAtZero: true, title: { display: true, text: 'ms', color: gapChartTheme().tick } } } }
     });
   }
 }
@@ -5154,6 +5628,30 @@ function changeGapRowsPerPage(value) {
   gapCurrentPage = 1;
   renderGapTable();
 }
+
+function toggleGapTheme() {
+  const root = document.getElementById('main-content') || document.getElementById('module-gap-analyzer');
+  if (!root) return;
+  const current = root.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('atlas-gap-theme', next);
+  const icon = document.getElementById('gap-theme-icon');
+  if (icon) icon.className = next === 'light' ? 'fas fa-moon text-violet-400' : 'fas fa-sun text-violet-400';
+  if (typeof renderGapCharts === 'function' && gapData && gapData.length > 0) renderGapCharts();
+}
+
+(function initGapTheme() {
+  const saved = localStorage.getItem('atlas-gap-theme');
+  if (saved === 'light') {
+    const root = document.getElementById('module-gap-analyzer');
+    if (root) root.setAttribute('data-theme', 'light');
+    document.addEventListener('DOMContentLoaded', function() {
+      const icon = document.getElementById('gap-theme-icon');
+      if (icon) icon.className = 'fas fa-moon text-violet-400';
+    });
+  }
+})();
 
 function toggleGapGroupMode() {
   const input = document.getElementById('gap-group-toggle');

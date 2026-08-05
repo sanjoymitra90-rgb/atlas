@@ -1,0 +1,122 @@
+{
+  "version": "2.0",
+  "selectedFootprint": [
+    1
+  ],
+  "cellCosts": {},
+  "baselineMode": "blended",
+  "specificBaselineIdx": null,
+  "customers": [
+    {
+      "name": "Paris, France",
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "type": "city",
+      "tier": 1
+    },
+    {
+      "name": "Nairobi, Kenya",
+      "lat": -1.2921,
+      "lng": 36.8219,
+      "type": "city",
+      "tier": 4
+    },
+    {
+      "name": "Houston, USA",
+      "lat": 29.7604,
+      "lng": -95.3698,
+      "type": "city",
+      "tier": 1
+    },
+    {
+      "name": "Rome, Italy",
+      "lat": 41.9028,
+      "lng": 12.4964,
+      "type": "city",
+      "tier": 1
+    },
+    {
+      "name": "Zurich, Switzerland",
+      "lat": 47.3769,
+      "lng": 8.5417,
+      "type": "city",
+      "tier": 1
+    },
+    {
+      "name": "Oslo, Norway",
+      "lat": 59.9139,
+      "lng": 10.7522,
+      "type": "city",
+      "tier": 1
+    },
+    {
+      "name": "Abidjan, Ivory Coast",
+      "lat": 5.36,
+      "lng": -4.0083,
+      "type": "city",
+      "tier": 4
+    }
+  ],
+  "slaMode": "global",
+  "globalSLA": 100,
+  "perCustomerSLA": {},
+  "processingTime": 10,
+  "realisticMode": true,
+  "analysisResults": {
+    "summary": {
+      "totalEndpoints": 7,
+      "alreadyCoveredCount": 0,
+      "newRecommendationsCount": 1,
+      "impossibleToCoverCount": 2,
+      "estimatedNewMonthlyOpex": 2528
+    },
+    "alreadyCovered": [],
+    "recommendedNewCells": [
+      {
+        "cellCode": "ca-central-1",
+        "cellName": "Montreal",
+        "estimatedMonthlyCost": 2528,
+        "endpointsCoveredCount": 5,
+        "endpointsCovered": [
+          {
+            "name": "Paris, France",
+            "slaThreshold": 100,
+            "actualLatency": 81
+          },
+          {
+            "name": "Houston, USA",
+            "slaThreshold": 100,
+            "actualLatency": 46
+          },
+          {
+            "name": "Rome, Italy",
+            "slaThreshold": 100,
+            "actualLatency": 94
+          },
+          {
+            "name": "Zurich, Switzerland",
+            "slaThreshold": 100,
+            "actualLatency": 87
+          },
+          {
+            "name": "Oslo, Norway",
+            "slaThreshold": 100,
+            "actualLatency": 81
+          }
+        ]
+      }
+    ],
+    "impossibleSLAs": [
+      {
+        "name": "Nairobi, Kenya",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 175
+      },
+      {
+        "name": "Abidjan, Ivory Coast",
+        "slaThreshold": 100,
+        "bestPossibleLatency": 222
+      }
+    ]
+  }
+}
