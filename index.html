@@ -2126,7 +2126,7 @@ document.addEventListener('keydown', (e) => {
 // ==========================================
 // OPTIMIZER PRISTINE LOGIC
 // ==========================================
-const regions=[{code:'af-south-1',name:'Cape Town',city:'Cape Town, South Africa',continent:'Africa',lat:-33.9249,lng:18.4241},{code:'ap-east-1',name:'Hong Kong',city:'Hong Kong',continent:'Asia Pacific',lat:22.3193,lng:114.1694},{code:'ap-northeast-1',name:'Tokyo',city:'Tokyo, Japan',continent:'Asia Pacific',lat:35.6762,lng:139.6503},{code:'ap-northeast-2',name:'Seoul',city:'Seoul, South Korea',continent:'Asia Pacific',lat:37.5665,lng:126.9780},{code:'ap-northeast-3',name:'Osaka',city:'Osaka, Japan',continent:'Asia Pacific',lat:34.6937,lng:135.5023},{code:'ap-south-1',name:'Mumbai',city:'Mumbai, India',continent:'Asia Pacific',lat:19.0760,lng:72.8777},{code:'ap-south-2',name:'Hyderabad',city:'Hyderabad, India',continent:'Asia Pacific',lat:17.3850,lng:78.4867},{code:'ap-southeast-1',name:'Singapore',city:'Singapore',continent:'Asia Pacific',lat:1.3521,lng:103.8198},{code:'ap-southeast-2',name:'Sydney',city:'Sydney, Australia',continent:'Asia Pacific',lat:-33.8688,lng:151.2093},{code:'ap-southeast-3',name:'Jakarta',city:'Jakarta, Indonesia',continent:'Asia Pacific',lat:-6.2088,lng:106.8456},{code:'ap-southeast-4',name:'Melbourne',city:'Melbourne, Australia',continent:'Asia Pacific',lat:-37.8136,lng:144.9631},{code:'ap-southeast-5',name:'Auckland',city:'Auckland, New Zealand',continent:'Asia Pacific',lat:-36.8485,lng:174.7633},{code:'ap-southeast-7',name:'Kuala Lumpur',city:'Kuala Lumpur, Malaysia',continent:'Asia Pacific',lat:3.1390,lng:101.6869},{code:'ca-central-1',name:'Montreal',city:'Montreal, QC',continent:'North America',lat:45.5017,lng:-73.5673},{code:'ca-west-1',name:'Calgary',city:'Calgary, Alberta',continent:'North America',lat:51.0447,lng:-114.0719},{code:'eu-central-1',name:'Frankfurt',city:'Frankfurt, Germany',continent:'Europe',lat:50.1109,lng:8.6821},{code:'eu-central-2',name:'Zurich',city:'Zurich, Switzerland',continent:'Europe',lat:47.3769,lng:8.5417},{code:'eu-north-1',name:'Stockholm',city:'Stockholm, Sweden',continent:'Europe',lat:59.3293,lng:18.0686},{code:'eu-south-1',name:'Milan',city:'Milan, Italy',continent:'Europe',lat:45.4642,lng:9.1900},{code:'eu-south-2',name:'Madrid',city:'Madrid, Spain',continent:'Europe',lat:40.4168,lng:-3.7038},{code:'eu-west-1',name:'Dublin',city:'Dublin, Ireland',continent:'Europe',lat:53.3498,lng:-6.2603},{code:'eu-west-2',name:'London',city:'London, UK',continent:'Europe',lat:51.5074,lng:-0.1278},{code:'eu-west-3',name:'Paris',city:'Paris, France',continent:'Europe',lat:48.8566,lng:2.3522},{code:'il-central-1',name:'Tel Aviv',city:'Tel Aviv, Israel',continent:'Middle East',lat:32.0853,lng:34.7818},{code:'me-central-1',name:'Dubai',city:'Dubai, UAE',continent:'Middle East',lat:25.2048,lng:55.2708},{code:'me-south-1',name:'Manama',city:'Manama, Bahrain',continent:'Middle East',lat:26.2285,lng:50.5860},{code:'mx-central-1',name:'Mexico City',city:'Mexico City, Mexico',continent:'North America',lat:19.4326,lng:-99.1332},{code:'sa-east-1',name:'São Paulo',city:'São Paulo, Brazil',continent:'South America',lat:-23.5505,lng:-46.6333},{code:'us-east-1',name:'N. Virginia',city:'Washington, DC',continent:'North America',lat:38.9072,lng:-77.0369},{code:'us-east-2',name:'Ohio',city:'Columbus, Ohio',continent:'North America',lat:39.9612,lng:-82.9988},{code:'us-west-1',name:'N. California',city:'San Francisco, CA',continent:'North America',lat:37.7749,lng:-122.4194},{code:'us-west-2',name:'Oregon',city:'Portland, OR',continent:'North America',lat:45.5152,lng:-122.6784}];
+const regions=[{code:'af-south-1',name:'Cape Town',city:'Cape Town, South Africa',continent:'Africa',lat:-33.9249,lng:18.4241},{code:'ap-east-1',name:'Hong Kong',city:'Hong Kong',continent:'Asia Pacific',lat:22.3193,lng:114.1694},{code:'ap-northeast-1',name:'Tokyo',city:'Tokyo, Japan',continent:'Asia Pacific',lat:35.6762,lng:139.6503},{code:'ap-northeast-2',name:'Seoul',city:'Seoul, South Korea',continent:'Asia Pacific',lat:37.5665,lng:126.9780},{code:'ap-northeast-3',name:'Osaka',city:'Osaka, Japan',continent:'Asia Pacific',lat:34.6937,lng:135.5023},{code:'ap-south-1',name:'Mumbai',city:'Mumbai, India',continent:'Asia Pacific',lat:19.0760,lng:72.8777},{code:'ap-south-2',name:'Hyderabad',city:'Hyderabad, India',continent:'Asia Pacific',lat:17.3850,lng:78.4867},{code:'ap-southeast-1',name:'Singapore',city:'Singapore',continent:'Asia Pacific',lat:1.3521,lng:103.8198},{code:'ap-southeast-2',name:'Sydney',city:'Sydney, Australia',continent:'Asia Pacific',lat:-33.8688,lng:151.2093},{code:'ap-southeast-3',name:'Jakarta',city:'Jakarta, Indonesia',continent:'Asia Pacific',lat:-6.2088,lng:106.8456},{code:'ap-southeast-4',name:'Melbourne',city:'Melbourne, Australia',continent:'Asia Pacific',lat:-37.8136,lng:144.9631},{code:'ap-southeast-5',name:'Kuala Lumpur',city:'Kuala Lumpur, Malaysia',continent:'Asia Pacific',lat:3.1390,lng:101.6869},{code:'ap-southeast-7',name:'Bangkok',city:'Bangkok, Thailand',continent:'Asia Pacific',lat:13.7563,lng:100.5018},{code:'ca-central-1',name:'Montreal',city:'Montreal, QC',continent:'North America',lat:45.5017,lng:-73.5673},{code:'ca-west-1',name:'Calgary',city:'Calgary, Alberta',continent:'North America',lat:51.0447,lng:-114.0719},{code:'eu-central-1',name:'Frankfurt',city:'Frankfurt, Germany',continent:'Europe',lat:50.1109,lng:8.6821},{code:'eu-central-2',name:'Zurich',city:'Zurich, Switzerland',continent:'Europe',lat:47.3769,lng:8.5417},{code:'eu-north-1',name:'Stockholm',city:'Stockholm, Sweden',continent:'Europe',lat:59.3293,lng:18.0686},{code:'eu-south-1',name:'Milan',city:'Milan, Italy',continent:'Europe',lat:45.4642,lng:9.1900},{code:'eu-south-2',name:'Madrid',city:'Madrid, Spain',continent:'Europe',lat:40.4168,lng:-3.7038},{code:'eu-west-1',name:'Dublin',city:'Dublin, Ireland',continent:'Europe',lat:53.3498,lng:-6.2603},{code:'eu-west-2',name:'London',city:'London, UK',continent:'Europe',lat:51.5074,lng:-0.1278},{code:'eu-west-3',name:'Paris',city:'Paris, France',continent:'Europe',lat:48.8566,lng:2.3522},{code:'il-central-1',name:'Tel Aviv',city:'Tel Aviv, Israel',continent:'Middle East',lat:32.0853,lng:34.7818},{code:'me-central-1',name:'Dubai',city:'Dubai, UAE',continent:'Middle East',lat:25.2048,lng:55.2708},{code:'me-south-1',name:'Manama',city:'Manama, Bahrain',continent:'Middle East',lat:26.2285,lng:50.5860},{code:'mx-central-1',name:'Mexico City',city:'Mexico City, Mexico',continent:'North America',lat:19.4326,lng:-99.1332},{code:'sa-east-1',name:'São Paulo',city:'São Paulo, Brazil',continent:'South America',lat:-23.5505,lng:-46.6333},{code:'us-east-1',name:'N. Virginia',city:'Washington, DC',continent:'North America',lat:38.9072,lng:-77.0369},{code:'us-east-2',name:'Ohio',city:'Columbus, Ohio',continent:'North America',lat:39.9612,lng:-82.9988},{code:'us-west-1',name:'N. California',city:'San Francisco, CA',continent:'North America',lat:37.7749,lng:-122.4194},{code:'us-west-2',name:'Oregon',city:'Portland, OR',continent:'North America',lat:45.5152,lng:-122.6784}];
 
 const AWS_PRICE_INDEX={'us-east-1':1.00,'us-east-2':1.00,'us-west-1':1.08,'us-west-2':1.00,'ca-central-1':1.04,'ca-west-1':1.04,'mx-central-1':1.15,'sa-east-1':1.50,'eu-west-1':1.08,'eu-west-2':1.10,'eu-west-3':1.10,'eu-central-1':1.10,'eu-central-2':1.15,'eu-north-1':1.08,'eu-south-1':1.10,'eu-south-2':1.08,'ap-northeast-1':1.25,'ap-northeast-2':1.18,'ap-northeast-3':1.25,'ap-south-1':1.05,'ap-south-2':1.05,'ap-southeast-1':1.18,'ap-southeast-2':1.20,'ap-southeast-3':1.20,'ap-southeast-4':1.20,'ap-southeast-5':1.25,'ap-southeast-7':1.15,'ap-east-1':1.18,'me-south-1':1.25,'me-central-1':1.25,'il-central-1':1.20,'af-south-1':1.30};
 const PARIS_DEFAULT_COST=2674;
@@ -2362,6 +2362,19 @@ function haversine(lat1, lng1, lat2, lng2) {
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+// Physics invariance: no matrix entry may fall below light-in-fibre RTT.
+// This catches region lat/lng misattributions (R4 class errors).
+(function checkPhysicsInvariant() {
+  regions.forEach((a, i) => regions.forEach((b, j) => {
+    if (i === j) return;
+    const floor = haversine(a.lat, a.lng, b.lat, b.lng) * 0.01;
+    if (matrix[i][j] < floor) {
+      console.error('matrix[' + i + '][' + j + '] (' + a.code + '→' + b.code + ') = ' +
+        matrix[i][j] + 'ms, below physical floor ' + floor.toFixed(0) + 'ms');
+    }
+  }));
+})();
 
 function findNearestRegionIdx(lat, lng) {
   let minDist = Infinity, nearestIdx = 0;
@@ -4079,16 +4092,34 @@ function handleImport(event) {
     try {
       const data = JSON.parse(e.target.result);
       
-      selectedFootprint = data.selectedFootprint || [];
+      let droppedCells = 0;
+      const beforeFp = (data.selectedFootprint || []).length;
+      selectedFootprint = (data.selectedFootprint || [])
+        .filter(i => Number.isInteger(i) && i >= 0 && i < regions.length);
+      droppedCells = beforeFp - selectedFootprint.length;
+      
       cellCosts = data.cellCosts || {};
       baselineMode = data.baselineMode || 'blended';
       specificBaselineIdx = data.specificBaselineIdx !== undefined ? data.specificBaselineIdx : null;
       customers = data.customers || [];
+      
+      let droppedEndpoints = 0;
+      const beforeCust = customers.length;
+      customers = customers.filter(c => {
+        if (c.regionIdx !== undefined) {
+          if (Number.isInteger(c.regionIdx) && c.regionIdx >= 0 && c.regionIdx < regions.length) return true;
+          droppedEndpoints++;
+          return false;
+        }
+        return true;
+      });
+      if (droppedEndpoints > 0) showToast(droppedEndpoints + ' endpoint(s) dropped — unknown region index', true);
+      
       slaMode = data.slaMode || 'global';
-      globalSLA = data.globalSLA || 150;
+      globalSLA = data.globalSLA ?? 150;
       perCustomerSLA = data.perCustomerSLA || {};
-      processingTime = data.processingTime !== undefined ? data.processingTime : 10;
-      safetyFloor = data.safetyFloor !== undefined ? data.safetyFloor : 20;
+      processingTime = data.processingTime ?? 10;
+      safetyFloor = data.safetyFloor ?? 20;
 
       if (Object.keys(perCustomerSLA).length === 0 && customers.length > 0) {
         customers.forEach((c, i) => {
