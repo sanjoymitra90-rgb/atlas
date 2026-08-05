@@ -11,11 +11,11 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
 
 <!-- Leaflet Config -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <!-- Font Awesome & Tailwind -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Google Fonts -->
@@ -26,9 +26,9 @@
 <link href="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.css" rel="stylesheet">
 
 <!-- html2pdf.js for Client Proposal Generation -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-38mlFj2GqWXJHH/DgpO06wTd5iJwOYq/nAA9mN73uwo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" integrity="sha256-aGsfI/xYljf7l+3M9IUdDhLx0PRqJ19oOlqHQu/QENs=" crossorigin="anonymous"></script>
 
 <style>
 /* Global Resets & Typography */
@@ -1369,6 +1369,12 @@ tr.gap-pair-dim { opacity: 0.45; }
 
 <!-- GLOBAL COMPONENTS -->
 <button class="help-fab" onclick="openHelpDefault()" aria-label="Open user guide"><i class="fas fa-question"></i></button>
+<div id="loading-overlay" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998] flex items-center justify-center pointer-events-none">
+  <div class="px-6 py-4 rounded-xl glass flex items-center gap-3">
+    <div class="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+    <span class="text-sm text-slate-300 font-medium">Processing…</span>
+  </div>
+</div>
 <div class="help-backdrop" id="help-backdrop" onclick="closeHelp()"></div>
 <div id="toast-msg" class="toast"><i id="toast-icon" class="fas fa-check-circle toast-icon success"></i><span id="toast-text"></span></div>
 
@@ -1602,13 +1608,14 @@ tr.gap-pair-dim { opacity: 0.45; }
 
       <section class="help-section" id="gap-charts">
         <h3><i class="fas fa-chart-bar text-pink-400"></i> Visualizations</h3>
-        <p>Below the table you will find:</p>
+        <p>Below the table you will find four charts:</p>
         <ul>
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
           <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket. The Y-axis scales dynamically to the data range.</li>
+          <li><strong>Time to Verify Over Time</strong> &mdash; dual-line chart showing median TTV (cyan) and P95 TTV (pink dashed) per time bucket, computed from paired signing/verification calls.</li>
         </ul>
-        <p>Use the <strong>Time Bucket</strong> dropdown in the filter bar to switch between Auto, 1 Min, 5 Min, 1 Hour, and 1 Day bucketing intervals.</p>
+        <p>Each chart has its own <strong>Time Bucket</strong> dropdown (Auto / 1 Min / 5 Min / 1 Hour / 1 Day) in its card header for independent bucketing.</p>
       </section>
 
       <section class="help-section" id="gap-uk">
@@ -1643,12 +1650,13 @@ function showModule(moduleName) {
   }
   _moduleEls.forEach(el => {
     el.style.display = 'none';
-    el.removeAttribute('id');
+    if (el.id === 'main-content') el.id = el.getAttribute('data-module-id') || '';
     if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
   });
   
   const active = _moduleEls[['gateway','optimizer','onboarding','gap-analyzer'].indexOf(moduleName)];
   active.style.display = (moduleName === 'gateway') ? 'flex' : 'block';
+  active.setAttribute('data-module-id', active.id);
   active.setAttribute('id', 'main-content');
   currentAppModule = moduleName;
 
@@ -1995,10 +2003,10 @@ function initDhtmlxGantt() {
       {name: "drag", label: "", width: 34, align: "center", template: function(task){
           return `<div class="gantt_custom_flex_cell text-slate-600 cursor-grab hover:text-slate-300 transition-colors" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>`;
       }},
-      {name: "text", label: "Line Item / Activity", width: '*', template: function(task){
-          const safeText = task.text ? task.text.replace(/"/g, '&quot;') : '';
-          return `<input type="text" class="bg-transparent text-white outline-none w-full font-medium" value="${safeText}" onchange="updateGridText('${task.id}', this.value)" onclick="event.stopPropagation();">`;
-      }},
+       {name: "text", label: "Line Item / Activity", width: '*', template: function(task){
+           const safeText = task.text ? task.text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;') : '';
+           return `<input type="text" class="bg-transparent text-white outline-none w-full font-medium" value="${safeText}" onchange="updateGridText('${task.id}', this.value)" onclick="event.stopPropagation();">`;
+       }},
       {name: "hours", label: "Est. Hrs", align: "center", width: 80, template: function(task){
           return `<div class="gantt_custom_flex_cell"><div class="bg-slate-900/80 border border-slate-700/80 rounded" style="width:55px; padding: 2px;" onclick="event.stopPropagation();">
               <input type="number" class="ob-grid-input" value="${task.hours || 0}" min="4" step="4" onchange="updateGridHours('${task.id}', this.value)">
@@ -2106,7 +2114,14 @@ function scrollToSection(id) {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeHelp();
+  if (e.key === 'Escape') {
+    const gapModal = document.getElementById('gap-column-modal');
+    if (gapModal && !gapModal.classList.contains('hidden')) {
+      closeGapColumnModal();
+      return;
+    }
+    closeHelp();
+  }
 });
 
 // ==========================================
@@ -2475,7 +2490,7 @@ function goToStep(step) {
     requestAnimationFrame(() => initCustMap());
   }
   if (step === 3) renderSLAPerList();
-  if (step === 4) renderDashboard();
+  if (step === 4) { showLoading(); renderDashboard(); hideLoading(); }
   
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -2685,7 +2700,7 @@ function renderCustList() {
   
   container.innerHTML = customers.map((c, i) => {
     const tierBadge = c.tier ? `<span class="tier-badge tier-${c.tier} ml-1">T${c.tier}</span>` : '';
-    return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${c.name}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div></div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
+    return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${escapeHtml(c.name)}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div></div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
   }).join('');
 }
 
@@ -2905,6 +2920,13 @@ function getTopCandidatesForCustomer(customer, sla, topN = 5) {
 function computeCoverage(input) {
   const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency } = input;
 
+  const _latCache = {};
+  function cachedLatency(cellIdx, cust) {
+    const key = `${cellIdx}|${cust.idx !== undefined ? cust.idx : cust.name}`;
+    if (_latCache[key] === undefined) _latCache[key] = getLatency(cellIdx, cust, true);
+    return _latCache[key];
+  }
+
   const covered = [], uncovered = [];
 
   customers.forEach((c, i) => {
@@ -2912,7 +2934,7 @@ function computeCoverage(input) {
     let isCovered = false, bestServing = null, bestServingHeadroom = 0;
 
     for (let cellIdx of selectedFootprint) {
-      const b = getLatency(cellIdx, c, true);
+      const b = cachedLatency(cellIdx, c);
       if (b.total <= sla) {
         isCovered = true;
         if (!bestServing || b.total < bestServing.breakdown.total) {
@@ -2929,7 +2951,7 @@ function computeCoverage(input) {
       let bestFrom = null;
       const cellsToCheck = selectedFootprint.length > 0 ? selectedFootprint : [findNearestRegionIdx(c.lat, c.lng)];
       for (let cellIdx of cellsToCheck) {
-        const b = getLatency(cellIdx, c, true);
+        const b = cachedLatency(cellIdx, c);
         if (!bestFrom || b.total < bestFrom.breakdown.total) bestFrom = { cellIdx, breakdown: b };
       }
       uncovered.push({ ...c, sla, idx: i, bestFrom });
@@ -2950,7 +2972,7 @@ function computeCoverage(input) {
       const coversNow = [];
       for (const cust of remainingCustomers) {
         if (!remainingSet.has(cust.idx)) continue;
-        const b = getLatency(ci, cust, true);
+        const b = cachedLatency(ci, cust);
         const headroom = cust.sla - b.total;
         if (headroom >= safetyFloor) {
           coversNow.push({ ...cust, breakdown: b, headroom });
@@ -3001,7 +3023,7 @@ function computeCoverage(input) {
       let bestHeadroom = -Infinity;
       let bestHeadroomCellIdx = -1;
       for (let ci = 0; ci < regions.length; ci++) {
-        const b = getLatency(ci, c, true);
+        const b = cachedLatency(ci, c);
         const h = c.sla - b.total;
         if (h > bestHeadroom) { bestHeadroom = h; bestHeadroomCellIdx = ci; }
       }
@@ -3057,15 +3079,16 @@ function computeGreenPlan(input) {
           const bestFrom = impEntry.bestFrom;
           currentLatency = bestFrom ? bestFrom.breakdown.total : null;
           currentHeadroom = bestFrom ? (sla - bestFrom.breakdown.total) : null;
-          relaxationNeeded = bestFrom ? (bestFrom.breakdown.total + safetyFloor - sla) : Infinity;
+          relaxationNeeded = bestFrom ? (bestFrom.breakdown.total + safetyFloor - sla) : Number.MAX_SAFE_INTEGER;
         }
       }
     }
 
-    return { name: c.name, idx: i, currentSLA: sla, currentLatency, currentHeadroom, relaxationNeeded, relaxedSLA: sla + relaxationNeeded, status };
+    return { name: c.name, idx: i, currentSLA: sla, currentLatency, currentHeadroom, relaxationNeeded, relaxedSLA: relaxationNeeded < Number.MAX_SAFE_INTEGER ? (sla + relaxationNeeded) : null, status };
   });
 
-  const globalRelaxation = perEndpoint.length > 0 ? Math.max(...perEndpoint.map(e => e.relaxationNeeded)) : 0;
+  const finiteRelaxations = perEndpoint.filter(e => e.relaxationNeeded < Number.MAX_SAFE_INTEGER).map(e => e.relaxationNeeded);
+  const globalRelaxation = finiteRelaxations.length > 0 ? Math.max(...finiteRelaxations) : 0;
   const relaxedSLA = globalSLA + globalRelaxation;
 
   const relaxedResult = computeCoverage({
@@ -3092,7 +3115,7 @@ function toggleGreenPlanMode() {
   const btn = document.getElementById('green-plan-toggle');
   if (!btn) return;
   btn.dataset.mode = btn.dataset.mode === 'per-endpoint' ? 'global' : 'per-endpoint';
-  renderDashboard();
+  showLoading(); renderDashboard(); hideLoading();
 }
 
 function toggleUpgradePlan(checked) {
@@ -3102,6 +3125,7 @@ function toggleUpgradePlan(checked) {
     card.classList.add('hidden');
     return;
   }
+  showLoading();
   const strict = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
   const relaxed = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor: 0, selectedFootprint, getLatency: getCustomerLatency });
   const strictOPEX = strict.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
@@ -3151,6 +3175,7 @@ function toggleUpgradePlan(checked) {
     }).join('') : '';
 
   card.classList.remove('hidden');
+  hideLoading();
 }
 window.toggleUpgradePlan = toggleUpgradePlan;
 
@@ -3501,13 +3526,24 @@ function initDashMap(covered, pendingCovered, impossible, recommendations, margi
   }
 }
 
+function showLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.classList.remove('hidden');
+}
+function hideLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.classList.add('hidden');
+}
+
+let _toastTimer = null;
 function showToast(msg, isError = false) {
   const toast = document.getElementById('toast-msg');
   const icon = document.getElementById('toast-icon');
   document.getElementById('toast-text').textContent = msg;
   icon.className = `fas ${isError ? 'fa-exclamation-circle error' : 'fa-check-circle success'} toast-icon`;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
+  if (_toastTimer !== null) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { toast.classList.remove('show'); _toastTimer = null; }, 3000);
 }
 
 function toggleExportMenu(menuId = 'export-menu') {
@@ -3553,7 +3589,7 @@ function buildAndDownloadPDF() {
   const includeFin = document.getElementById('prop-toggle-fin').checked;
 
   const infraData = generateHeadlessAnalysis();
-  
+
   // Update and retrieve active Gantt financial state
   saveActiveState();
   const activeState = tierStates[currentScope] || { data: [], links: [] };
@@ -3584,6 +3620,7 @@ function buildAndDownloadPDF() {
   let sectionCounter = 2;
 
   if (includeInfra) {
+    if (infraData.summary.totalEndpoints > 0) {
     html += `
       <h2 class="pdf-section-title">${sectionCounter++}. Global Infrastructure Strategy</h2>
       <p>Our optimization engine has analyzed the geographic distribution of your endpoints with a <strong>${infraData.summary.safetyFloor}ms safety margin</strong>. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
@@ -3621,6 +3658,9 @@ function buildAndDownloadPDF() {
     });
     
     html += `</tbody></table>`;
+    } else {
+      html += `<p class="text-slate-400 italic"><i class="fas fa-info-circle mr-2"></i>No endpoints configured. Use the Cell Placement Optimizer to define your infrastructure targets first.</p>`;
+    }
   }
 
   if (includeOnb) {
@@ -3966,16 +4006,6 @@ function exportOnboardingCSV() {
           const depsStr = deps ? `"${deps}"` : "None";
           const safeText = t.text ? t.text.replace(/"/g, '""') : "Task";
           csvContent += `Tier ${i},"${safeText}",${t.hours || 0},${t.duration},${depsStr}\n`;
-    });
-  }
-  
-  csvContent += "\nMARGINAL HEADROOM\n";
-  if (results.marginalSLAs.length === 0) {
-    csvContent += "No marginal endpoints.\n";
-  } else {
-    csvContent += "Endpoint Name,SLA Threshold (ms),Best Headroom (ms),Relaxation Needed (ms)\n";
-    results.marginalSLAs.forEach(ep => {
-      csvContent += `"${ep.name}",${ep.slaThreshold},${ep.bestHeadroom},${ep.relaxationNeeded}\n`;
     });
   }
   
@@ -4584,6 +4614,10 @@ function confirmGapColumnMapping() {
 
 
 function processGapData() {
+  const savedData = gapData;
+  const savedFiltered = gapFilteredData;
+  gapData = [];
+  gapFilteredData = [];
   try {
   window.gapParseErrors = [];
   gapData = gapRawData.map(row => {
@@ -4653,7 +4687,12 @@ function processGapData() {
   if (_e > 0) msg += " \u00b7 " + _e + " skipped";
   if (_ut > 0) msg += " \u00b7 " + _ut + " unparseable timestamp(s)";
   showToast(msg);
-  } catch(e) { console.error("processGapData error:", e); showToast("Error processing data: " + e.message, true); }
+  } catch(e) {
+    gapData = savedData;
+    gapFilteredData = savedFiltered;
+    console.error("processGapData error:", e);
+    showToast("Error processing data: " + e.message, true);
+  }
 }
 
 function normalizePhoneNumber(value) {
@@ -5433,7 +5472,6 @@ function renderGapCharts() {
 
   const ttvCtx = document.getElementById('gap-chart-ttv');
   if (ttvCtx) {
-    const hasTtvData = chartData.ttv.ttvMedian.some(v => v !== null);
     gapChartInstances.ttv = new Chart(ttvCtx, {
       type: 'line',
       data: {
@@ -5633,7 +5671,18 @@ function handleGapSort(column) {
 }
 
 function handleGapPagination(direction) {
-  const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
+  let totalPages;
+  if (gapGroupMode) {
+    const groups = new Map();
+    gapFilteredData.forEach(row => {
+      const pg = row.pairId ? ('g-' + row.pairId) : ('g-o-' + row._gapIdx);
+      if (!groups.has(pg)) groups.set(pg, []);
+      groups.get(pg).push(row);
+    });
+    totalPages = Math.ceil(groups.size / gapRowsPerPage);
+  } else {
+    totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
+  }
   if (direction === 'prev' && gapCurrentPage > 1) {
     gapCurrentPage--;
   } else if (direction === 'next' && gapCurrentPage < totalPages) {
@@ -5732,11 +5781,11 @@ function drillDownGap(type) {
   gapBucketFilter = null;
   gapPairFilter = null;
   renderGapBucketChip();
-  var serviceFilter = document.getElementById('gap-filter-service');
-  var validationFilter = document.getElementById('gap-filter-validation');
-  var procMin = document.getElementById('gap-filter-proc-min');
-  var procMax = document.getElementById('gap-filter-proc-max');
-  var pairFilter = document.getElementById('gap-filter-pair');
+  let serviceFilter = document.getElementById('gap-filter-service');
+  let validationFilter = document.getElementById('gap-filter-validation');
+  let procMin = document.getElementById('gap-filter-proc-min');
+  let procMax = document.getElementById('gap-filter-proc-max');
+  let pairFilter = document.getElementById('gap-filter-pair');
   serviceFilter.value = 'all';
   validationFilter.value = 'all';
   procMin.value = '';

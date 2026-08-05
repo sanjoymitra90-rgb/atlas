@@ -90,7 +90,7 @@ An EDR call-data analysis tool with validation, filtering, visualization, and ex
 
 ## 4. Architecture & File Map
 
-`index.html` (~5,218 lines) is organized in this order:
+`index.html` (~5,800 lines) is organized in this order:
 
 | Lines (approx) | Content |
 |---|---|
@@ -187,7 +187,7 @@ Every notable decision made during development. If you are unsure whether a beha
 36. **Shared upload path** — both file picker and drag-and-drop call `readGapFile(file)` then `handleGapCSVUpload(text)`.
 37. **Drag-and-drop upload zone** — violet glow feedback on drag, CSV MIME/extension validation, both picker and drop feed into the same parser.
 38. **Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. Pure 10-digit string → epoch seconds (×1000); pure 13-digit string → epoch ms; otherwise `new Date()`. Rows with invalid timestamps remain in `gapFilteredData` (count in tiles, appear in table with amber icon). In charts, invalid-time rows are assigned to an explicit **"Unknown"** bucket (always last), never excluded — chart bucket totals must equal tile totals. Invalid timestamps always sort to the bottom of the table regardless of sort direction.
-39. **Signed directional gap (pairing-derived)** — Gap Count tile shows signed value derived from pairing engine: `signedGap = unverified − unsigned` (positive → "+N net · signed but not verified" (red), negative → "−N net · verified but not signed" (amber), zero → "balanced"). Gaps Over Time chart bar values are also `unverified − unsigned` per hourly bucket. Red bars above zero, amber below, with a dashed slate zero baseline via the annotation plugin. Tooltip uses directional labels via `plugins.tooltip.callbacks.label`. Subtitle: "Derived from pairing engine".
+39. **Gap Count = simple signing − verify** — Gap Count tile shows simple `signing − verify` difference (not pairing-derived). Gaps Over Time chart has been removed (Phase 5 user decision).
 40. **Invalid-reason breakdown panel** — full-width slim panel below the metrics grid, visible only when filtered invalid count > 0. Shows clickable chips (e.g. `sequential run ×3`) derived from `gapReasonBucket()` — a display-layer keyword mapping over existing `ukValidationReason` strings. Chips set `gapInvalidReason` global + UK-validation filter to "Invalid"; clicking active chip clears. `resetGapFilters()` and manual validation-dropdown changes also clear it.
 41. **Epoch 10/13-digit handling** — EDR exports sometimes emit epoch seconds (10 digits) or epoch milliseconds (13 digits). Both are detected by regex and converted to ms timestamps, avoiding `new Date(numericString)` ambiguity.
 42. **Smart Auto-Bucketing** — charts dynamically select bucket interval based on data time range: ≤1h → 1min, ≤6h → 5min, ≤3d → 1hour, >3d → 1day. User can override via Time Bucket dropdown (Auto/1Min/5Min/1Hour/1Day). `row.bucketKey` is no longer stored on each row; computed dynamically in `applyGapFilters()` and `renderGapCharts()` using `getGapBucketKey(timestamp, interval)`. Changing interval clears any active bucket filter.
@@ -558,6 +558,28 @@ Every notable decision made during development. If you are unsure whether a beha
 ### Marginal endpoint map markers
 - **Marginal map markers** — `createExclamationIcon(color)` function added to `index.html` (yellow circle with `!` exclamation mark). Called from `initDashMap()` with `marginal` array passed as 5th arg from `renderDashboard()`. Popup shows endpoint name, best headroom, and relaxation needed.
 - **1 e2e test** in `e2e/optimizer/opt-scenarios.spec.js`: verifies 5 marginal markers appear on coverage map with correct HTML structure. **47 optimizer tests total (46 existing + 1 new).**
+
+### Hardening pass — audit fixes (post-O3)
+- **exportOnboardingCSV crash** — Removed orphaned `results.marginalSLAs` reference (copy-paste residue from optimizer). Onboarding CSV export now produces clean multi-tier schedule only.
+- **showModule ID preservation** — Module elements now retain their original `id` attributes (stored in `data-module-id`); only the active module gets `id="main-content"`. Fixes `toggleGapTheme()` fallback selector breakage after navigation.
+- **Global error boundary** — Not added (single-file app, explicit decision: errors surface via try/catch in entry functions). Mitigated by the `processGapData()` rollback below.
+- **toggleGapTheme fallback** — Fixed by showModule ID preservation; `document.getElementById('module-gap-analyzer')` no longer returns null after navigation.
+- **showToast timer leak** — Added `_toastTimer` guard with `clearTimeout()` before each new `setTimeout`. Rapid toasts no longer accumulate idle timers.
+- **computeCoverage latency cache** — Added `_latCache` inside `computeCoverage()` keyed on `cellIdx|custIdx`. Caches `getLatency()` breakdowns across the entire coverage analysis pass, eliminating redundant Haversine recalculations.
+- **computeGreenPlan Infinity guard** — `relaxationNeeded` for unreachable endpoints now uses `Number.MAX_SAFE_INTEGER` sentinel; `relaxedSLA` is `null`. Global relaxation calculation filters out these sentinels. Dashboard displays "—" instead of "Infinityms".
+- **renderCustList XSS** — Customer names now escaped via `escapeHtml()` before injection into DOM template.
+- **updateGridText escaping** — Grid template now escapes `<`, `>`, `'`, `"`, `&` fully (was only `"`).
+- **processGapData rollback** — On catch, restores `gapData`/`gapFilteredData` from saved snapshot. Prevents partially-processed state from leaking into UI.
+- **Loading overlay** — Global `#loading-overlay` + `showLoading()`/`hideLoading()` utilities. Wrapped into `goToStep(4)`, `toggleGreenPlanMode()`, `toggleUpgradePlan()`.
+- **handleGapPagination group-mode** — Page count now computed from unique groups (not raw row count) when `gapGroupMode` is active.
+- **drillDownGap var → let** — All five `var` declarations replaced with `let`.
+- **SRI integrity hashes** — Added `integrity` + `crossorigin` attributes to Leaflet 1.9.4, Font Awesome 6.5.1, Chart.js 4.4.1, chartjs-plugin-annotation 3.0.1, html2pdf.js 0.10.1. Tailwind CDN, DHTMLX edge, and Google Fonts excluded (dynamic content).
+- **Gap settings modal Escape** — Global `keydown` handler extended to close `#gap-column-modal` via `closeGapColumnModal()` when Escape is pressed and modal is open.
+- **buildAndDownloadPDF guard** — Infrastructure section checks `infraData.summary.totalEndpoints > 0` before rendering; shows explanatory note when no endpoints are configured.
+- **Dead variable removed** — `hasTtvData` in `renderGapCharts()` TTV block removed.
+- **Playwright config** — `timeout` increased to 90s, `workers: 4`, `retries: 1` in CI.
+- **Doc sync (§5.39 + help drawer)** — §5.39 rewritten to "simple signing − verify"; help drawer visualizations now lists four charts with per-chart bucket dropdown description.
+- **Atlas_memory.md line count** — Updated to ~5,800 lines.
 
 ## 12. Known Limitations & Gotchas
 
