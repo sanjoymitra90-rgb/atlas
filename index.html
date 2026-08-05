@@ -5328,7 +5328,7 @@ function renderGapTable() {
       if (isAlt) trClasses += ' gap-group-alt';
       if (isFirst) trClasses += ' gap-group-seam';
       // Partner page note for paired pills
-      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
+      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
       if (row.pairStatus === 'paired') {
         const partnerRows = sorted.filter(r => r.pairId === row.pairId && r._gapIdx !== row._gapIdx);
         if (partnerRows.length > 0) {
