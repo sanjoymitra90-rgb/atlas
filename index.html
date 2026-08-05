@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="ATLAS - Cell Placement & Onboarding Cost Assessment Suite for AWS Global Infrastructure Planning">
 <title>ATLAS | Infrastructure Strategy & Onboarding</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ðŸŒ</text></svg>">
 
 <!-- Content Security Policy -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'none';">
@@ -303,6 +303,8 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 /* Help Drawer Standardized Typography */
 .help-section h4 { font-size: 15px; font-weight: 600; color: #f8fafc; margin-top: 24px; margin-bottom: 10px; }
 .help-section ul { font-size: 14px; line-height: 1.65; color: #cbd5e1; list-style-type: disc; margin-left: 20px; margin-bottom: 12px; }
+.help-section ol { font-size: 14px; line-height: 1.65; color: #cbd5e1; list-style-type: decimal; margin-left: 20px; margin-bottom: 12px; }
+.help-section ol ul { list-style-type: disc; margin-left: 20px; }
 .help-section li { margin-bottom: 6px; }
 .help-callout { font-size: 14px; line-height: 1.6; background: rgba(15,23,42,0.8); border: 1px solid rgba(51,65,85,0.6); border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #3b82f6; color: #cbd5e1; }
 .help-callout.success { border-left-color: #10b981; }
@@ -330,7 +332,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 
 
 
-/* ─── Gap Theme Tokens (dark default) ─── */
+/* â”€â”€â”€ Gap Theme Tokens (dark default) â”€â”€â”€ */
 :root {
   --gap-canvas: #020617;
   --gap-panel: rgba(15,23,42,0.5);
@@ -361,7 +363,7 @@ tr.gap-pair-dim { opacity: 0.45; }
   --gap-chart-zero-line: #64748b;
 }
 
-/* ─── Gap Semantic Classes ─── */
+/* â”€â”€â”€ Gap Semantic Classes â”€â”€â”€ */
 .gap-canvas  { background: var(--gap-canvas); }
 .gap-header  { background: color-mix(in srgb, var(--gap-canvas) 85%, transparent); }
 .gap-panel   { background: var(--gap-panel); border: 1px solid var(--gap-border); }
@@ -380,7 +382,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 .gap-pill-muted { background: var(--gap-input); color: var(--gap-text-3); }
 .gap-chip     { background: var(--gap-input); color: var(--gap-text-2); }
 
-/* ─── Light Theme Overrides ─── */
+/* â”€â”€â”€ Light Theme Overrides â”€â”€â”€ */
 [data-theme="light"] {
   --gap-canvas: #f8fafc;
   --gap-panel: rgba(255,255,255,0.8);
@@ -515,7 +517,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           </button>
           <button class="export-option" onclick="exportShareReport()">
             <div class="export-option-title"><i class="fas fa-share-alt text-emerald-400"></i> Share Report (HTML)</div>
-            <div class="export-option-desc">Generates a self-contained HTML file with your analysis results. Opens in any browser — no internet or ATLAS access required. Ideal for sharing with stakeholders.</div>
+            <div class="export-option-desc">Generates a self-contained HTML file with your analysis results. Opens in any browser â€” no internet or ATLAS access required. Ideal for sharing with stakeholders.</div>
           </button>
         </div>
       </div>
@@ -647,8 +649,8 @@ tr.gap-pair-dim { opacity: 0.45; }
         <div class="glass rounded-2xl p-6">
           <div class="flex items-center gap-2 mb-4"><h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Latency Estimation</h3></div>
           <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><b>Unified model:</b> When a city endpoint resolves to an AWS region within 50 km, the measured matrix latency is used directly. Otherwise, distance-based estimation applies (0.012 ms/km + infrastructure tier tax).</p>
-            <ul class="text-xs text-blue-200/80 space-y-1 ml-4 list-disc"><li><b>AWS region or resolved city:</b> Uses the measured backbone matrix — most accurate.</li><li><b>Unresolved city:</b> Haversine distance × 0.012 ms/km + Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms</li></ul>
+            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><strong>Unified model:</strong> When a city endpoint resolves to an AWS region within 50 km, the measured matrix latency is used directly. Otherwise, distance-based estimation applies (0.012 ms/km + infrastructure tier tax).</p>
+            <ul class="text-xs text-blue-200/80 space-y-1 ml-4 list-disc"><li><strong>AWS region or resolved city:</strong> Uses the measured backbone matrix â€” most accurate.</li><li><strong>Unresolved city:</strong> Haversine distance Ã— 0.012 ms/km + Tier 1: +5ms Â· Tier 2: +20ms Â· Tier 3: +40ms Â· Tier 4: +60ms</li></ul>
           </div>
         </div>
         <div class="glass rounded-2xl p-6">
@@ -667,7 +669,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           <div class="flex items-center gap-3"><input type="number" id="processing-time-input" value="10" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
         </div>
         <div class="glass rounded-2xl p-6">
-          <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider" title="Indicative — the underlying latency data disagrees with itself by up to ~60 ms, so treat the margin as a guideline, not a guarantee.">Safety Margin</h3>
+          <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider" title="Indicative â€” the underlying latency data disagrees with itself by up to ~60 ms, so treat the margin as a guideline, not a guarantee.">Safety Margin</h3>
           <p class="text-xs text-slate-400 mb-4">Minimum headroom between latency and SLA. A region must beat the SLA by at least this much to be eligible. Set to 0 for legacy pass/fail behavior.</p>
           <div class="flex items-center gap-3"><input type="number" id="safety-floor-input" value="20" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
         </div>
@@ -712,7 +714,7 @@ tr.gap-pair-dim { opacity: 0.45; }
     </div>
   </main>
   <footer class="text-center py-8 text-xs text-slate-600 border-t border-slate-800/50 px-4">
-    AWS Cell Placement Optimizer · Direct Distance & Matrix Models · Normalized global cost index<br>
+    AWS Cell Placement Optimizer Â· Direct Distance & Matrix Models Â· Normalized global cost index<br>
     <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-emerald-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
   </footer>
 </div>
@@ -802,7 +804,7 @@ tr.gap-pair-dim { opacity: 0.45; }
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-link text-violet-400 mr-2"></i>Pairing Key</h3>
             <button class="text-xs text-violet-400 hover:text-violet-300" onclick="addGapPairingKey()" id="gap-add-pair-key-btn">+ Add pairing component</button>
           </div>
-          <p class="text-xs text-slate-400 mb-3">Columns combined to match signing → verification. Default is From + To. Add up to 4 components total.</p>
+          <p class="text-xs text-slate-400 mb-3">Columns combined to match signing â†’ verification. Default is From + To. Add up to 4 components total.</p>
           <div id="gap-pairing-keys" class="flex flex-wrap items-center gap-y-2"></div>
         </div>
         <div class="mt-4">
@@ -1216,7 +1218,7 @@ tr.gap-pair-dim { opacity: 0.45; }
     </div>
   </main>
   <footer class="text-center py-8 text-xs text-slate-600 border-t border-slate-800/50 px-4">
-    EDR Call Data Analysis · UK Number Validation<br>
+    EDR Call Data Analysis Â· UK Number Validation<br>
     <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-violet-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
   </footer>
   </div>
@@ -1281,7 +1283,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           </div>
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase" title="Contingency buffers estimation uncertainty — shown internally, not itemised to customer">Contingency</label>
+          <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase" title="Contingency buffers estimation uncertainty â€” shown internally, not itemised to customer">Contingency</label>
           <div class="ob-input-wrapper">
             <input type="number" id="ob-contingency" value="0" min="0" max="200" class="ob-global-input pr-1" onchange="updateOnboardingFinancials()">
             <span class="text-slate-500">%</span>
@@ -1347,7 +1349,7 @@ tr.gap-pair-dim { opacity: 0.45; }
        <div class="mt-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700/40">
          <div class="flex items-center justify-between mb-2">
            <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Assumptions &amp; Exclusions</label>
-           <span class="text-[9px] text-slate-500">Per-tier — included in exports and proposal</span>
+           <span class="text-[9px] text-slate-500">Per-tier â€” included in exports and proposal</span>
          </div>
          <textarea id="ob-assumptions" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 outline-none focus:border-blue-500 resize-y" onchange="saveObAssumptions()" placeholder="e.g. Customer provides rack space by Day 0. Testing against single SIP trunk. Remote delivery."></textarea>
        </div>
@@ -1365,7 +1367,7 @@ tr.gap-pair-dim { opacity: 0.45; }
   </main>
   
   <footer class="text-center py-8 text-xs text-slate-600 border-t border-slate-800/50 px-4">
-    Customer Onboarding Scoping · Interactive Gantt Timelines · Financial Quoting<br>
+    Customer Onboarding Scoping Â· Interactive Gantt Timelines Â· Financial Quoting<br>
     <span class="text-slate-500 mt-2 inline-block font-medium">Created by <a href="https://www.linkedin.com/in/sanjoy-mitra/" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-blue-400 transition-colors">Sanjoy Mitra</a> <span class="text-slate-600 font-normal">(PM, Provenant Inc.)</span></span>
   </footer>
 </div>
@@ -1375,7 +1377,7 @@ tr.gap-pair-dim { opacity: 0.45; }
 <div id="loading-overlay" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998] flex items-center justify-center pointer-events-none">
   <div class="px-6 py-4 rounded-xl glass flex items-center gap-3">
     <div class="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-    <span class="text-sm text-slate-300 font-medium">Processing…</span>
+    <span class="text-sm text-slate-300 font-medium">Processingâ€¦</span>
   </div>
 </div>
 <div class="help-backdrop" id="help-backdrop" onclick="closeHelp()"></div>
@@ -1472,34 +1474,34 @@ tr.gap-pair-dim { opacity: 0.45; }
 
   <!-- HELP CONTENT: OPTIMIZER -->
   <div id="help-content-optimizer" class="flex-1 overflow-y-auto flex flex-col">
-    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">💡 Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">💰 Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Endpoints</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">🔧 How It Works</a><a class="help-toc-link" onclick="scrollToSection('greenplan')">🌿 Green-Plan</a><a class="help-toc-link" onclick="scrollToSection('scenarios')">🔖 Scenarios</a><a class="help-toc-link" onclick="scrollToSection('sharereport')">📤 Share Report</a></div></div>
+    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">ðŸ“– Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">ðŸ’¡ Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">ðŸ’° Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Endpoints</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">ðŸ”§ How It Works</a><a class="help-toc-link" onclick="scrollToSection('greenplan')">ðŸŒ¿ Green-Plan</a><a class="help-toc-link" onclick="scrollToSection('scenarios')">ðŸ”– Scenarios</a><a class="help-toc-link" onclick="scrollToSection('sharereport')">ðŸ“¤ Share Report</a></div></div>
     <div class="help-body" id="help-body-optimizer">
-      <section class="help-section" id="intro"><h3><i class="fas fa-book-open text-emerald-400"></i> What Is This Tool?</h3><p>This tool helps you figure out <strong>where to place your infrastructure ("cells")</strong> around the world so that your endpoints get fast, reliable connections.</p><p>You tell the tool:</p><ul><li>Where your <em>existing cells</em> are today</li><li>Where your <em>endpoints</em> are located</li><li>What <em>latency</em> (in milliseconds) you promised them in your SLA</li><li>Optionally, how much your current cells <em>cost</em> per month</li></ul><p>The tool then uses realistic distance parameters and a 32x32 AWS latency matrix to recommend exactly where to deploy new cells — optimizing to strictly meet your SLA for the lowest possible cost.</p></section>
+      <section class="help-section" id="intro"><h3><i class="fas fa-book-open text-emerald-400"></i> What Is This Tool?</h3><p>This tool helps you figure out <strong>where to place your infrastructure ("cells")</strong> around the world so that your endpoints get fast, reliable connections.</p><p>You tell the tool:</p><ul><li>Where your <em>existing cells</em> are today</li><li>Where your <em>endpoints</em> are located</li><li>What <em>latency</em> (in milliseconds) you promised them in your SLA</li><li>Optionally, how much your current cells <em>cost</em> per month</li></ul><p>The tool then uses realistic distance parameters and a 32x32 AWS latency matrix to recommend exactly where to deploy new cells â€” optimizing to strictly meet your SLA for the lowest possible cost.</p></section>
       <section class="help-section" id="concepts"><h3><i class="fas fa-lightbulb text-amber-400"></i> Key Concepts</h3><h4>Cell</h4><p>A server or piece of infrastructure you deploy in an AWS data center.</p><h4>Endpoint</h4><p>An integration partner, service consumer, or client application that needs to connect to your cell.</p><h4>SLA (Service Level Agreement)</h4><p>The maximum latency (in milliseconds) you've promised your endpoints.</p><h4>Latency</h4><p>The round-trip time (in milliseconds) for data to travel from your cell to your endpoint and back.</p></section>
-      <section class="help-section" id="step1"><h3><span class="step-num">1</span> Current Footprint</h3><p>Tell the tool where you <strong>already</strong> have cells deployed. This is optional.</p><p>Use <strong>List View</strong> to browse regions by continent, or <strong>Map View</strong> to visualize your selections.</p><p>Below the cell selection, you'll find the <strong>Infrastructure Cost Profile</strong> accordion — see the next section for details.</p></section>
-      <section class="help-section" id="cost"><h3><i class="fas fa-dollar-sign text-amber-400"></i> Cost Calculator</h3><p>The cost calculator is <strong>optional but powerful</strong>. It lets you estimate the monthly OPEX impact of deploying new cells.</p><h4>The "Hidden Global Index"</h4><p>The tool has a hardcoded <strong>AWS Regional Price Index</strong> anchored to <strong>US East (N. Virginia) = 1.00x</strong>. Every other region is priced relative to it:</p><div class="help-index-grid"><div class="help-index-row"><span class="region">US East (Virginia)</span><span class="idx discount">1.00x</span></div><div class="help-index-row"><span class="region">Europe (Paris)</span><span class="idx parity">1.10x</span></div><div class="help-index-row"><span class="region">Asia Pacific (Tokyo)</span><span class="idx premium">1.25x</span></div><div class="help-index-row"><span class="region">South America (São Paulo)</span><span class="idx premium">1.50x</span></div><div class="help-index-row"><span class="region">Africa (Cape Town)</span><span class="idx premium">1.30x</span></div><div class="help-index-row"><span class="region">Middle East (Dubai)</span><span class="idx premium">1.25x</span></div></div><h4>Reverse-Engineering the Global Base</h4><p>When you input a cost for Paris ($2,674), the tool knows Paris is 1.10x. It <strong>reverse-engineers</strong> the normalized base:</p><div class="help-formula">$2,674 ÷ 1.10 = <strong>$2,430</strong> (True Global Base)</div><h4>Blended vs. Specific Baseline</h4><ul><li><strong>Blended:</strong> Averages reverse-engineered base costs from all inputted cells.</li><li><strong>Specific:</strong> Anchors to one specific cell of your choice.</li></ul></section>
+      <section class="help-section" id="step1"><h3><span class="step-num">1</span> Current Footprint</h3><p>Tell the tool where you <strong>already</strong> have cells deployed. This is optional.</p><p>Use <strong>List View</strong> to browse regions by continent, or <strong>Map View</strong> to visualize your selections.</p><p>Below the cell selection, you'll find the <strong>Infrastructure Cost Profile</strong> accordion â€” see the next section for details.</p></section>
+      <section class="help-section" id="cost"><h3><i class="fas fa-dollar-sign text-amber-400"></i> Cost Calculator</h3><p>The cost calculator is <strong>optional but powerful</strong>. It lets you estimate the monthly OPEX impact of deploying new cells.</p><h4>The "Hidden Global Index"</h4><p>The tool has a hardcoded <strong>AWS Regional Price Index</strong> anchored to <strong>US East (N. Virginia) = 1.00x</strong>. Every other region is priced relative to it:</p><div class="help-index-grid"><div class="help-index-row"><span class="region">US East (Virginia)</span><span class="idx discount">1.00x</span></div><div class="help-index-row"><span class="region">Europe (Paris)</span><span class="idx parity">1.10x</span></div><div class="help-index-row"><span class="region">Asia Pacific (Tokyo)</span><span class="idx premium">1.25x</span></div><div class="help-index-row"><span class="region">South America (SÃ£o Paulo)</span><span class="idx premium">1.50x</span></div><div class="help-index-row"><span class="region">Africa (Cape Town)</span><span class="idx premium">1.30x</span></div><div class="help-index-row"><span class="region">Middle East (Dubai)</span><span class="idx premium">1.25x</span></div></div><h4>Reverse-Engineering the Global Base</h4><p>When you input a cost for Paris ($2,674), the tool knows Paris is 1.10x. It <strong>reverse-engineers</strong> the normalized base:</p><div class="help-formula">$2,674 Ã· 1.10 = <strong>$2,430</strong> (True Global Base)</div><h4>Blended vs. Specific Baseline</h4><ul><li><strong>Blended:</strong> Averages reverse-engineered base costs from all inputted cells.</li><li><strong>Specific:</strong> Anchors to one specific cell of your choice.</li></ul></section>
       <section class="help-section" id="step2"><h3><span class="step-num">2</span> Endpoint Locations</h3><p>Add endpoints via the <strong>AWS Regions</strong> tab or <strong>World Cities</strong> tab. You can also click anywhere on the map to snap to the nearest major city.</p></section>
-      <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>The tool uses a unified latency model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly — most accurate.</li><li><b>Unresolved city:</b> Haversine distance × 0.012 ms/km + infrastructure tier tax.</li></ul></section>
-      <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <b>Latency Explorer</b> to debug exactly why a cell passed or failed for a given endpoint.</p></section>
-      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <b>coverage-first</b> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol style="margin-left:18px;list-style-type:decimal;"><li><b>Eligibility gate:</b> A (region, endpoint) pair is eligible only if <code>headroom = SLA − latency ≥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><b>Selection priority:</b> Among regions covering ≥1 eligible uncovered endpoint:<ul style="list-style-type:disc;margin-left:18px;"><li>1st: MAX endpoints covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered endpoints</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered endpoints; repeat until nothing more can be covered.</li></ol><p><b>Marginal bucket:</b> Endpoints with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal — not impossible, but requiring SLA relaxation. Existing cells still cover endpoints even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly. The latency matrix is noisy (asymmetric by up to ~30 ms), so single-millisecond figures are indicative; recommendation cards show a latency band and confidence chip instead of a false-precise point.</p><h4>Legacy Mode</h4><p>Set the safety margin to <b>0ms</b> to restore classic pass/fail SLA behavior with cost-per-customer scoring.</p><h4>Latency Model</h4><p>One unified model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly. This is the most accurate path.</li><li><b>Unresolved city (no region within 50 km):</b> Haversine distance × 0.012 ms/km + infrastructure tier tax (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul><p>Adding the same city from the World Cities tab, the AWS Regions tab, or by clicking on the map all produce identical latency — the tool resolves to the same region.</p>
+      <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>The tool uses a unified latency model â€” no mode selector:</p><ul><li><strong>AWS region or resolved city (within 50 km):</strong> Uses the measured backbone matrix directly â€” most accurate.</li><li><strong>Unresolved city:</strong> Haversine distance Ã— 0.012 ms/km + infrastructure tier tax.</li></ul></section>
+      <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <strong>Latency Explorer</strong> to debug exactly why a cell passed or failed for a given endpoint.</p></section>
+      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <strong>coverage-first</strong> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol><li><strong>Eligibility gate:</strong> A (region, endpoint) pair is eligible only if <code>headroom = SLA âˆ’ latency â‰¥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><strong>Selection priority:</strong> Among regions covering â‰¥1 eligible uncovered endpoint:<ul><li>1st: MAX endpoints covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered endpoints</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered endpoints; repeat until nothing more can be covered.</li></ol><p><strong>Marginal bucket:</strong> Endpoints with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal â€” not impossible, but requiring SLA relaxation. Existing cells still cover endpoints even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly. The latency matrix is noisy (asymmetric by up to ~30 ms), so single-millisecond figures are indicative; recommendation cards show a latency band and confidence chip instead of a false-precise point.</p><h4>Legacy Mode</h4><p>Set the safety margin to <strong>0ms</strong> to restore classic pass/fail SLA behavior with cost-per-customer scoring.</p><h4>Latency Model</h4><p>One unified model â€” no mode selector:</p><ul><li><strong>AWS region or resolved city (within 50 km):</strong> Uses the measured backbone matrix directly. This is the most accurate path.</li><li><strong>Unresolved city (no region within 50 km):</strong> Haversine distance Ã— 0.012 ms/km + infrastructure tier tax (Tier 1: +5ms Â· Tier 2: +20ms Â· Tier 3: +40ms Â· Tier 4: +60ms).</li></ul><p>Adding the same city from the World Cities tab, the AWS Regions tab, or by clicking on the map all produce identical latency â€” the tool resolves to the same region.</p>
       <h4>Why 0.012 ms/km? (The Physics)</h4>
       <p>This propagation delay factor is mathematically grounded in the physics of fiber optic networking:</p>
       <ul>
-        <li><b>Speed of light in a vacuum:</b> ~300,000 km/s.</li>
-        <li><b>Speed of light in glass (fiber):</b> ~200,000 km/s (due to a refractive index of ~1.5).</li>
-        <li><b>Time per kilometer:</b> 1 km / 200,000 km/s = 0.000005 seconds, or 0.005 ms per km.</li>
-        <li><b>Round-Trip Time (RTT):</b> Networking latency measures the time to go and come back. Doubling the one-way time: 0.005 ms × 2 = 0.01 ms per km.</li>
+        <li><strong>Speed of light in a vacuum:</strong> ~300,000 km/s.</li>
+        <li><strong>Speed of light in glass (fiber):</strong> ~200,000 km/s (due to a refractive index of ~1.5).</li>
+        <li><strong>Time per kilometer:</strong> 1 km / 200,000 km/s = 0.000005 seconds, or 0.005 ms per km.</li>
+        <li><strong>Round-Trip Time (RTT):</strong> Networking latency measures the time to go and come back. Doubling the one-way time: 0.005 ms Ã— 2 = 0.01 ms per km.</li>
       </ul>
       <div class="help-callout success"><div class="callout-title"><i class="fas fa-heart text-emerald-400"></i> That's it!</div>Close this guide and start planning your next cell deployment.</div></section>
-      <section class="help-section" id="greenplan"><h3><i class="fas fa-leaf text-emerald-400"></i> Green-Plan What-If</h3><p>After running a coverage analysis, the dashboard shows a <b>"What-if: Make Everything Green"</b> section. This tells you exactly how much you'd need to relax your SLA to eliminate all marginal and impossible endpoints.</p><h4>Two modes</h4><ul><li><b>Global:</b> One relaxed SLA for all endpoints. Simple — just raise the SLA threshold and everything turns green.</li><li><b>Per-Endpoint:</b> Each endpoint gets its own minimal relaxation. More precise — some endpoints need only 5ms more, others need 50ms.</li></ul><p>The section also shows the <b>extra OPEX</b> — the cost difference between your current plan and the green plan.</p></section>
-      <section class="help-section" id="scenarios"><h3><i class="fas fa-bookmark text-amber-400"></i> Saved Scenarios</h3><p>On the SLA Configuration step (step 3), you'll find a <b>Saved Scenarios</b> section. Save your current analysis configuration — endpoints, SLA, safety floor, footprint, costs — and reload it later.</p><p><b>Important:</b> Scenarios are stored in your browser's localStorage. They are <b>per-machine</b> — if you switch browsers or clear your browser data, scenarios are lost. Use session JSON export for portable backups.</p></section>
-      <section class="help-section" id="sharereport"><h3><i class="fas fa-share-alt text-emerald-400"></i> Share Report</h3><p>On the Coverage Analysis dashboard (step 4), click <b>"Share Report"</b> to download a standalone HTML file. This file contains all your analysis results — endpoints, coverage, recommendations, costs — in a self-contained format.</p><p>The report opens in any browser with no internet connection required. Share it with stakeholders who don't have access to ATLAS.</p></section>
+      <section class="help-section" id="greenplan"><h3><i class="fas fa-leaf text-emerald-400"></i> Green-Plan What-If</h3><p>After running a coverage analysis, the dashboard shows a <strong>"What-if: Make Everything Green"</strong> section. This tells you exactly how much you'd need to relax your SLA to eliminate all marginal and impossible endpoints.</p><h4>Two modes</h4><ul><li><strong>Global:</strong> One relaxed SLA for all endpoints. Simple â€” just raise the SLA threshold and everything turns green.</li><li><strong>Per-Endpoint:</strong> Each endpoint gets its own minimal relaxation. More precise â€” some endpoints need only 5ms more, others need 50ms.</li></ul><p>The section also shows the <strong>extra OPEX</strong> â€” the cost difference between your current plan and the green plan.</p></section>
+      <section class="help-section" id="scenarios"><h3><i class="fas fa-bookmark text-amber-400"></i> Saved Scenarios</h3><p>On the SLA Configuration step (step 3), you'll find a <strong>Saved Scenarios</strong> section. Save your current analysis configuration â€” endpoints, SLA, safety floor, footprint, costs â€” and reload it later.</p><p><strong>Important:</strong> Scenarios are stored in your browser's localStorage. They are <strong>per-machine</strong> â€” if you switch browsers or clear your browser data, scenarios are lost. Use session JSON export for portable backups.</p></section>
+      <section class="help-section" id="sharereport"><h3><i class="fas fa-share-alt text-emerald-400"></i> Share Report</h3><p>On the Coverage Analysis dashboard (step 4), click <strong>"Share Report"</strong> to download a standalone HTML file. This file contains all your analysis results â€” endpoints, coverage, recommendations, costs â€” in a self-contained format.</p><p>The report opens in any browser with no internet connection required. Share it with stakeholders who don't have access to ATLAS.</p></section>
     </div>
   </div>
 
   <!-- HELP CONTENT: ONBOARDING -->
   <div id="help-content-onboarding" class="flex-1 overflow-y-auto flex flex-col" style="display:none;">
-    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('ob-intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('ob-tiers')">🏗️ Deployment Tiers</a><a class="help-toc-link" onclick="scrollToSection('ob-math')">🧮 How Math Works</a><a class="help-toc-link" onclick="scrollToSection('ob-drag')">🖱️ Interactive Gantt</a></div></div>
+    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('ob-intro')">ðŸ“– Overview</a><a class="help-toc-link" onclick="scrollToSection('ob-tiers')">ðŸ—ï¸ Deployment Tiers</a><a class="help-toc-link" onclick="scrollToSection('ob-math')">ðŸ§® How Math Works</a><a class="help-toc-link" onclick="scrollToSection('ob-drag')">ðŸ–±ï¸ Interactive Gantt</a></div></div>
     <div class="help-body" id="help-body-onboarding">
       <section class="help-section" id="ob-intro">
         <h3><i class="fas fa-book-open text-blue-400"></i> What Is This Tool?</h3>
@@ -1511,9 +1513,9 @@ tr.gap-pair-dim { opacity: 0.45; }
         <h3><i class="fas fa-layer-group text-purple-400"></i> Deployment Scopes (Tiers)</h3>
         <p>The onboarding effort scales based on the infrastructure and integration requirements for the specific customer. Select the appropriate tier from the top ribbon to load the default task template.</p>
         <ul>
-          <li><strong>Tier 1: Full Deployment (New Cell + New Provider)</strong><br>The heaviest lift. Requires standing up new AWS infrastructure, building initial API handshakes with a new service provider, and running full security validation.</li>
-          <li><strong>Tier 2: Integration Only (Existing Cell + New Provider)</strong><br>Uses existing infrastructure in the region, but requires establishing API handshakes and security posture with a new service provider.</li>
-          <li><strong>Tier 3: Standard Onboarding (Existing Cell & Provider)</strong><br>The lightest workload. The cell and provider are already established. Focuses purely on QA, training, and cutover for the new end customer.</li>
+          <li><strong>Tier 1: Full Deployment (New Cell + New Provider)</strong> — The heaviest lift. Requires standing up new AWS infrastructure, building initial API handshakes with a new service provider, and running full security validation.</li>
+          <li><strong>Tier 2: Integration Only (Existing Cell + New Provider)</strong> — Uses existing infrastructure in the region, but requires establishing API handshakes and security posture with a new service provider.</li>
+          <li><strong>Tier 3: Standard Onboarding (Existing Cell & Provider)</strong> — The lightest workload. The cell and provider are already established. Focuses purely on QA, training, and cutover for the new end customer.</li>
         </ul>
         <div class="help-callout">
           <div class="callout-title"><i class="fas fa-undo"></i> Warning: Resetting Timeline</div>
@@ -1526,8 +1528,8 @@ tr.gap-pair-dim { opacity: 0.45; }
         <h4>The 4-Hour Ceiling Rule</h4>
         <p>Project estimation must be realistic. If you type "17" hours into the grid, the calculator automatically snaps it to <strong>20 hours</strong>. We strictly enforce a 4-hour (half-day) minimum increment for all scoping to avoid messy fractions.</p>
         <h4>Financial Formulas</h4>
-        <div class="help-formula">Internal Cost = Total Hours × Blended Hourly Rate</div>
-        <div class="help-formula">Customer Price = Internal Cost ÷ (1 - Margin %)</div>
+        <div class="help-formula">Internal Cost = Total Hours Ã— Blended Hourly Rate</div>
+        <div class="help-formula">Customer Price = Internal Cost Ã· (1 - Margin %)</div>
       </section>
 
       <section class="help-section" id="ob-drag">
@@ -1592,9 +1594,9 @@ tr.gap-pair-dim { opacity: 0.45; }
         <h3><i class="fas fa-table text-amber-400"></i> Data Table</h3>
         <p>The paginated table shows individual call records with a <strong>Pair</strong> column indicating match status. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, customer, destination, processing time range, or pair status.</p>
         <ul>
-          <li><strong>Pair ID</strong> &mdash; paired pills display their pair ID (e.g. <code>P3 · Paired</code>); orphan pills show status text only.</li>
+          <li><strong>Pair ID</strong> &mdash; paired pills display their pair ID (e.g. <code>P3 Â· Paired</code>); orphan pills show status text only.</li>
           <li><strong>Hover highlight</strong> &mdash; hovering a paired row highlights its partner (violet ring) and dims other rows. If the partner is on another page, the pill tooltip notes <em>(partner on page N)</em>.</li>
-          <li><strong>Group by pair</strong> &mdash; a sliding switch next to "Rows per page" groups rows by pair. Paired rows render contiguously with a subtle alternating band; orphans render as single-row bands. Groups are paginated (the indicator shows <em>A–B of G groups (R rows)</em>) and sorted by the signing row's column value. The page-size label switches to "Groups per page" while grouped.</li>
+          <li><strong>Group by pair</strong> &mdash; a sliding switch next to "Rows per page" groups rows by pair. Paired rows render contiguously with a subtle alternating band; orphans render as single-row bands. Groups are paginated (the indicator shows <em>Aâ€“B of G groups (R rows)</em>) and sorted by the signing row's column value. The page-size label switches to "Groups per page" while grouped.</li>
         </ul>
       </section>
 
@@ -1626,8 +1628,8 @@ tr.gap-pair-dim { opacity: 0.45; }
         <p>Every destination number is validated against UK formatting rules:</p>
         <ul>
           <li><strong>Format</strong> &mdash; must start with <code>+44</code>. Scientific notation (e.g., <code>4.47305E+11</code>) is auto-converted. The <code>+</code> prefix stripped by Excel is restored automatically.</li>
-          <li><strong>Length</strong> &mdash; total digits must be 11–13 (including country code).</li>
-          <li><strong>Prefix</strong> &mdash; first digit after <code>+44</code> must be <b>1</b>, <b>2</b>, <b>3</b>, <b>7</b>, or <b>8</b>.</li>
+          <li><strong>Length</strong> &mdash; total digits must be 11â€“13 (including country code).</li>
+          <li><strong>Prefix</strong> &mdash; first digit after <code>+44</code> must be <strong>1</strong>, <strong>2</strong>, <strong>3</strong>, <strong>7</strong>, or <strong>8</strong>.</li>
           <li><strong>Pattern</strong> &mdash; rejects numbers with all identical digits or runs of 5+ sequential digits (e.g., <code>+447123456789</code>).</li>
         </ul>
       </section>
@@ -2071,9 +2073,9 @@ function initDhtmlxGantt() {
   });
   
   gantt.templates.tooltip_text = function(start, end, task){
-      return `<div class="mb-2"><b class="text-blue-400">${task.text}</b></div>
-              <div class="text-xs text-slate-400 flex justify-between gap-4 mb-1"><span>Billed Effort:</span> <b class="text-white font-mono">${task.hours} Hrs</b></div>
-              <div class="text-xs text-slate-400 flex justify-between gap-4"><span>Visual Calendar:</span> <b class="text-white font-mono">${task.duration} Days</b></div>`;
+      return `<div class="mb-2"><b class="text-blue-400">${task.text}</strong></div>
+              <div class="text-xs text-slate-400 flex justify-between gap-4 mb-1"><span>Billed Effort:</span> <b class="text-white font-mono">${task.hours} Hrs</strong></div>
+              <div class="text-xs text-slate-400 flex justify-between gap-4"><span>Visual Calendar:</span> <b class="text-white font-mono">${task.duration} Days</strong></div>`;
   };
 
   gantt.init("gantt_here");
@@ -2150,7 +2152,7 @@ document.addEventListener('keydown', (e) => {
 // ==========================================
 // OPTIMIZER PRISTINE LOGIC
 // ==========================================
-const regions=[{code:'af-south-1',name:'Cape Town',city:'Cape Town, South Africa',continent:'Africa',lat:-33.9249,lng:18.4241},{code:'ap-east-1',name:'Hong Kong',city:'Hong Kong',continent:'Asia Pacific',lat:22.3193,lng:114.1694},{code:'ap-northeast-1',name:'Tokyo',city:'Tokyo, Japan',continent:'Asia Pacific',lat:35.6762,lng:139.6503},{code:'ap-northeast-2',name:'Seoul',city:'Seoul, South Korea',continent:'Asia Pacific',lat:37.5665,lng:126.9780},{code:'ap-northeast-3',name:'Osaka',city:'Osaka, Japan',continent:'Asia Pacific',lat:34.6937,lng:135.5023},{code:'ap-south-1',name:'Mumbai',city:'Mumbai, India',continent:'Asia Pacific',lat:19.0760,lng:72.8777},{code:'ap-south-2',name:'Hyderabad',city:'Hyderabad, India',continent:'Asia Pacific',lat:17.3850,lng:78.4867},{code:'ap-southeast-1',name:'Singapore',city:'Singapore',continent:'Asia Pacific',lat:1.3521,lng:103.8198},{code:'ap-southeast-2',name:'Sydney',city:'Sydney, Australia',continent:'Asia Pacific',lat:-33.8688,lng:151.2093},{code:'ap-southeast-3',name:'Jakarta',city:'Jakarta, Indonesia',continent:'Asia Pacific',lat:-6.2088,lng:106.8456},{code:'ap-southeast-4',name:'Melbourne',city:'Melbourne, Australia',continent:'Asia Pacific',lat:-37.8136,lng:144.9631},{code:'ap-southeast-5',name:'Kuala Lumpur',city:'Kuala Lumpur, Malaysia',continent:'Asia Pacific',lat:3.1390,lng:101.6869},{code:'ap-southeast-7',name:'Bangkok',city:'Bangkok, Thailand',continent:'Asia Pacific',lat:13.7563,lng:100.5018},{code:'ca-central-1',name:'Montreal',city:'Montreal, QC',continent:'North America',lat:45.5017,lng:-73.5673},{code:'ca-west-1',name:'Calgary',city:'Calgary, Alberta',continent:'North America',lat:51.0447,lng:-114.0719},{code:'eu-central-1',name:'Frankfurt',city:'Frankfurt, Germany',continent:'Europe',lat:50.1109,lng:8.6821},{code:'eu-central-2',name:'Zurich',city:'Zurich, Switzerland',continent:'Europe',lat:47.3769,lng:8.5417},{code:'eu-north-1',name:'Stockholm',city:'Stockholm, Sweden',continent:'Europe',lat:59.3293,lng:18.0686},{code:'eu-south-1',name:'Milan',city:'Milan, Italy',continent:'Europe',lat:45.4642,lng:9.1900},{code:'eu-south-2',name:'Madrid',city:'Madrid, Spain',continent:'Europe',lat:40.4168,lng:-3.7038},{code:'eu-west-1',name:'Dublin',city:'Dublin, Ireland',continent:'Europe',lat:53.3498,lng:-6.2603},{code:'eu-west-2',name:'London',city:'London, UK',continent:'Europe',lat:51.5074,lng:-0.1278},{code:'eu-west-3',name:'Paris',city:'Paris, France',continent:'Europe',lat:48.8566,lng:2.3522},{code:'il-central-1',name:'Tel Aviv',city:'Tel Aviv, Israel',continent:'Middle East',lat:32.0853,lng:34.7818},{code:'me-central-1',name:'Dubai',city:'Dubai, UAE',continent:'Middle East',lat:25.2048,lng:55.2708},{code:'me-south-1',name:'Manama',city:'Manama, Bahrain',continent:'Middle East',lat:26.2285,lng:50.5860},{code:'mx-central-1',name:'Mexico City',city:'Mexico City, Mexico',continent:'North America',lat:19.4326,lng:-99.1332},{code:'sa-east-1',name:'São Paulo',city:'São Paulo, Brazil',continent:'South America',lat:-23.5505,lng:-46.6333},{code:'us-east-1',name:'N. Virginia',city:'Washington, DC',continent:'North America',lat:38.9072,lng:-77.0369},{code:'us-east-2',name:'Ohio',city:'Columbus, Ohio',continent:'North America',lat:39.9612,lng:-82.9988},{code:'us-west-1',name:'N. California',city:'San Francisco, CA',continent:'North America',lat:37.7749,lng:-122.4194},{code:'us-west-2',name:'Oregon',city:'Portland, OR',continent:'North America',lat:45.5152,lng:-122.6784}];
+const regions=[{code:'af-south-1',name:'Cape Town',city:'Cape Town, South Africa',continent:'Africa',lat:-33.9249,lng:18.4241},{code:'ap-east-1',name:'Hong Kong',city:'Hong Kong',continent:'Asia Pacific',lat:22.3193,lng:114.1694},{code:'ap-northeast-1',name:'Tokyo',city:'Tokyo, Japan',continent:'Asia Pacific',lat:35.6762,lng:139.6503},{code:'ap-northeast-2',name:'Seoul',city:'Seoul, South Korea',continent:'Asia Pacific',lat:37.5665,lng:126.9780},{code:'ap-northeast-3',name:'Osaka',city:'Osaka, Japan',continent:'Asia Pacific',lat:34.6937,lng:135.5023},{code:'ap-south-1',name:'Mumbai',city:'Mumbai, India',continent:'Asia Pacific',lat:19.0760,lng:72.8777},{code:'ap-south-2',name:'Hyderabad',city:'Hyderabad, India',continent:'Asia Pacific',lat:17.3850,lng:78.4867},{code:'ap-southeast-1',name:'Singapore',city:'Singapore',continent:'Asia Pacific',lat:1.3521,lng:103.8198},{code:'ap-southeast-2',name:'Sydney',city:'Sydney, Australia',continent:'Asia Pacific',lat:-33.8688,lng:151.2093},{code:'ap-southeast-3',name:'Jakarta',city:'Jakarta, Indonesia',continent:'Asia Pacific',lat:-6.2088,lng:106.8456},{code:'ap-southeast-4',name:'Melbourne',city:'Melbourne, Australia',continent:'Asia Pacific',lat:-37.8136,lng:144.9631},{code:'ap-southeast-5',name:'Kuala Lumpur',city:'Kuala Lumpur, Malaysia',continent:'Asia Pacific',lat:3.1390,lng:101.6869},{code:'ap-southeast-7',name:'Bangkok',city:'Bangkok, Thailand',continent:'Asia Pacific',lat:13.7563,lng:100.5018},{code:'ca-central-1',name:'Montreal',city:'Montreal, QC',continent:'North America',lat:45.5017,lng:-73.5673},{code:'ca-west-1',name:'Calgary',city:'Calgary, Alberta',continent:'North America',lat:51.0447,lng:-114.0719},{code:'eu-central-1',name:'Frankfurt',city:'Frankfurt, Germany',continent:'Europe',lat:50.1109,lng:8.6821},{code:'eu-central-2',name:'Zurich',city:'Zurich, Switzerland',continent:'Europe',lat:47.3769,lng:8.5417},{code:'eu-north-1',name:'Stockholm',city:'Stockholm, Sweden',continent:'Europe',lat:59.3293,lng:18.0686},{code:'eu-south-1',name:'Milan',city:'Milan, Italy',continent:'Europe',lat:45.4642,lng:9.1900},{code:'eu-south-2',name:'Madrid',city:'Madrid, Spain',continent:'Europe',lat:40.4168,lng:-3.7038},{code:'eu-west-1',name:'Dublin',city:'Dublin, Ireland',continent:'Europe',lat:53.3498,lng:-6.2603},{code:'eu-west-2',name:'London',city:'London, UK',continent:'Europe',lat:51.5074,lng:-0.1278},{code:'eu-west-3',name:'Paris',city:'Paris, France',continent:'Europe',lat:48.8566,lng:2.3522},{code:'il-central-1',name:'Tel Aviv',city:'Tel Aviv, Israel',continent:'Middle East',lat:32.0853,lng:34.7818},{code:'me-central-1',name:'Dubai',city:'Dubai, UAE',continent:'Middle East',lat:25.2048,lng:55.2708},{code:'me-south-1',name:'Manama',city:'Manama, Bahrain',continent:'Middle East',lat:26.2285,lng:50.5860},{code:'mx-central-1',name:'Mexico City',city:'Mexico City, Mexico',continent:'North America',lat:19.4326,lng:-99.1332},{code:'sa-east-1',name:'SÃ£o Paulo',city:'SÃ£o Paulo, Brazil',continent:'South America',lat:-23.5505,lng:-46.6333},{code:'us-east-1',name:'N. Virginia',city:'Washington, DC',continent:'North America',lat:38.9072,lng:-77.0369},{code:'us-east-2',name:'Ohio',city:'Columbus, Ohio',continent:'North America',lat:39.9612,lng:-82.9988},{code:'us-west-1',name:'N. California',city:'San Francisco, CA',continent:'North America',lat:37.7749,lng:-122.4194},{code:'us-west-2',name:'Oregon',city:'Portland, OR',continent:'North America',lat:45.5152,lng:-122.6784}];
 
 const AWS_PRICE_INDEX={'us-east-1':1.00,'us-east-2':1.00,'us-west-1':1.08,'us-west-2':1.00,'ca-central-1':1.04,'ca-west-1':1.04,'mx-central-1':1.15,'sa-east-1':1.50,'eu-west-1':1.08,'eu-west-2':1.10,'eu-west-3':1.10,'eu-central-1':1.10,'eu-central-2':1.15,'eu-north-1':1.08,'eu-south-1':1.10,'eu-south-2':1.08,'ap-northeast-1':1.25,'ap-northeast-2':1.18,'ap-northeast-3':1.25,'ap-south-1':1.05,'ap-south-2':1.05,'ap-southeast-1':1.18,'ap-southeast-2':1.20,'ap-southeast-3':1.20,'ap-southeast-4':1.20,'ap-southeast-5':1.25,'ap-southeast-7':1.15,'ap-east-1':1.18,'me-south-1':1.25,'me-central-1':1.25,'il-central-1':1.20,'af-south-1':1.30};
 const PARIS_DEFAULT_COST=2674;
@@ -2158,7 +2160,7 @@ const PARIS_INDEX=AWS_PRICE_INDEX['eu-west-3'];
 
 const matrix=[[5,351,386,380,391,310,336,322,410,333,421,320,342,229,291,154,151,174,197,137,159,153,143,229,291,255,282,336,225,236,290,275],[354,6,55,43,49,99,92,40,130,54,140,44,65,207,165,224,209,237,206,189,268,203,200,240,128,134,215,321,205,197,159,148],[381,51,3,36,11,132,124,71,110,86,139,78,97,158,116,235,222,247,218,219,207,216,223,271,171,179,166,262,152,138,110,100],[381,39,38,7,31,138,125,73,147,87,157,79,98,181,143,233,225,254,220,219,239,251,259,274,159,167,197,297,186,171,136,127],[389,48,10,28,5,140,130,78,120,95,131,83,102,158,116,246,228,253,225,227,216,226,232,280,167,174,173,274,160,147,110,102],[307,98,140,134,141,5,30,68,156,80,165,71,91,195,243,129,116,150,116,148,128,120,113,146,32,43,248,305,192,203,235,228],[326,82,119,119,122,27,12,49,139,62,147,55,75,210,226,148,135,165,132,166,146,135,130,166,45,57,273,321,207,222,219,207],[320,37,74,73,83,66,52,4,95,18,104,9,31,218,178,175,161,182,160,154,176,168,165,206,89,100,244,328,222,205,172,162],[410,130,104,148,123,159,148,96,5,110,15,101,122,198,160,264,262,285,251,244,257,267,281,296,181,195,214,312,201,188,142,143],[348,54,95,95,100,92,75,21,120,4,143,36,54,240,201,190,178,210,175,176,194,191,182,241,105,117,267,347,247,227,190,175],[427,145,141,160,136,171,154,105,16,124,2,112,132,214,170,272,267,287,257,255,265,281,295,309,193,203,228,326,213,202,154,154],[326,49,77,81,86,78,61,10,103,28,114,5,25,222,182,173,163,189,161,162,179,173,170,218,98,109,257,339,226,209,180,166],[345,68,100,103,112,99,81,36,128,55,133,34,4,250,203,200,196,217,188,181,207,197,195,235,125,128,279,357,251,239,203,198],[225,203,156,183,163,197,219,221,199,231,208,219,243,5,48,96,95,106,103,109,73,82,87,141,202,163,72,127,17,29,83,63],[300,167,118,147,124,250,231,178,166,197,175,187,206,51,2,167,165,176,178,182,143,160,163,209,275,261,90,199,59,44,43,24],[154,203,235,234,234,129,156,169,263,181,268,168,193,94,161,2,9,23,15,36,28,18,11,67,115,88,153,206,93,104,154,144],[153,191,222,226,231,117,141,158,260,174,267,160,184,95,163,11,4,29,9,31,30,23,13,44,112,94,150,204,93,105,155,147],[174,239,276,277,283,151,177,209,293,221,302,211,230,109,176,26,30,7,33,55,40,37,34,88,137,108,170,226,112,126,176,158],[193,185,218,224,230,115,141,156,251,172,253,156,183,104,170,14,10,32,5,26,41,31,22,54,109,119,160,213,105,113,166,153],[147,200,223,231,231,149,174,157,252,173,260,163,182,120,179,37,32,59,30,3,32,39,16,64,125,94,168,224,107,120,173,159],[161,262,206,241,214,129,148,176,258,189,266,179,202,70,142,30,27,43,37,34,5,17,21,70,130,99,129,179,70,83,130,123],[149,203,215,248,226,119,142,170,269,182,278,170,217,80,147,18,20,37,29,35,14,4,12,62,123,90,136,188,81,90,149,131],[144,195,224,259,234,114,134,163,283,178,295,169,190,88,155,12,12,32,23,17,20,11,8,55,115,88,141,196,85,96,145,138],[246,248,283,294,289,166,182,214,315,240,326,231,250,153,223,75,51,95,63,67,91,72,54,7,159,122,201,252,134,155,204,185],[295,130,169,161,166,33,54,89,183,104,195,94,119,202,269,118,113,140,109,122,133,127,118,144,4,17,253,309,195,204,259,256],[257,133,181,171,178,42,66,104,194,116,201,105,126,165,261,92,92,108,121,93,100,91,90,112,14,5,220,275,162,173,227,268],[287,217,171,203,178,261,289,249,220,263,225,252,274,74,86,158,148,174,166,170,129,139,142,201,255,232,4,171,64,54,76,93],[335,319,265,298,272,305,326,332,313,344,325,333,352,128,192,204,203,224,214,220,178,189,196,243,307,274,171,4,118,125,176,175],[223,206,152,184,161,197,216,220,204,246,210,224,250,18,53,96,92,117,107,110,69,77,87,133,194,161,58,116,10,14,81,69],[242,200,137,175,147,205,222,211,194,219,205,217,227,34,39,111,102,129,114,124,84,90,101,150,205,177,56,127,16,9,71,55],[284,157,111,134,111,236,230,171,139,185,150,174,195,84,42,154,153,174,162,169,131,149,145,196,256,221,76,174,75,68,2,21],[273,145,100,122,101,225,213,163,146,177,152,165,187,61,22,145,144,158,152,159,119,131,136,186,258,270,91,176,65,48,21,3]];
 
-const worldCities=[{name:'New York, USA',lat:40.7128,lng:-74.0060,tier:1},{name:'Los Angeles, USA',lat:34.0522,lng:-118.2437,tier:1},{name:'Chicago, USA',lat:41.8781,lng:-87.6298,tier:1},{name:'Houston, USA',lat:29.7604,lng:-95.3698,tier:1},{name:'Phoenix, USA',lat:33.4484,lng:-112.0740,tier:1},{name:'Philadelphia, USA',lat:39.9526,lng:-75.1652,tier:1},{name:'San Antonio, USA',lat:29.4241,lng:-98.4936,tier:1},{name:'San Diego, USA',lat:32.7157,lng:-117.1611,tier:1},{name:'Dallas, USA',lat:32.7767,lng:-96.7970,tier:1},{name:'Seattle, USA',lat:47.6062,lng:-122.3321,tier:1},{name:'Denver, USA',lat:39.7392,lng:-104.9903,tier:1},{name:'Boston, USA',lat:42.3601,lng:-71.0589,tier:1},{name:'Miami, USA',lat:25.7617,lng:-80.1918,tier:1},{name:'Atlanta, USA',lat:33.7490,lng:-84.3880,tier:1},{name:'Toronto, Canada',lat:43.6532,lng:-79.3832,tier:1},{name:'Vancouver, Canada',lat:49.2827,lng:-123.1207,tier:1},{name:'Montreal, Canada',lat:45.5017,lng:-73.5673,tier:1},{name:'Calgary, Canada',lat:51.0447,lng:-114.0719,tier:1},{name:'Mexico City, Mexico',lat:19.4326,lng:-99.1332,tier:2},{name:'Bogotá, Colombia',lat:4.7110,lng:-74.0721,tier:2},{name:'Lima, Peru',lat:-12.0464,lng:-77.0428,tier:2},{name:'Buenos Aires, Argentina',lat:-34.6037,lng:-58.3816,tier:2},{name:'Santiago, Chile',lat:-33.4489,lng:-70.6693,tier:2},{name:'São Paulo, Brazil',lat:-23.5505,lng:-46.6333,tier:2},{name:'Rio de Janeiro, Brazil',lat:-22.9068,lng:-43.1729,tier:2},{name:'London, UK',lat:51.5074,lng:-0.1278,tier:1},{name:'Manchester, UK',lat:53.4808,lng:-2.2426,tier:1},{name:'Edinburgh, UK',lat:55.9533,lng:-3.1883,tier:1},{name:'Birmingham, UK',lat:52.4862,lng:-1.8904,tier:1},{name:'Paris, France',lat:48.8566,lng:2.3522,tier:1},{name:'Lyon, France',lat:45.7640,lng:4.8357,tier:1},{name:'Marseille, France',lat:43.2965,lng:5.3698,tier:1},{name:'Berlin, Germany',lat:52.5200,lng:13.4050,tier:1},{name:'Munich, Germany',lat:48.1351,lng:11.5820,tier:1},{name:'Frankfurt, Germany',lat:50.1109,lng:8.6821,tier:1},{name:'Hamburg, Germany',lat:53.5511,lng:9.9937,tier:1},{name:'Madrid, Spain',lat:40.4168,lng:-3.7038,tier:1},{name:'Barcelona, Spain',lat:41.3874,lng:2.1686,tier:1},{name:'Rome, Italy',lat:41.9028,lng:12.4964,tier:1},{name:'Milan, Italy',lat:45.4642,lng:9.1900,tier:1},{name:'Florence, Italy',lat:43.7696,lng:11.2558,tier:1},{name:'Naples, Italy',lat:40.8518,lng:14.2681,tier:1},{name:'Amsterdam, Netherlands',lat:52.3676,lng:4.9041,tier:1},{name:'Brussels, Belgium',lat:50.8503,lng:4.3517,tier:1},{name:'Vienna, Austria',lat:48.2082,lng:16.3738,tier:1},{name:'Warsaw, Poland',lat:52.2297,lng:21.0122,tier:1},{name:'Prague, Czech Republic',lat:50.0755,lng:14.4378,tier:1},{name:'Budapest, Hungary',lat:47.4979,lng:19.0402,tier:2},{name:'Lisbon, Portugal',lat:38.7223,lng:-9.1393,tier:1},{name:'Athens, Greece',lat:37.9838,lng:23.7275,tier:2},{name:'Istanbul, Turkey',lat:41.0082,lng:28.9784,tier:3},{name:'Moscow, Russia',lat:55.7558,lng:37.6173,tier:3},{name:'Zurich, Switzerland',lat:47.3769,lng:8.5417,tier:1},{name:'Stockholm, Sweden',lat:59.3293,lng:18.0686,tier:1},{name:'Oslo, Norway',lat:59.9139,lng:10.7522,tier:1},{name:'Copenhagen, Denmark',lat:55.6761,lng:12.5683,tier:1},{name:'Helsinki, Finland',lat:60.1699,lng:24.9384,tier:1},{name:'Dublin, Ireland',lat:53.3498,lng:-6.2603,tier:1},{name:'Ljubljana, Slovenia',lat:46.0569,lng:14.5058,tier:2},{name:'Podgorica, Montenegro',lat:42.4304,lng:19.2594,tier:2},{name:'Nicosia, Cyprus',lat:35.1856,lng:33.3823,tier:2},{name:'Yerevan, Armenia',lat:40.1792,lng:44.4991,tier:4},{name:'Chișinău, Moldova',lat:47.0105,lng:28.8638,tier:4},{name:'Skopje, North Macedonia',lat:41.9981,lng:21.4254,tier:2},{name:'Cairo, Egypt',lat:30.0444,lng:31.2357,tier:3},{name:'Lagos, Nigeria',lat:6.5244,lng:3.3792,tier:4},{name:'Abuja, Nigeria',lat:9.0579,lng:7.4951,tier:4},{name:'Nairobi, Kenya',lat:-1.2921,lng:36.8219,tier:4},{name:'Johannesburg, South Africa',lat:-26.2041,lng:28.0473,tier:3},{name:'Cape Town, South Africa',lat:-33.9249,lng:18.4241,tier:3},{name:'Casablanca, Morocco',lat:33.5731,lng:-7.5898,tier:3},{name:'Abidjan, Ivory Coast',lat:5.3600,lng:-4.0083,tier:4},{name:'Dakar, Senegal',lat:14.7167,lng:-17.4677,tier:4},{name:'Addis Ababa, Ethiopia',lat:9.0320,lng:38.7469,tier:4},{name:'Accra, Ghana',lat:5.6037,lng:-0.1870,tier:4},{name:'Kampala, Uganda',lat:0.3476,lng:32.5825,tier:4},{name:'Dar es Salaam, Tanzania',lat:-6.7924,lng:39.2083,tier:4},{name:'Lusaka, Zambia',lat:-15.3875,lng:28.3228,tier:4},{name:'Gaborone, Botswana',lat:-24.6282,lng:25.9231,tier:4},{name:'Windhoek, Namibia',lat:-22.5609,lng:17.0658,tier:4},{name:'Maputo, Mozambique',lat:-25.9692,lng:32.5732,tier:4},{name:'Port Louis, Mauritius',lat:-20.1609,lng:57.5012,tier:4},{name:'São Tomé, São Tomé and Príncipe',lat:0.3365,lng:6.7273,tier:4},{name:'Tripoli, Libya',lat:32.8872,lng:13.1913,tier:3},{name:'Dubai, UAE',lat:25.2048,lng:55.2708,tier:2},{name:'Abu Dhabi, UAE',lat:24.4539,lng:54.3773,tier:2},{name:'Riyadh, Saudi Arabia',lat:24.7136,lng:46.6753,tier:2},{name:'Jeddah, Saudi Arabia',lat:21.4858,lng:39.1925,tier:2},{name:'Tel Aviv, Israel',lat:32.0853,lng:34.7818,tier:2},{name:'Beirut, Lebanon',lat:33.8938,lng:35.5018,tier:2},{name:'Amman, Jordan',lat:31.9454,lng:35.9284,tier:2},{name:'Doha, Qatar',lat:25.2854,lng:51.5310,tier:2},{name:'Kuwait City, Kuwait',lat:29.3759,lng:47.9774,tier:2},{name:'Muscat, Oman',lat:23.5880,lng:58.3829,tier:2},{name:'Manama, Bahrain',lat:26.2285,lng:50.5860,tier:2},{name:"Sana'a, Yemen",lat:15.3694,lng:44.1910,tier:4},{name:'Tehran, Iran',lat:35.6892,lng:51.3890,tier:3},{name:'Baghdad, Iraq',lat:33.3152,lng:44.3661,tier:3},{name:'Mumbai, India',lat:19.0760,lng:72.8777,tier:3},{name:'Delhi, India',lat:28.7041,lng:77.1025,tier:3},{name:'Bangalore, India',lat:12.9716,lng:77.5946,tier:3},{name:'Hyderabad, India',lat:17.3850,lng:78.4867,tier:3},{name:'Chennai, India',lat:13.0827,lng:80.2707,tier:3},{name:'Kolkata, India',lat:22.5726,lng:88.3639,tier:3},{name:'Pune, India',lat:18.5204,lng:73.8567,tier:3},{name:'Ahmedabad, India',lat:23.0225,lng:72.5714,tier:3},{name:'Beijing, China',lat:39.9042,lng:116.4074,tier:3},{name:'Shanghai, China',lat:31.2304,lng:121.4737,tier:3},{name:'Guangzhou, China',lat:23.1291,lng:113.2644,tier:3},{name:'Shenzhen, China',lat:22.5431,lng:114.0579,tier:3},{name:'Tokyo, Japan',lat:35.6762,lng:139.6503,tier:1},{name:'Osaka, Japan',lat:34.6937,lng:135.5023,tier:1},{name:'Seoul, South Korea',lat:37.5665,lng:126.9780,tier:1},{name:'Singapore',lat:1.3521,lng:103.8198,tier:1},{name:'Bangkok, Thailand',lat:13.7563,lng:100.5018,tier:2},{name:'Jakarta, Indonesia',lat:-6.2088,lng:106.8456,tier:2},{name:'Manila, Philippines',lat:14.5995,lng:120.9842,tier:2},{name:'Ho Chi Minh City, Vietnam',lat:10.8231,lng:106.6297,tier:2},{name:'Hanoi, Vietnam',lat:21.0285,lng:105.8542,tier:2},{name:'Kuala Lumpur, Malaysia',lat:3.1390,lng:101.6869,tier:2},{name:'Sydney, Australia',lat:-33.8688,lng:151.2093,tier:1},{name:'Melbourne, Australia',lat:-37.8136,lng:144.9631,tier:1},{name:'Brisbane, Australia',lat:-27.4698,lng:153.0251,tier:1},{name:'Perth, Australia',lat:-31.9505,lng:115.8605,tier:1},{name:'Auckland, New Zealand',lat:-36.8485,lng:174.7633,tier:1},{name:'Wellington, New Zealand',lat:-41.2865,lng:174.7762,tier:1},{name:'Hong Kong',lat:22.3193,lng:114.1694,tier:2},{name:'Taipei, Taiwan',lat:25.0330,lng:121.5654,tier:2},{name:'Karachi, Pakistan',lat:24.8607,lng:67.0011,tier:3},{name:'Dhaka, Bangladesh',lat:23.8103,lng:90.4125,tier:3},{name:'Colombo, Sri Lanka',lat:6.9271,lng:79.8612,tier:3},{name:'Chengdu, China',lat:30.5728,lng:104.0668,tier:3},{name:'Wuhan, China',lat:30.5928,lng:114.3055,tier:3},{name:'Hangzhou, China',lat:30.2741,lng:120.1551,tier:3},{name:'Nanjing, China',lat:32.0603,lng:118.7969,tier:3},{name:'Busan, South Korea',lat:35.1796,lng:129.0756,tier:1},{name:'Fukuoka, Japan',lat:33.5904,lng:130.4017,tier:1},{name:'Sapporo, Japan',lat:43.0618,lng:141.3545,tier:1},{name:'Nagoya, Japan',lat:35.1815,lng:136.9066,tier:1},{name:'Adelaide, Australia',lat:-34.9285,lng:138.6007,tier:1},{name:'Christchurch, New Zealand',lat:-43.5321,lng:172.6362,tier:1}];
+const worldCities=[{name:'New York, USA',lat:40.7128,lng:-74.0060,tier:1},{name:'Los Angeles, USA',lat:34.0522,lng:-118.2437,tier:1},{name:'Chicago, USA',lat:41.8781,lng:-87.6298,tier:1},{name:'Houston, USA',lat:29.7604,lng:-95.3698,tier:1},{name:'Phoenix, USA',lat:33.4484,lng:-112.0740,tier:1},{name:'Philadelphia, USA',lat:39.9526,lng:-75.1652,tier:1},{name:'San Antonio, USA',lat:29.4241,lng:-98.4936,tier:1},{name:'San Diego, USA',lat:32.7157,lng:-117.1611,tier:1},{name:'Dallas, USA',lat:32.7767,lng:-96.7970,tier:1},{name:'Seattle, USA',lat:47.6062,lng:-122.3321,tier:1},{name:'Denver, USA',lat:39.7392,lng:-104.9903,tier:1},{name:'Boston, USA',lat:42.3601,lng:-71.0589,tier:1},{name:'Miami, USA',lat:25.7617,lng:-80.1918,tier:1},{name:'Atlanta, USA',lat:33.7490,lng:-84.3880,tier:1},{name:'Toronto, Canada',lat:43.6532,lng:-79.3832,tier:1},{name:'Vancouver, Canada',lat:49.2827,lng:-123.1207,tier:1},{name:'Montreal, Canada',lat:45.5017,lng:-73.5673,tier:1},{name:'Calgary, Canada',lat:51.0447,lng:-114.0719,tier:1},{name:'Mexico City, Mexico',lat:19.4326,lng:-99.1332,tier:2},{name:'BogotÃ¡, Colombia',lat:4.7110,lng:-74.0721,tier:2},{name:'Lima, Peru',lat:-12.0464,lng:-77.0428,tier:2},{name:'Buenos Aires, Argentina',lat:-34.6037,lng:-58.3816,tier:2},{name:'Santiago, Chile',lat:-33.4489,lng:-70.6693,tier:2},{name:'SÃ£o Paulo, Brazil',lat:-23.5505,lng:-46.6333,tier:2},{name:'Rio de Janeiro, Brazil',lat:-22.9068,lng:-43.1729,tier:2},{name:'London, UK',lat:51.5074,lng:-0.1278,tier:1},{name:'Manchester, UK',lat:53.4808,lng:-2.2426,tier:1},{name:'Edinburgh, UK',lat:55.9533,lng:-3.1883,tier:1},{name:'Birmingham, UK',lat:52.4862,lng:-1.8904,tier:1},{name:'Paris, France',lat:48.8566,lng:2.3522,tier:1},{name:'Lyon, France',lat:45.7640,lng:4.8357,tier:1},{name:'Marseille, France',lat:43.2965,lng:5.3698,tier:1},{name:'Berlin, Germany',lat:52.5200,lng:13.4050,tier:1},{name:'Munich, Germany',lat:48.1351,lng:11.5820,tier:1},{name:'Frankfurt, Germany',lat:50.1109,lng:8.6821,tier:1},{name:'Hamburg, Germany',lat:53.5511,lng:9.9937,tier:1},{name:'Madrid, Spain',lat:40.4168,lng:-3.7038,tier:1},{name:'Barcelona, Spain',lat:41.3874,lng:2.1686,tier:1},{name:'Rome, Italy',lat:41.9028,lng:12.4964,tier:1},{name:'Milan, Italy',lat:45.4642,lng:9.1900,tier:1},{name:'Florence, Italy',lat:43.7696,lng:11.2558,tier:1},{name:'Naples, Italy',lat:40.8518,lng:14.2681,tier:1},{name:'Amsterdam, Netherlands',lat:52.3676,lng:4.9041,tier:1},{name:'Brussels, Belgium',lat:50.8503,lng:4.3517,tier:1},{name:'Vienna, Austria',lat:48.2082,lng:16.3738,tier:1},{name:'Warsaw, Poland',lat:52.2297,lng:21.0122,tier:1},{name:'Prague, Czech Republic',lat:50.0755,lng:14.4378,tier:1},{name:'Budapest, Hungary',lat:47.4979,lng:19.0402,tier:2},{name:'Lisbon, Portugal',lat:38.7223,lng:-9.1393,tier:1},{name:'Athens, Greece',lat:37.9838,lng:23.7275,tier:2},{name:'Istanbul, Turkey',lat:41.0082,lng:28.9784,tier:3},{name:'Moscow, Russia',lat:55.7558,lng:37.6173,tier:3},{name:'Zurich, Switzerland',lat:47.3769,lng:8.5417,tier:1},{name:'Stockholm, Sweden',lat:59.3293,lng:18.0686,tier:1},{name:'Oslo, Norway',lat:59.9139,lng:10.7522,tier:1},{name:'Copenhagen, Denmark',lat:55.6761,lng:12.5683,tier:1},{name:'Helsinki, Finland',lat:60.1699,lng:24.9384,tier:1},{name:'Dublin, Ireland',lat:53.3498,lng:-6.2603,tier:1},{name:'Ljubljana, Slovenia',lat:46.0569,lng:14.5058,tier:2},{name:'Podgorica, Montenegro',lat:42.4304,lng:19.2594,tier:2},{name:'Nicosia, Cyprus',lat:35.1856,lng:33.3823,tier:2},{name:'Yerevan, Armenia',lat:40.1792,lng:44.4991,tier:4},{name:'ChiÈ™inÄƒu, Moldova',lat:47.0105,lng:28.8638,tier:4},{name:'Skopje, North Macedonia',lat:41.9981,lng:21.4254,tier:2},{name:'Cairo, Egypt',lat:30.0444,lng:31.2357,tier:3},{name:'Lagos, Nigeria',lat:6.5244,lng:3.3792,tier:4},{name:'Abuja, Nigeria',lat:9.0579,lng:7.4951,tier:4},{name:'Nairobi, Kenya',lat:-1.2921,lng:36.8219,tier:4},{name:'Johannesburg, South Africa',lat:-26.2041,lng:28.0473,tier:3},{name:'Cape Town, South Africa',lat:-33.9249,lng:18.4241,tier:3},{name:'Casablanca, Morocco',lat:33.5731,lng:-7.5898,tier:3},{name:'Abidjan, Ivory Coast',lat:5.3600,lng:-4.0083,tier:4},{name:'Dakar, Senegal',lat:14.7167,lng:-17.4677,tier:4},{name:'Addis Ababa, Ethiopia',lat:9.0320,lng:38.7469,tier:4},{name:'Accra, Ghana',lat:5.6037,lng:-0.1870,tier:4},{name:'Kampala, Uganda',lat:0.3476,lng:32.5825,tier:4},{name:'Dar es Salaam, Tanzania',lat:-6.7924,lng:39.2083,tier:4},{name:'Lusaka, Zambia',lat:-15.3875,lng:28.3228,tier:4},{name:'Gaborone, Botswana',lat:-24.6282,lng:25.9231,tier:4},{name:'Windhoek, Namibia',lat:-22.5609,lng:17.0658,tier:4},{name:'Maputo, Mozambique',lat:-25.9692,lng:32.5732,tier:4},{name:'Port Louis, Mauritius',lat:-20.1609,lng:57.5012,tier:4},{name:'SÃ£o TomÃ©, SÃ£o TomÃ© and PrÃ­ncipe',lat:0.3365,lng:6.7273,tier:4},{name:'Tripoli, Libya',lat:32.8872,lng:13.1913,tier:3},{name:'Dubai, UAE',lat:25.2048,lng:55.2708,tier:2},{name:'Abu Dhabi, UAE',lat:24.4539,lng:54.3773,tier:2},{name:'Riyadh, Saudi Arabia',lat:24.7136,lng:46.6753,tier:2},{name:'Jeddah, Saudi Arabia',lat:21.4858,lng:39.1925,tier:2},{name:'Tel Aviv, Israel',lat:32.0853,lng:34.7818,tier:2},{name:'Beirut, Lebanon',lat:33.8938,lng:35.5018,tier:2},{name:'Amman, Jordan',lat:31.9454,lng:35.9284,tier:2},{name:'Doha, Qatar',lat:25.2854,lng:51.5310,tier:2},{name:'Kuwait City, Kuwait',lat:29.3759,lng:47.9774,tier:2},{name:'Muscat, Oman',lat:23.5880,lng:58.3829,tier:2},{name:'Manama, Bahrain',lat:26.2285,lng:50.5860,tier:2},{name:"Sana'a, Yemen",lat:15.3694,lng:44.1910,tier:4},{name:'Tehran, Iran',lat:35.6892,lng:51.3890,tier:3},{name:'Baghdad, Iraq',lat:33.3152,lng:44.3661,tier:3},{name:'Mumbai, India',lat:19.0760,lng:72.8777,tier:3},{name:'Delhi, India',lat:28.7041,lng:77.1025,tier:3},{name:'Bangalore, India',lat:12.9716,lng:77.5946,tier:3},{name:'Hyderabad, India',lat:17.3850,lng:78.4867,tier:3},{name:'Chennai, India',lat:13.0827,lng:80.2707,tier:3},{name:'Kolkata, India',lat:22.5726,lng:88.3639,tier:3},{name:'Pune, India',lat:18.5204,lng:73.8567,tier:3},{name:'Ahmedabad, India',lat:23.0225,lng:72.5714,tier:3},{name:'Beijing, China',lat:39.9042,lng:116.4074,tier:3},{name:'Shanghai, China',lat:31.2304,lng:121.4737,tier:3},{name:'Guangzhou, China',lat:23.1291,lng:113.2644,tier:3},{name:'Shenzhen, China',lat:22.5431,lng:114.0579,tier:3},{name:'Tokyo, Japan',lat:35.6762,lng:139.6503,tier:1},{name:'Osaka, Japan',lat:34.6937,lng:135.5023,tier:1},{name:'Seoul, South Korea',lat:37.5665,lng:126.9780,tier:1},{name:'Singapore',lat:1.3521,lng:103.8198,tier:1},{name:'Bangkok, Thailand',lat:13.7563,lng:100.5018,tier:2},{name:'Jakarta, Indonesia',lat:-6.2088,lng:106.8456,tier:2},{name:'Manila, Philippines',lat:14.5995,lng:120.9842,tier:2},{name:'Ho Chi Minh City, Vietnam',lat:10.8231,lng:106.6297,tier:2},{name:'Hanoi, Vietnam',lat:21.0285,lng:105.8542,tier:2},{name:'Kuala Lumpur, Malaysia',lat:3.1390,lng:101.6869,tier:2},{name:'Sydney, Australia',lat:-33.8688,lng:151.2093,tier:1},{name:'Melbourne, Australia',lat:-37.8136,lng:144.9631,tier:1},{name:'Brisbane, Australia',lat:-27.4698,lng:153.0251,tier:1},{name:'Perth, Australia',lat:-31.9505,lng:115.8605,tier:1},{name:'Auckland, New Zealand',lat:-36.8485,lng:174.7633,tier:1},{name:'Wellington, New Zealand',lat:-41.2865,lng:174.7762,tier:1},{name:'Hong Kong',lat:22.3193,lng:114.1694,tier:2},{name:'Taipei, Taiwan',lat:25.0330,lng:121.5654,tier:2},{name:'Karachi, Pakistan',lat:24.8607,lng:67.0011,tier:3},{name:'Dhaka, Bangladesh',lat:23.8103,lng:90.4125,tier:3},{name:'Colombo, Sri Lanka',lat:6.9271,lng:79.8612,tier:3},{name:'Chengdu, China',lat:30.5728,lng:104.0668,tier:3},{name:'Wuhan, China',lat:30.5928,lng:114.3055,tier:3},{name:'Hangzhou, China',lat:30.2741,lng:120.1551,tier:3},{name:'Nanjing, China',lat:32.0603,lng:118.7969,tier:3},{name:'Busan, South Korea',lat:35.1796,lng:129.0756,tier:1},{name:'Fukuoka, Japan',lat:33.5904,lng:130.4017,tier:1},{name:'Sapporo, Japan',lat:43.0618,lng:141.3545,tier:1},{name:'Nagoya, Japan',lat:35.1815,lng:136.9066,tier:1},{name:'Adelaide, Australia',lat:-34.9285,lng:138.6007,tier:1},{name:'Christchurch, New Zealand',lat:-43.5321,lng:172.6362,tier:1}];
 
 let currentStep = 1;
 let maxStepReached = 1;
@@ -2268,7 +2270,7 @@ function renderCostCellsList() {
     const tierLabel = tier === 'discount' ? 'Discount' : tier === 'parity' ? 'Parity' : 'Premium';
     
     return `<div class="cost-cell-row">
-      <div class="cell-name"><div class="name">${r.name} <span class="cost-tag ${tier}" style="margin-left:6px">${index.toFixed(2)}x · ${tierLabel}</span></div><div class="code">${r.code}</div></div>
+      <div class="cell-name"><div class="name">${r.name} <span class="cost-tag ${tier}" style="margin-left:6px">${index.toFixed(2)}x Â· ${tierLabel}</span></div><div class="code">${r.code}</div></div>
       <div class="cell-cost"><span class="currency">$</span><input type="number" data-cell-idx="${idx}" value="${currentCost}" placeholder="${PARIS_DEFAULT_COST}" min="0"><span class="currency">/mo</span></div>
     </div>`;
   }).join('');
@@ -2314,7 +2316,7 @@ function updateSpecificDropdown() {
     const cost = cellCosts[idx];
     const index = AWS_PRICE_INDEX[r.code];
     const baseCost = cost / index;
-    return `<option value="${idx}" ${specificBaselineIdx === idx ? 'selected' : ''}>${r.name} — ${formatMoney(cost)}/mo → normalized ${formatMoney(Math.round(baseCost))}</option>`;
+    return `<option value="${idx}" ${specificBaselineIdx === idx ? 'selected' : ''}>${r.name} â€” ${formatMoney(cost)}/mo â†’ normalized ${formatMoney(Math.round(baseCost))}</option>`;
   }).join('');
   
   if (specificBaselineIdx === null || !cellsWithCosts.includes(specificBaselineIdx)) {
@@ -2392,7 +2394,7 @@ function haversine(lat1, lng1, lat2, lng2) {
     if (i === j) return;
     const floor = haversine(a.lat, a.lng, b.lat, b.lng) * 0.01;
     if (matrix[i][j] < floor) {
-      console.error('matrix[' + i + '][' + j + '] (' + a.code + '→' + b.code + ') = ' +
+      console.error('matrix[' + i + '][' + j + '] (' + a.code + 'â†’' + b.code + ') = ' +
         matrix[i][j] + 'ms, below physical floor ' + floor.toFixed(0) + 'ms');
     }
   }));
@@ -2659,7 +2661,7 @@ function initFpMap() {
   }
   fpMap = L.map('fp-map', createMapOptions()).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(fpMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(fpMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'Â©OpenStreetMap Â©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(fpMap);
   updateFpMap();
 }
 
@@ -2670,7 +2672,7 @@ function updateFpMap() {
   selectedFootprint.forEach(idx => {
     const r = regions[idx];
     const marker = L.marker([r.lat, r.lng], { icon: createPulseIcon('#10b981') }).addTo(fpMap);
-    marker.bindPopup(`<b>${r.name}</b><br><span class="text-xs text-slate-400">${r.code}</span>`);
+    marker.bindPopup(`<strong>${r.name}</strong><br><span class="text-xs text-slate-400">${r.code}</span>`);
     fpMapMarkers.push(marker);
   });
 }
@@ -2755,7 +2757,7 @@ function renderCustList() {
         if (d < minDist) { minDist = d; nearestCode = r.code; }
       });
       if (minDist < 50) {
-        proximityNote = `<div class="text-xs text-blue-400/80 mt-1"><i class="fas fa-info-circle mr-1"></i>Within ${Math.round(minDist)} km of ${nearestCode} — using measured matrix latency.</div>`;
+        proximityNote = `<div class="text-xs text-blue-400/80 mt-1"><i class="fas fa-info-circle mr-1"></i>Within ${Math.round(minDist)} km of ${nearestCode} â€” using measured matrix latency.</div>`;
       }
     }
     return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${escapeHtml(c.name)}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div>${proximityNote}</div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
@@ -2829,7 +2831,7 @@ function initCustMap() {
   }
   custMap = L.map('cust-map', createMapOptions()).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(custMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(custMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'Â©OpenStreetMap Â©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(custMap);
 
   custMapEscHandler = function(e) {
     if (e.key === 'Escape' && clickPlaceMode) toggleClickPlace();
@@ -2869,13 +2871,13 @@ function updateCustMap() {
   selectedFootprint.forEach(idx => {
     const r = regions[idx];
     const marker = L.marker([r.lat, r.lng], { icon: createPulseIcon('#10b981') }).addTo(custMap);
-    marker.bindPopup(`<b>${r.name}</b><br><span class="text-xs text-slate-400">Existing Cell</span>`);
+    marker.bindPopup(`<strong>${r.name}</strong><br><span class="text-xs text-slate-400">Existing Cell</span>`);
     custMapMarkers.push(marker);
   });
   
   customers.forEach((c, i) => {
     const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#ef4444') }).addTo(custMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-slate-400">Endpoint #${i + 1}</span>`);
+    marker.bindPopup(`<strong>${c.name}</strong><br><span class="text-xs text-slate-400">Endpoint #${i + 1}</span>`);
     custMapMarkers.push(marker);
   });
 
@@ -3274,7 +3276,7 @@ function renderScenarioList() {
     const sum = s.summary || {};
     return '<div class="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-800/40 border border-slate-700/50">' +
       '<div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">' + s.name + '</div>' +
-      '<div class="text-xs text-slate-500">' + date + ' · ' + (sum.covered || 0) + ' covered · ' + (sum.marginal || 0) + ' marginal · ' + (sum.impossible || 0) + ' impossible · ' + formatMoney(sum.opex || 0) + '/mo</div></div>' +
+      '<div class="text-xs text-slate-500">' + date + ' Â· ' + (sum.covered || 0) + ' covered Â· ' + (sum.marginal || 0) + ' marginal Â· ' + (sum.impossible || 0) + ' impossible Â· ' + formatMoney(sum.opex || 0) + '/mo</div></div>' +
       '<div class="flex gap-2 ml-3"><button class="text-xs text-emerald-400 hover:text-emerald-300" onclick="loadOptScenario(' + i + '); closeScenariosModal();">Load</button>' +
       '<button class="text-xs text-red-400 hover:text-red-300" onclick="deleteOptScenario(' + i + ')">Delete</button></div></div>';
   }).join('');
@@ -3307,14 +3309,14 @@ function renderDashboard() {
 
   const summaryEl = document.getElementById('strategy-summary');
   if (recommendations.length > 0 || covered.length > 0) {
-    const marginalHint = marginal.length > 0 ? `<p class="text-xs text-amber-300 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${marginal.length} endpoint${marginal.length > 1 ? 's' : ''} only coverable with marginal headroom — relax SLA by ${Math.min(...marginal.map(m => m.relaxationNeeded))}ms to cover them.</p>` : '';
+    const marginalHint = marginal.length > 0 ? `<p class="text-xs text-amber-300 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${marginal.length} endpoint${marginal.length > 1 ? 's' : ''} only coverable with marginal headroom â€” relax SLA by ${Math.min(...marginal.map(m => m.relaxationNeeded))}ms to cover them.</p>` : '';
     summaryEl.innerHTML = `
       <div class="flex items-start gap-3">
         <i class="fas fa-bullseye text-xl mt-1 text-emerald-400"></i>
         <div class="flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Optimization Summary</span>
-            <span class="text-sm font-bold text-white">Coverage-First · SLA Safety Floor ${safetyFloor}ms</span>
+            <span class="text-sm font-bold text-white">Coverage-First Â· SLA Safety Floor ${safetyFloor}ms</span>
           </div>
           <p class="text-sm text-slate-300 mt-1">Algorithm maximizes coverage breadth with SLA safety margin. Cost is a tie-breaker only.</p>
           <div class="flex items-center gap-4 mt-3 flex-wrap">
@@ -3346,7 +3348,7 @@ function renderDashboard() {
   covList.innerHTML = covered.length > 0 ? covered.map(c => {
     const marginalTag = c.marginalExisting ? '<span class="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded ml-2 uppercase tracking-wide">Marginal</span>' : '';
     const headroom = c.sla - c.serving.breakdown.total;
-    return `<div class="py-2 px-3 rounded-lg ${c.marginalExisting ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}"><div class="flex items-center gap-2"><i class="fas ${c.marginalExisting ? 'fa-exclamation-triangle text-amber-400' : 'fa-check-circle text-emerald-400'}"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}${marginalTag}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name} · headroom ${headroom}ms</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`;
+    return `<div class="py-2 px-3 rounded-lg ${c.marginalExisting ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}"><div class="flex items-center gap-2"><i class="fas ${c.marginalExisting ? 'fa-exclamation-triangle text-amber-400' : 'fa-check-circle text-emerald-400'}"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}${marginalTag}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name} Â· headroom ${headroom}ms</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`;
   }).join('') : '<p class="text-sm text-slate-500 italic">No endpoints covered by existing cells.</p>';
 
   const pendList = document.getElementById('dash-pending-list');
@@ -3358,7 +3360,7 @@ function renderDashboard() {
     impCard.classList.remove('hidden');
     impList.innerHTML = impossible.map(c => {
       const overshoot = c.bestFrom.breakdown.total - c.sla;
-      return `<div class="py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/20"><div class="flex items-center gap-2"><i class="fas fa-ban text-red-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms · Best: <span class="text-red-400">${c.bestFrom.breakdown.total}ms (+${overshoot})</span></div></div></div></div>`;
+      return `<div class="py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/20"><div class="flex items-center gap-2"><i class="fas fa-ban text-red-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms Â· Best: <span class="text-red-400">${c.bestFrom.breakdown.total}ms (+${overshoot})</span></div></div></div></div>`;
     }).join('');
   } else {
     impCard.classList.add('hidden');
@@ -3369,7 +3371,7 @@ function renderDashboard() {
   if (marginal.length > 0) {
     margCard.classList.remove('hidden');
     margList.innerHTML = marginal.map(c => {
-      return `<div class="py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20"><div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-orange-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms · Best headroom: <span class="text-orange-400">${c.bestHeadroom}ms</span> · Relax by ${c.relaxationNeeded}ms</div></div></div></div>`;
+      return `<div class="py-2 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20"><div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-orange-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">SLA: ${c.sla}ms Â· Best headroom: <span class="text-orange-400">${c.bestHeadroom}ms</span> Â· Relax by ${c.relaxationNeeded}ms</div></div></div></div>`;
     }).join('');
   } else {
     margCard.classList.add('hidden');
@@ -3387,7 +3389,7 @@ function renderDashboard() {
 
     if (!isPerEndpoint) {
       gpSummary.innerHTML = `<div class="flex items-center gap-4 flex-wrap mb-3">
-        <div class="flex items-center gap-2"><i class="fas fa-arrow-up text-emerald-400"></i><span class="text-xs text-slate-400">Relax SLA:</span><span class="font-bold text-white">${globalSLA}ms → ${gp.relaxedSLA}ms</span><span class="text-xs text-emerald-400">(+${gp.globalRelaxation}ms)</span></div>
+        <div class="flex items-center gap-2"><i class="fas fa-arrow-up text-emerald-400"></i><span class="text-xs text-slate-400">Relax SLA:</span><span class="font-bold text-white">${globalSLA}ms â†’ ${gp.relaxedSLA}ms</span><span class="text-xs text-emerald-400">(+${gp.globalRelaxation}ms)</span></div>
         <div class="flex items-center gap-2"><i class="fas fa-dollar-sign text-amber-400"></i><span class="text-xs text-slate-400">Extra OPEX:</span><span class="cost-tag">${gp.deltaOPEX > 0 ? '+' + formatMoney(gp.deltaOPEX) + '/mo' : '$0'}</span></div>
         <div class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i><span class="text-xs text-slate-400">Marginal:</span><span class="text-emerald-400 font-bold">${gp.relaxedMarginal.length}</span></div>
         <div class="flex items-center gap-2"><i class="fas fa-ban text-red-400"></i><span class="text-xs text-slate-400">Impossible:</span><span class="text-red-400 font-bold">${gp.relaxedImpossible.length}</span></div>
@@ -3446,7 +3448,7 @@ function renderDashboard() {
           <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">${i + 1}</div>
           <div class="flex-1 min-w-0">
             <div class="font-semibold text-white">Deploy in ${r.cellName}</div>
-            <div class="text-xs text-slate-400">${r.cellCode} · ${idx.toFixed(2)}x · ${tierLabel} · <span class="text-${confColor}-400">${worstConf} confidence</span></div>
+            <div class="text-xs text-slate-400">${r.cellCode} Â· ${idx.toFixed(2)}x Â· ${tierLabel} Â· <span class="text-${confColor}-400">${worstConf} confidence</span></div>
           </div>
           <div class="flex flex-col items-end gap-1">
             <div class="text-sm text-emerald-400 font-medium">${r.covers.length} endpoint${r.covers.length > 1 ? 's' : ''}</div>
@@ -3458,7 +3460,7 @@ function renderDashboard() {
         </div>
         <div class="space-y-2">${r.covers.map((c, ci) => {
           const b = bands[ci];
-          return `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500" title="Point estimate ${b.point}ms">${b.isDirect ? `(est. ${b.lo}–${b.hi}ms, headroom ${c.headroom}ms)` : `(measured backbone, headroom ${c.headroom}ms)`}</span></div>${renderBreakdown(c.breakdown)}</div>`;
+          return `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500" title="Point estimate ${b.point}ms">${b.isDirect ? `(est. ${b.lo}â€“${b.hi}ms, headroom ${c.headroom}ms)` : `(measured backbone, headroom ${c.headroom}ms)`}</span></div>${renderBreakdown(c.breakdown)}</div>`;
         }).join('')}</div>
       </div>`;
     }).join('');
@@ -3482,7 +3484,7 @@ function initDashMap(covered, pendingCovered, impossible, recommendations, margi
   }
   dashMap = L.map('dash-map', createMapOptions()).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(dashMap);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(dashMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'Â©OpenStreetMap Â©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(dashMap);
   dashMapMarkers = [];
 
   recommendations.forEach(r => {
@@ -3496,25 +3498,25 @@ function initDashMap(covered, pendingCovered, impossible, recommendations, margi
 
   covered.forEach(c => {
     const marker = L.marker([c.lat, c.lng], { icon: createCustomIcon('#10b981', 8) }).addTo(dashMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-emerald-400">Covered ✓</span><br><span class="text-xs text-slate-400">${c.serving.breakdown.total}ms via ${regions[c.serving.cellIdx].name}</span>`);
+    marker.bindPopup(`<strong>${c.name}</strong><br><span class="text-xs text-emerald-400">Covered âœ“</span><br><span class="text-xs text-slate-400">${c.serving.breakdown.total}ms via ${regions[c.serving.cellIdx].name}</span>`);
     dashMapMarkers.push(marker);
   });
 
   pendingCovered.forEach(c => {
     const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#f59e0b') }).addTo(dashMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-amber-400">Pending Coverage ⏱</span><br><span class="text-xs text-slate-400">Will be served by <b class="text-blue-400">${c.coveredByCell}</b></span><br><span class="text-xs text-slate-500">${c.recBreakdown.total}ms</span>`);
+    marker.bindPopup(`<strong>${c.name}</strong><br><span class="text-xs text-amber-400">Pending Coverage â±</span><br><span class="text-xs text-slate-400">Will be served by <b class="text-blue-400">${c.coveredByCell}</strong></span><br><span class="text-xs text-slate-500">${c.recBreakdown.total}ms</span>`);
     dashMapMarkers.push(marker);
   });
 
   impossible.forEach(c => {
     const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#ef4444') }).addTo(dashMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-red-400">Impossible SLA ✗</span><br><span class="text-xs text-slate-400">SLA: ${c.sla}ms · Best: ${c.bestFrom.breakdown.total}ms</span>`);
+    marker.bindPopup(`<strong>${c.name}</strong><br><span class="text-xs text-red-400">Impossible SLA âœ—</span><br><span class="text-xs text-slate-400">SLA: ${c.sla}ms Â· Best: ${c.bestFrom.breakdown.total}ms</span>`);
     dashMapMarkers.push(marker);
   });
 
     (marginal || []).forEach(c => {
     const marker = L.marker([c.lat, c.lng], { icon: createExclamationIcon('#f97316') }).addTo(dashMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-orange-400">Marginal ⚠</span><br><span class="text-xs text-slate-400">Best headroom: ${c.bestHeadroom}ms · Needs +${c.relaxationNeeded}ms</span>`);
+    marker.bindPopup(`<strong>${c.name}</strong><br><span class="text-xs text-orange-400">Marginal âš </span><br><span class="text-xs text-slate-400">Best headroom: ${c.bestHeadroom}ms Â· Needs +${c.relaxationNeeded}ms</span>`);
     dashMapMarkers.push(marker);
   });
 
@@ -3522,7 +3524,7 @@ function initDashMap(covered, pendingCovered, impossible, recommendations, margi
     const r = regions[idx];
     const cost = estimateRegionCost(idx);
     const marker = L.marker([r.lat, r.lng], { icon: createPulseIcon('#10b981') }).addTo(dashMap);
-    marker.bindPopup(`<b>${r.name}</b><br><span class="text-xs text-emerald-400">Existing Cell</span><br><span class="text-xs text-slate-500">${r.code}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
+    marker.bindPopup(`<strong>${r.name}</strong><br><span class="text-xs text-emerald-400">Existing Cell</span><br><span class="text-xs text-slate-500">${r.code}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
     dashMapMarkers.push(marker);
   });
 
@@ -3531,7 +3533,7 @@ function initDashMap(covered, pendingCovered, impossible, recommendations, margi
     const cost = estimateRegionCost(r.cellIdx);
     const marker = L.marker([region.lat, region.lng], { icon: createRecommendedIconWithCost(cost) }).addTo(dashMap);
     const coveredNames = r.covers.map(c => c.name).join(', ');
-    marker.bindPopup(`<b>${region.name}</b><br><span class="text-xs text-blue-400">Recommended Cell ◆</span><br><span class="text-xs text-slate-500">${region.code}</span><br><span class="text-xs text-emerald-400">Covers ${r.covers.length}: ${coveredNames}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
+    marker.bindPopup(`<strong>${region.name}</strong><br><span class="text-xs text-blue-400">Recommended Cell â—†</span><br><span class="text-xs text-slate-500">${region.code}</span><br><span class="text-xs text-emerald-400">Covers ${r.covers.length}: ${coveredNames}</span><br><span class="text-xs text-amber-400">Est. ${formatMoney(cost)}/mo</span>`);
     dashMapMarkers.push(marker);
   });
 
@@ -3645,8 +3647,8 @@ function buildAndDownloadPDF() {
       <h2 class="pdf-section-title">${sectionCounter++}. Global Infrastructure Strategy</h2>
       <p>Our optimization engine has analyzed the geographic distribution of your endpoints with a <strong>${infraData.summary.safetyFloor}ms safety margin</strong>. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
       <ul style="margin-bottom:20px;">
-         ${infraData.recommendedNewCells.map(c => `<li>• <strong>Deploy new dedicated cell:</strong> ${c.cellName} (${c.cellCode}) — min headroom ${c.minHeadroom}ms</li>`).join('')}
-         ${infraData.alreadyCovered.length > 0 && infraData.recommendedNewCells.length === 0 ? '<li>• <strong>Status:</strong> All endpoints are optimally covered by existing infrastructure. No new cells required.</li>' : ''}
+         ${infraData.recommendedNewCells.map(c => `<li>â€¢ <strong>Deploy new dedicated cell:</strong> ${c.cellName} (${c.cellCode}) â€” min headroom ${c.minHeadroom}ms</li>`).join('')}
+         ${infraData.alreadyCovered.length > 0 && infraData.recommendedNewCells.length === 0 ? '<li>â€¢ <strong>Status:</strong> All endpoints are optimally covered by existing infrastructure. No new cells required.</li>' : ''}
       </ul>
       
       <p style="margin-top:10px; font-weight:bold;">Endpoint Coverage & Latency Forecast</p>
@@ -3666,15 +3668,15 @@ function buildAndDownloadPDF() {
     
     infraData.alreadyCovered.forEach(ep => {
          const hrClass = ep.headroom >= infraData.summary.safetyFloor ? 'pdf-highlight' : 'style="color:#f59e0b;font-weight:bold;"';
-         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${ep.servedByCell}</td><td><strong>${ep.actualLatency}ms</strong></td><td ${hrClass}>${ep.headroom}ms</td><td class="pdf-highlight">✓ Pass</td></tr>`;
+         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${ep.servedByCell}</td><td><strong>${ep.actualLatency}ms</strong></td><td ${hrClass}>${ep.headroom}ms</td><td class="pdf-highlight">âœ“ Pass</td></tr>`;
     });
     infraData.recommendedNewCells.forEach(cell => {
         cell.endpointsCovered.forEach(ep => {
-             html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${cell.cellCode}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">${ep.headroom}ms</td><td class="pdf-highlight">✓ Pass</td></tr>`;
+             html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>${cell.cellCode}</td><td><strong>${ep.actualLatency}ms</strong></td><td class="pdf-highlight">${ep.headroom}ms</td><td class="pdf-highlight">âœ“ Pass</td></tr>`;
         });
     });
     infraData.impossibleSLAs.forEach(ep => {
-         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>Best Effort</td><td><strong>${ep.bestPossibleLatency}ms</strong></td><td style="color:#ef4444;">N/A</td><td style="color:#ef4444;font-weight:bold;">✗ Miss</td></tr>`;
+         html += `<tr><td>${ep.name}</td><td>${ep.slaThreshold}ms</td><td>Best Effort</td><td><strong>${ep.bestPossibleLatency}ms</strong></td><td style="color:#ef4444;">N/A</td><td style="color:#ef4444;font-weight:bold;">âœ— Miss</td></tr>`;
     });
     
     html += `</tbody></table>`;
@@ -3942,16 +3944,16 @@ function exportShareReport() {
     '.stat b{display:block;font-size:20px;color:#fff;margin-top:2px}footer{margin-top:40px;padding-top:12px;border-top:1px solid #334155;font-size:11px;color:#64748b}' +
     '</style></head><body>' +
     '<h1>ATLAS Coverage Report</h1>' +
-    '<p>Generated: ' + date + ' · SLA: ' + slaLabel + ' · Safety Floor: ' + safetyFloor + 'ms · Mode: ' + modeLabel + '</p>' +
-    '<div class="stats"><div class="stat">Endpoints<b>' + customers.length + '</b></div><div class="stat">Already Covered<b style="color:#10b981">' + result.covered.length + '</b></div>' +
-    '<div class="stat">Pending<b style="color:#f59e0b">' + result.pendingCovered.length + '</b></div><div class="stat">Marginal<b style="color:#eab308">' + result.marginal.length + '</b></div>' +
-    '<div class="stat">Impossible<b style="color:#ef4444">' + result.impossible.length + '</b></div><div class="stat">New OPEX<b>$' + opex + '/mo</b></div></div>' +
+    '<p>Generated: ' + date + ' Â· SLA: ' + slaLabel + ' Â· Safety Floor: ' + safetyFloor + 'ms Â· Mode: ' + modeLabel + '</p>' +
+    '<div class="stats"><div class="stat">Endpoints<strong>' + customers.length + '</strong></div><div class="stat">Already Covered<b style="color:#10b981">' + result.covered.length + '</strong></div>' +
+    '<div class="stat">Pending<b style="color:#f59e0b">' + result.pendingCovered.length + '</strong></div><div class="stat">Marginal<b style="color:#eab308">' + result.marginal.length + '</strong></div>' +
+    '<div class="stat">Impossible<b style="color:#ef4444">' + result.impossible.length + '</strong></div><div class="stat">New OPEX<strong>$' + opex + '/mo</strong></div></div>' +
     '<h2>Already Covered (' + result.covered.length + ')</h2>' + (coveredRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th><th>Status</th></tr>' + coveredRows + '</table>' : '<p>None</p>') +
     '<h2>Pending Coverage (' + result.pendingCovered.length + ')</h2>' + (pendingRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th></tr>' + pendingRows + '</table>' : '<p>None</p>') +
     '<h2>Marginal (' + result.marginal.length + ')</h2>' + (marginalRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Best Headroom</th><th>Relax by</th></tr>' + marginalRows + '</table>' : '<p>None</p>') +
     '<h2>Impossible (' + result.impossible.length + ')</h2>' + (impossibleRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Best Latency</th><th>Overshoot</th></tr>' + impossibleRows + '</table>' : '<p>None</p>') +
     '<h2>Recommended New Cells (' + result.recommendations.length + ')</h2>' + (recRows ? '<table><tr><th>Cell</th><th>Code</th><th>Covers</th><th>Min Headroom</th><th>Avg Headroom</th><th>Cost</th></tr>' + recRows + '</table>' : '<p>None</p>') +
-    '<footer>Generated by ATLAS · Provenant Inc. · ' + date + '</footer></body></html>';
+    '<footer>Generated by ATLAS Â· Provenant Inc. Â· ' + date + '</footer></body></html>';
 
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
@@ -4128,7 +4130,7 @@ function handleImport(event) {
         }
         return true;
       });
-      if (droppedEndpoints > 0) showToast(droppedEndpoints + ' endpoint(s) dropped — unknown region index', true);
+      if (droppedEndpoints > 0) showToast(droppedEndpoints + ' endpoint(s) dropped â€” unknown region index', true);
       
       slaMode = data.slaMode || 'global';
       globalSLA = data.globalSLA ?? 150;
@@ -4744,12 +4746,12 @@ function processGapData() {
     return;
   }
 
-  // Presentation layer — fails independently, never rolls back data pipeline
+  // Presentation layer â€” fails independently, never rolls back data pipeline
   try { renderGapPairPanel(); } catch(e) { console.error("Pair panel error:", e); }
   try { populateGapFilterDropdowns(); } catch(e) { console.error("Filter dropdown error:", e); }
   try { updateGapMetrics(); } catch(e) { console.error("Metrics error:", e); }
   try { renderGapTable(); } catch(e) { console.error("Table render error:", e); }
-  try { renderGapCharts(); } catch(e) { console.error("Charts unavailable:", e); showToast("Charts unavailable — data loaded successfully", true); }
+  try { renderGapCharts(); } catch(e) { console.error("Charts unavailable:", e); showToast("Charts unavailable â€” data loaded successfully", true); }
   try { initGapHoverHighlight(); } catch(e) { console.error("Hover highlight error:", e); }
   document.getElementById("gap-upload-prompt").classList.add("hidden");
   document.getElementById("gap-dashboard").classList.remove("hidden");
@@ -4762,10 +4764,10 @@ function processGapData() {
   const _i = gapData.filter(d => !d.ukValid).length;
   const _e = (window.gapParseErrors || []).length;
   const _ut = gapData.filter(d => !d.timeValid).length;
-  let msg = gapData.length + " records analyzed · " + _s + " signing, " + _v + " verify";
+  let msg = gapData.length + " records analyzed Â· " + _s + " signing, " + _v + " verify";
   if (_i > 0) msg += ", " + _i + " invalid";
-  if (_e > 0) msg += " · " + _e + " skipped";
-  if (_ut > 0) msg += " · " + _ut + " unparseable timestamp(s)";
+  if (_e > 0) msg += " Â· " + _e + " skipped";
+  if (_ut > 0) msg += " Â· " + _ut + " unparseable timestamp(s)";
   showToast(msg);
 }
 
@@ -4776,7 +4778,7 @@ function normalizePhoneNumber(value) {
     if (m) {
       const mantissaDigits = 1 + (m[2] ? m[2].length : 0);
       const totalDigits = parseInt(m[3], 10) + 1;
-      if (mantissaDigits < totalDigits) return value; // precision lost — fail closed
+      if (mantissaDigits < totalDigits) return value; // precision lost â€” fail closed
     }
     const num = Number(value);
     if (!isNaN(num)) {
@@ -4792,7 +4794,7 @@ function normalizePhoneNumber(value) {
 function validateUKNumber(number) {
   if (!number) return { valid: false, category: 'malformed', reason: "Empty number" };
   const cleaned = number.replace(/[\s\-\(\)]/g, "");
-  // Detect non-UK country codes — valid number, wrong country
+  // Detect non-UK country codes â€” valid number, wrong country
   if (/^\+[1-9]\d+/.test(cleaned) && !cleaned.startsWith("+44")) {
     const cc = cleaned.match(/^\+(\d{1,3})/);
     return { valid: false, category: 'non-uk', reason: "Non-UK destination (+" + (cc ? cc[1] : '?') + ")" };
