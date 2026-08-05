@@ -306,6 +306,13 @@ input[type=number].ob-grid-input{background:transparent;color:#93c5fd;font-famil
 .help-section ol { font-size: 14px; line-height: 1.65; color: #cbd5e1; list-style-type: decimal; margin-left: 20px; margin-bottom: 12px; }
 .help-section ol ul { list-style-type: disc; margin-left: 20px; }
 .help-section li { margin-bottom: 6px; }
+.help-index-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin: 12px 0; }
+.help-index-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(51, 65, 85, 0.5); border-radius: 6px; }
+.help-index-row .region { font-size: 13px; color: #cbd5e1; }
+.help-index-row .idx { font-size: 13px; font-weight: 600; font-family: ui-monospace, monospace; }
+.help-index-row .idx.discount { color: #10b981; }
+.help-index-row .idx.parity { color: #fbbf24; }
+.help-index-row .idx.premium { color: #f87171; }
 .help-callout { font-size: 14px; line-height: 1.6; background: rgba(15,23,42,0.8); border: 1px solid rgba(51,65,85,0.6); border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #3b82f6; color: #cbd5e1; }
 .help-callout.success { border-left-color: #10b981; }
 .callout-title { font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 15px; }
