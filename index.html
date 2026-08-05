@@ -673,6 +673,9 @@ tr.gap-pair-dim { opacity: 0.45; }
           <p class="text-xs text-slate-400 mb-4">Minimum headroom between latency and SLA. A region must beat the SLA by at least this much to be eligible. Set to 0 for legacy pass/fail behavior.</p>
           <div class="flex items-center gap-3"><input type="number" id="safety-floor-input" value="20" min="0" class="text-lg font-mono w-24"><span class="text-slate-400 font-medium">ms</span></div>
         </div>
+        <div class="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300/80">
+          <i class="fas fa-triangle-exclamation mr-1"></i> The underlying latency data disagrees with itself by <strong>30–60 ms</strong> — more than the default safety margin above. Treat single-millisecond figures as indicative. City endpoints added from the World Cities tab are estimated differently than AWS region references, even at the same physical location.
+        </div>
       </div>
       <div class="flex justify-between mt-8 max-w-2xl mx-auto"><button class="btn-ghost px-6 py-3" onclick="goToStep(2)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-primary px-6 py-3 rounded-xl" onclick="analyzeCoverage()">Analyze Coverage <i class="fas fa-chart-line ml-2"></i></button></div>
     </div>
@@ -2400,6 +2403,19 @@ function getCustomerTier(customer) {
   return 2;
 }
 
+function latencyBand(cellIdx, customer) {
+  const saved = realisticMode;
+  realisticMode = true;
+  const real = getCustomerLatency(cellIdx, customer, true);
+  realisticMode = false;
+  const naive = getCustomerLatency(cellIdx, customer, true);
+  realisticMode = saved;
+  const lo = Math.min(real.total, naive.total);
+  const hi = Math.max(real.total, naive.total);
+  const band = hi - lo;
+  return { lo, hi, band, point: real.total };
+}
+
 function getCustomerLatency(cellIdx, customer, withBreakdown = false) {
   const cell = regions[cellIdx];
   const tier = getCustomerTier(customer);
@@ -2718,7 +2734,18 @@ function renderCustList() {
   
   container.innerHTML = customers.map((c, i) => {
     const tierBadge = c.tier ? `<span class="tier-badge tier-${c.tier} ml-1">T${c.tier}</span>` : '';
-    return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${escapeHtml(c.name)}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div></div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
+    let proximityNote = '';
+    if (c.type === 'city') {
+      let minDist = Infinity, nearestCode = '';
+      regions.forEach(r => {
+        const d = haversine(c.lat, c.lng, r.lat, r.lng);
+        if (d < minDist) { minDist = d; nearestCode = r.code; }
+      });
+      if (minDist < 50) {
+        proximityNote = `<div class="text-xs text-amber-400/80 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>Within ${Math.round(minDist)}km of AWS ${nearestCode}. Realistic vs. Naive estimates will differ.</div>`;
+      }
+    }
+    return `<div class="customer-row" tabindex="0" onkeydown="handleCustKeydown(event, ${i})"><div class="customer-num">${i + 1}</div><div class="flex-1 min-w-0"><div class="font-medium text-white text-sm truncate flex items-center">${escapeHtml(c.name)}${tierBadge}</div><div class="text-xs text-slate-500">${c.lat.toFixed(2)}, ${c.lng.toFixed(2)}</div>${proximityNote}</div><button class="text-slate-500 hover:text-red-400 transition" onclick="removeCustomer(${i})"><i class="fas fa-trash-alt text-sm"></i></button></div>`;
   }).join('');
 }
 
@@ -3450,12 +3477,19 @@ function renderDashboard() {
       const idx = AWS_PRICE_INDEX[r.cellCode];
       const tier = getIndexTier(r.cellCode);
       const tierLabel = tier === 'discount' ? 'Discount Region' : tier === 'parity' ? 'Parity Region' : 'Premium Region';
+      const bands = r.covers.map(c => {
+        const band = latencyBand(r.cellIdx, c);
+        const ratio = band.band / (c.sla || 150);
+        return { ...band, confidence: ratio < 0.05 ? 'High' : ratio < 0.1 ? 'Medium' : 'Low', sla: c.sla };
+      });
+      const worstConf = bands.reduce((worst, b) => b.confidence === 'Low' ? 'Low' : b.confidence === 'Medium' && worst !== 'Low' ? 'Medium' : worst, 'High');
+      const confColor = worstConf === 'High' ? 'emerald' : worstConf === 'Medium' ? 'amber' : 'red';
       return `<div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
         <div class="flex items-center gap-3 mb-3 flex-wrap">
           <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">${i + 1}</div>
           <div class="flex-1 min-w-0">
             <div class="font-semibold text-white">Deploy in ${r.cellName}</div>
-            <div class="text-xs text-slate-400">${r.cellCode} · ${idx.toFixed(2)}x · ${tierLabel}</div>
+            <div class="text-xs text-slate-400">${r.cellCode} · ${idx.toFixed(2)}x · ${tierLabel} · <span class="text-${confColor}-400">${worstConf} confidence</span></div>
           </div>
           <div class="flex flex-col items-end gap-1">
             <div class="text-sm text-emerald-400 font-medium">${r.covers.length} endpoint${r.covers.length > 1 ? 's' : ''}</div>
@@ -3465,7 +3499,10 @@ function renderDashboard() {
             </div>
           </div>
         </div>
-        <div class="space-y-2">${r.covers.map(c => `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500">(headroom ${c.headroom}ms)</span></div>${renderBreakdown(c.breakdown)}</div>`).join('')}</div>
+        <div class="space-y-2">${r.covers.map((c, ci) => {
+          const b = bands[ci];
+          return `<div class="bg-slate-900/40 rounded-lg px-3 py-2"><div class="text-xs text-slate-300">${c.name} <span class="text-slate-500" title="Point estimate ${b.point}ms">(est. ${b.lo}–${b.hi}ms, headroom ${c.headroom}ms)</span></div>${renderBreakdown(c.breakdown)}</div>`;
+        }).join('')}</div>
       </div>`;
     }).join('');
   }
