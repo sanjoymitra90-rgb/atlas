@@ -462,7 +462,7 @@ tr.gap-pair-dim { opacity: 0.45; }
       </div>
     </div>
     
-    <div class="gateway-card" role="button" tabindex="0" data-testid="gap-launch" onclick="showModule('gap-analyzer')" onkeydown="event.key==='Enter'&&showModule('gap-analyzer')"> style="border-color: rgba(139, 92, 246, 0.6);">
+    <div class="gateway-card" role="button" tabindex="0" data-testid="gap-launch" onclick="showModule('gap-analyzer')" onkeydown="event.key==='Enter'&&showModule('gap-analyzer')" style="border-color: rgba(139, 92, 246, 0.6);">
       <div class="gateway-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); color: #a78bfa;">
         <i class="fas fa-chart-line"></i>
       </div>
@@ -606,7 +606,7 @@ tr.gap-pair-dim { opacity: 0.45; }
         <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Endpoint Locations</h2>
         <p class="text-xs sm:text-sm text-slate-400">Add the locations of your target endpoints</p>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <div class="glass rounded-2xl overflow-hidden">
           <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-2"><h3 class="font-semibold text-white">Endpoint Map</h3><div class="flex gap-3 text-xs flex-wrap"><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Endpoint</div></div></div>
           <div class="h-[300px] sm:h-[420px] relative">
@@ -2795,11 +2795,17 @@ function toggleClickPlace() {
   const doneBtn = document.getElementById('done-place-btn');
   
   if (clickPlaceMode) {
+    window._prePlaceCount = customers.length;
     btn.classList.add('accent-glow');
     text.textContent = 'Cancel Placement';
     doneBtn.classList.remove('hidden');
     custMap.getContainer().style.cursor = 'crosshair';
   } else {
+    if (customers.length > (window._prePlaceCount || 0)) {
+      customers.length = window._prePlaceCount || 0;
+      renderCustList();
+      updateCustMap();
+    }
     btn.classList.remove('accent-glow');
     text.textContent = 'Click to Place on Map';
     doneBtn.classList.add('hidden');
@@ -2842,7 +2848,7 @@ function initCustMap() {
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: MAP_BOUNDS }).addTo(custMap);
 
   custMapEscHandler = function(e) {
-    if (e.key === 'Escape' && clickPlaceMode) exitClickPlace();
+    if (e.key === 'Escape' && clickPlaceMode) toggleClickPlace();
   };
   document.addEventListener('keydown', custMapEscHandler);
   
