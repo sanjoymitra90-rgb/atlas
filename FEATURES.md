@@ -92,9 +92,8 @@ per endpoint with a live latency preview beside each.
 estimated latency and the SLA before the tool will recommend it. Set it to zero for plain
 pass/fail. **Internal processing time** (default 10 ms) is added to every estimate.
 
-> The underlying latency data disagrees with itself by 30–60 ms in places — more than the
-> default safety margin. A warning note is shown in Step 3. Recommendation cards now display
-> latency bands (lo–hi ms) with a confidence chip (High/Medium/Low).
+> Uncertainty is surfaced via per-recommendation latency bands and a confidence chip, with a
+> tooltip on the safety margin; the detailed explanation lives in the help drawer.
 
 ### Step 4 — Coverage analysis
 
