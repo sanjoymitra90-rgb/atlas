@@ -26,9 +26,8 @@
 <link href="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.css" rel="stylesheet">
 
 <!-- html2pdf.js for Client Proposal Generation -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha256-38mlFj2GqWXJHH/DgpO06wTd5iJwOYq/nAA9mN73uwo=" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" integrity="sha256-aGsfI/xYljf7l+3M9IUdDhLx0PRqJ19oOlqHQu/QENs=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
 /* Global Resets & Typography */
@@ -2490,7 +2489,7 @@ function goToStep(step) {
     requestAnimationFrame(() => initCustMap());
   }
   if (step === 3) renderSLAPerList();
-  if (step === 4) { showLoading(); renderDashboard(); hideLoading(); }
+  if (step === 4) { showLoading(); try { renderDashboard(); } finally { hideLoading(); } }
   
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -3115,7 +3114,8 @@ function toggleGreenPlanMode() {
   const btn = document.getElementById('green-plan-toggle');
   if (!btn) return;
   btn.dataset.mode = btn.dataset.mode === 'per-endpoint' ? 'global' : 'per-endpoint';
-  showLoading(); renderDashboard(); hideLoading();
+  showLoading();
+  try { renderDashboard(); } finally { hideLoading(); }
 }
 
 function toggleUpgradePlan(checked) {
@@ -3126,27 +3126,28 @@ function toggleUpgradePlan(checked) {
     return;
   }
   showLoading();
-  const strict = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
-  const relaxed = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor: 0, selectedFootprint, getLatency: getCustomerLatency });
-  const strictOPEX = strict.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
-  const relaxedOPEX = relaxed.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
-  const deltaOPEX = relaxedOPEX - strictOPEX;
+  try {
+    const strict = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+    const relaxed = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor: 0, selectedFootprint, getLatency: getCustomerLatency });
+    const strictOPEX = strict.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+    const relaxedOPEX = relaxed.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+    const deltaOPEX = relaxedOPEX - strictOPEX;
 
-  const strictCellIds = new Set(strict.recommendations.map(r => r.cellIdx));
-  const addedCells = relaxed.recommendations.filter(r => !strictCellIds.has(r.cellIdx));
-  const hasMarginals = strict.marginal.length > 0 || strict.covered.some(c => c.marginalExisting);
+    const strictCellIds = new Set(strict.recommendations.map(r => r.cellIdx));
+    const addedCells = relaxed.recommendations.filter(r => !strictCellIds.has(r.cellIdx));
+    const hasMarginals = strict.marginal.length > 0 || strict.covered.some(c => c.marginalExisting);
 
-  const summaryEl = document.getElementById('upgrade-plan-summary');
-  const cellsEl = document.getElementById('upgrade-plan-cells');
-  const endpointsEl = document.getElementById('upgrade-plan-endpoints');
+    const summaryEl = document.getElementById('upgrade-plan-summary');
+    const cellsEl = document.getElementById('upgrade-plan-cells');
+    const endpointsEl = document.getElementById('upgrade-plan-endpoints');
 
-  if (!hasMarginals) {
-    summaryEl.innerHTML = '<p class="text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 mr-2"></i>No upgrades needed — all covered endpoints meet the safety floor.</p>';
-    cellsEl.innerHTML = '';
-    endpointsEl.innerHTML = '';
-    card.classList.remove('hidden');
-    return;
-  }
+    if (!hasMarginals) {
+      summaryEl.innerHTML = '<p class="text-sm text-slate-400"><i class="fas fa-check-circle text-emerald-400 mr-2"></i>No upgrades needed — all covered endpoints meet the safety floor.</p>';
+      cellsEl.innerHTML = '';
+      endpointsEl.innerHTML = '';
+      card.classList.remove('hidden');
+      return;
+    }
 
   summaryEl.innerHTML = '<div class="flex items-center gap-4 flex-wrap">' +
     '<div class="flex items-center gap-2"><span class="text-xs text-slate-400">Added cells:</span><span class="font-bold text-white">' + addedCells.length + '</span></div>' +
@@ -3175,7 +3176,9 @@ function toggleUpgradePlan(checked) {
     }).join('') : '';
 
   card.classList.remove('hidden');
-  hideLoading();
+  } finally {
+    hideLoading();
+  }
 }
 window.toggleUpgradePlan = toggleUpgradePlan;
 
@@ -4665,34 +4668,37 @@ function processGapData() {
   gapFilteredData = [...gapData];
   gapCurrentPage = 1;
   pairGapCalls();
-  renderGapPairPanel();
-  populateGapFilterDropdowns();
-  updateGapMetrics();
-  renderGapTable();
-  renderGapCharts();
+  } catch(e) {
+    gapData = savedData;
+    gapFilteredData = savedFiltered;
+    console.error("processGapData error:", e);
+    showToast("Error processing data: " + e.message, true);
+    return;
+  }
+
+  // Presentation layer — fails independently, never rolls back data pipeline
+  try { renderGapPairPanel(); } catch(e) { console.error("Pair panel error:", e); }
+  try { populateGapFilterDropdowns(); } catch(e) { console.error("Filter dropdown error:", e); }
+  try { updateGapMetrics(); } catch(e) { console.error("Metrics error:", e); }
+  try { renderGapTable(); } catch(e) { console.error("Table render error:", e); }
+  try { renderGapCharts(); } catch(e) { console.error("Charts unavailable:", e); showToast("Charts unavailable — data loaded successfully", true); }
+  try { initGapHoverHighlight(); } catch(e) { console.error("Hover highlight error:", e); }
   document.getElementById("gap-upload-prompt").classList.add("hidden");
   document.getElementById("gap-dashboard").classList.remove("hidden");
   document.getElementById("gap-export-btn").disabled = false;
   document.getElementById("gap-export-btn").classList.remove("opacity-50", "pointer-events-none");
   document.getElementById("gap-settings-btn").disabled = false;
   document.getElementById("gap-settings-btn").classList.remove("opacity-50", "pointer-events-none");
-  initGapHoverHighlight();
   const _s = gapData.filter(d => d.isSigning).length;
   const _v = gapData.filter(d => d.isVerify).length;
   const _i = gapData.filter(d => !d.ukValid).length;
   const _e = (window.gapParseErrors || []).length;
   const _ut = gapData.filter(d => !d.timeValid).length;
-  let msg = gapData.length + " records analyzed \u00b7 " + _s + " signing, " + _v + " verify";
+  let msg = gapData.length + " records analyzed · " + _s + " signing, " + _v + " verify";
   if (_i > 0) msg += ", " + _i + " invalid";
-  if (_e > 0) msg += " \u00b7 " + _e + " skipped";
-  if (_ut > 0) msg += " \u00b7 " + _ut + " unparseable timestamp(s)";
+  if (_e > 0) msg += " · " + _e + " skipped";
+  if (_ut > 0) msg += " · " + _ut + " unparseable timestamp(s)";
   showToast(msg);
-  } catch(e) {
-    gapData = savedData;
-    gapFilteredData = savedFiltered;
-    console.error("processGapData error:", e);
-    showToast("Error processing data: " + e.message, true);
-  }
 }
 
 function normalizePhoneNumber(value) {
@@ -5802,6 +5808,17 @@ function drillDownGap(type) {
   applyGapFilters();
   document.getElementById('gap-dashboard').scrollIntoView({ behavior: 'smooth' });
 }
+
+// Dependency guard: fail fast with clear message if a CDN library is missing
+window.addEventListener('load', () => {
+  const missing = [
+    ['Chart.js', typeof Chart !== 'undefined'],
+    ['Leaflet', typeof L !== 'undefined'],
+    ['html2pdf', typeof html2pdf !== 'undefined'],
+    ['DHTMLX Gantt', typeof gantt !== 'undefined']
+  ].filter(([, ok]) => !ok).map(([n]) => n);
+  if (missing.length) showToast('Failed to load: ' + missing.join(', ') + '. Check network or CDN.', true);
+});
 
 
 </script>
