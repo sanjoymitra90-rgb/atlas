@@ -169,19 +169,22 @@ This bridge exists solely for tests.
 
 ### 5.2 Latency — `getCustomerLatency(cellIdx, customer, withBreakdown)`
 
-Two paths, which is the source of a known modelling inconsistency (R6):
+Unified model — one path, no mode parameter. `resolveCityToRegion(customer)` returns the
+nearest region index if within 50 km, otherwise `null`.
 
-- **AWS-region endpoint** (`customer.regionIdx` defined) — `matrix` lookup. Realistic mode adds
-  tier tax + processing time; naive mode adds processing time only.
-- **City endpoint** — Realistic: `haversine × 0.012 ms/km` + tier tax + processing time, with no
-  backbone term. Naive: matrix latency to the nearest AWS region as proxy, + processing time.
+- **Matrix path** (`regionIdx !== null`) — `matrix[cellIdx][regionIdx] + processingTime`.
+  No tier tax. This covers AWS-region endpoints and cities near regions.
+- **Direct path** (`regionIdx === null`) — `haversine × 0.012 ms/km` + tier tax + processing time.
+
+Adding the same city from different UI paths (World Cities, AWS Regions, map click) always
+produces identical latency because `resolveCityToRegion` is deterministic.
 
 The `0.012` factor comes from light in glass (~200,000 km/s → 0.005 ms/km one-way → 0.01 ms/km
 RTT) rounded up for last-mile. Measured against the matrix it is **median 45 ms optimistic** and
 up to 300 ms optimistic on long-haul African routes.
 
 Returns a number, or `{base, distance, infra, proc, total, nearestRegionIdx, distanceKm, tier,
-isDirect}` when `withBreakdown`.
+isDirect, resolvedRegion}` when `withBreakdown`.
 
 ### 5.3 Cost baseline
 
@@ -226,7 +229,7 @@ without visiting step 4), `computeGreenPlan()`, `toggleUpgradePlan()`.
 
 Wizard gating via `currentStep` / `maxStepReached`. SLA inputs validated in `analyzeCoverage()`.
 
-- **Session JSON v2.1** — `realisticMode`, `slaMode`, `globalSLA`, `perCustomerSLA`,
+- **Session JSON v2.2** — `slaMode`, `globalSLA`, `perCustomerSLA`,
   `processingTime`, `safetyFloor`, `selectedFootprint`, `cellCosts`, `baselineMode`,
   `specificBaselineIdx`, and `customers[].sla`. Import restores `perCustomerSLA` from
   `customers[].sla` when absent (v2.0 compatibility). **Import performs no validation — R13.**

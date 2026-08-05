@@ -77,13 +77,13 @@ shows coordinates and can be deleted with the button or by focusing the row and 
 
 > The same physical location can be added two ways — "London, UK" as a city, or the London AWS
 > region — and the tool will estimate different latencies for each. When a city is within 50km
-> of an AWS region, a proximity note now warns that the two models will differ.
+> of an AWS region, a proximity note shows which backbone region is used.
 
 ### Step 3 — SLA configuration
 
-**Latency estimation model.** *Realistic* (default) estimates from real-world distance plus a
-penalty for local infrastructure quality. *Naive* uses AWS's own inter-region measurements as a
-proxy. Realistic is the better default for endpoints that are cities rather than AWS regions.
+**Latency estimation.** One unified model — no mode selector. When a city endpoint is within 50 km
+of an AWS region, the measured backbone matrix latency is used directly. Otherwise, distance-based
+estimation applies (Haversine × 0.012 ms/km + infrastructure tier tax).
 
 **SLA mode.** Either one global threshold for everything (default 150 ms), or a custom threshold
 per endpoint with a live latency preview beside each.

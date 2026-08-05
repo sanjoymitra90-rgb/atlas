@@ -7,7 +7,17 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-06 (review pass complete — 26 of 27 resolved, 115 specs)
+**Last updated:** 2026-08-06 (unified latency model — Naive mode removed)
+
+---
+
+### Unified latency model — Naive mode removed (R6 resolved by construction)
+- **Unified `getCustomerLatency()`** — One model, no mode parameter. `resolveCityToRegion()` finds nearest region within 50 km. If resolved: matrix path (no tier tax). Otherwise: haversine + tier tax. Same city from any UI path produces identical latency.
+- **Naive mode removed** — Deleted mode selector cards, `realisticMode` global, `setRealisticMode()`, `_realisticMode` bridge. Session JSON bumped to v2.2 (imports of v2.0/v2.1 silently ignore `realisticMode`).
+- **Proximity note** — Now informational ("uses measured backbone latency") instead of a warning.
+- **Precision bands (R7)** — Matrix-resolved endpoints: band collapses to 0, "measured backbone" shown. Direct-path endpoints: ±20% band + confidence chip.
+- **Tests** — Replaced "Realistic vs Naive" spec with two unified model tests. All `realisticMode` references removed from test fixtures.
+- **Docs** — SPEC.md §5.2 rewritten to unified rule. FEATURES.md Step 3 rewritten. Help drawer "Direct Distance vs AWS Backbone" rewritten.
 
 ---
 
