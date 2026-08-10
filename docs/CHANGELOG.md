@@ -7,7 +7,49 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-06 (optimizer: upgrade plan removed, marginal recolored, collapsible sections)
+**Last updated:** 2026-08-10 (Phase 11: Removed Gap Count & Gap Percentage tiles)
+
+---
+
+### Phase 11 — Removed Gap Count & Gap Percentage tiles
+- **Gap Count tile removed** — Deleted the tile HTML, `signedGap`/`gap` computation in `updateGapMetrics()`, the `drillDownGap('gap')` branch, the `gap` pair filter dropdown option, and the `pairFilter === 'gap'` handling in `applyGapFilters()`. Help drawer Gap Count bullet removed.
+- **Gap Percentage tile removed** — Deleted the tile HTML, `gapPct` computation, and DOM update. Tile grid now has 6 tiles in a 4+2 layout: Row 1 (Total Records, Paired Calls, Signing Requests, Verification Requests), Row 2 (Destination Issues, Slow Requests).
+- **Tests updated** — Tile order test updated to expect 6 tiles. Gap Count tests removed from `gap-charts.spec.js` and `gap-pairing.spec.js`.
+
+---
+
+### Phase 10 — Gap Count bug fix, CSV reporter v2, HTML test report viewer
+- **Gap Count tile click bug fixed** — Clicking the Gap Count tile now correctly filters to unverified + unsigned records (the rows contributing to the gap) instead of resetting all filters. Added `gap` option to the pair filter dropdown. New filter `drillDownGap('gap')` sets the pair filter; `applyGapFilters()` handles the combined `unverified || unsigned` logic.
+- **CSV reporter v2** — Enhanced with 4 new columns: Spec File (relative path), Describe Block (cleaned hierarchy), Fixture (detected CSV filename), and Scenario (3-step Gherkin: Given/When/Then). Describe chain filters out file-path-like titles. When step defaults to "When I run the analysis" for assertion-style titles.
+- **HTML test report viewer** — One-time `reports/test-report-viewer.html` file. Self-contained dark-theme viewer with drag-and-drop CSV import, module tabs (Gap Analyzer / Optimizer / Onboarding), per-module metrics, Expand All / Collapse All per module, collapsible spec file sections, Gherkin color coding (Given=violet, When=amber, Then=blue), fixture badges, error expansion for failed tests, search box, and status filter buttons.
+- **143 tests passing** — All tests across Gap Analyzer (87), Optimizer (47), and Onboarding (7) pass.
+
+---
+
+### Phase 9 — Cleanup, restructure, CSV test report
+- **REVIEW.md removed** — Deleted stale `REVIEW.md` file. Removed all references from `SPEC.md`, `FEATURES.md`, and `CHANGELOG.md`. `claude_memory.md` left untouched.
+- **Stale fixture removed** — Deleted `fixtures/gap-phase1.csv` (zero references in any test or source file).
+- **Docs restructured** — `SPEC.md`, `FEATURES.md`, and `CHANGELOG.md` moved from project root into `docs/` folder.
+- **screenshot.js fixed** — Updated to use `fixtures/gap-core.csv` (was referencing deleted `test_gap_phase2a.csv`).
+- **CSV test report** — Custom Playwright reporter (`e2e/reporters/csv-reporter.js`) generates Gherkin-format CSV reports after each test run. Columns: Test Name (Given/When/Then), Status, Duration, Comments. Includes overall run time summary row. Reports saved to `reports/` (gitignored).
+- **Playwright config** — Added CSV reporter alongside existing list reporter.
+
+---
+
+### Phase 8 — Paired Calls tile, metric grid reorder, Processing Time bucket fix
+- **Paired Calls tile** — New metric tile (`gap-tile-paired`) showing distinct `pairId` count where `pairStatus === 'paired'` in `gapFilteredData`. Sub-label shows global match rate from `gapPairSummary`. Clickable via `drillDownPair('paired')`. Icon: `fa-link text-cyan-400`.
+- **Metric grid reordered to 4+4** — Row 1: Total Records, Paired Calls, Signing Requests, Verification Requests. Row 2: Destination Issues, Slow Requests, Gap Count, Gap Percentage. Tile count increased from 7 to 8.
+- **Filtered strip updated** — When a filter is active, the strip now shows the paired global count alongside the record count.
+- **Processing Time bucket fix** — `renderSingleChart('proc')` now correctly destroys and recreates the proc chart when the per-chart bucket dropdown is changed. Root cause: `gapChartInstances` used key `processing` while `renderSingleChart` looked up key `proc`. Fixed by aligning both to `proc`. Window bridge added for `gapChartInstances` at init and both reassignment sites.
+- **Tests** — 8 new tests: tile count/order verification, Paired Calls tile count/match rate/grid position/filter behavior, proc bucket dropdown re-render/auto-return/isolation. 87 tests total, all passing.
+
+---
+
+### Phase 7 — Time-to-Verify info tooltip, module rename, doc split
+- **TTV info icon** — Added `fa-info-circle` info icon to the Time-to-Verify tile in the Call Pairing panel, matching the existing pattern on Gap Count and Gap Percentage tiles. Tooltip explains median, P95, and what a large P95-vs-median gap means.
+- **Module rename** — Display name "Gap Analyzer" renamed to "Call Auditor" across all user-visible strings: gateway card title + description, module header, help drawer tab label, help section heading/body, and ARIA live announcement map. Internal IDs (`module-gap-analyzer`, `gap-*` globals, `e2e/gap/` paths) unchanged.
+- **Doc split** — `Atlas_memory.md` retired. Source of truth is now three files: `SPEC.md` (engineering), `FEATURES.md` (product), `CHANGELOG.md` (history).
+- **Tests** — Extended pairing spec with TTV info icon assertion. Added module rename assertion (gateway, header, help tab). Full suite green.
 
 ---
 

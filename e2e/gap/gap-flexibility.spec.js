@@ -53,7 +53,7 @@ test.describe('Gap Analyzer — Phase 6B: UX Hardening', () => {
     const innerDialog = page.locator('#gap-column-modal > div');
     const classes = await innerDialog.getAttribute('class');
     expect(classes).toContain('max-w-6xl');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('2. Pairing key section shows From/To defaults', async ({ page }) => {
@@ -67,7 +67,7 @@ test.describe('Gap Analyzer — Phase 6B: UX Hardening', () => {
     const toLabel = page.locator('#gap-column-modal label:has-text("To")');
     await expect(fromLabel.first()).toBeVisible();
     await expect(toLabel.first()).toBeVisible();
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('3. Pairing key From/To are pre-selected from mapping', async ({ page }) => {
@@ -79,7 +79,7 @@ test.describe('Gap Analyzer — Phase 6B: UX Hardening', () => {
     const fromVal = await fromSelect.inputValue();
     expect(fromVal.length).toBeGreaterThan(0);
     expect(fromVal).not.toBe('');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('4. Settings modal has additional columns section', async ({ page }) => {
@@ -89,7 +89,7 @@ test.describe('Gap Analyzer — Phase 6B: UX Hardening', () => {
     await page.waitForSelector('#gap-column-modal', { state: 'visible', timeout: 5000 });
     const addColBtn = page.locator('#gap-column-modal button[onclick="addGapAdditionalColumn()"]');
     await expect(addColBtn).toBeVisible();
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('5. Add custom column renders in table header and cells', async ({ page }) => {
@@ -118,7 +118,7 @@ test.describe('Gap Analyzer — Phase 6B: UX Hardening', () => {
     await page.waitForTimeout(200);
     const preview = page.locator('#gap-mapping-preview');
     await expect(preview).toBeVisible();
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('7. Pairing key section exists with add button', async ({ page }) => {
@@ -130,7 +130,7 @@ test.describe('Gap Analyzer — Phase 6B: UX Hardening', () => {
     await expect(pairingSection).toBeVisible();
     const addKeyBtn = page.locator('#gap-column-modal button[onclick="addGapPairingKey()"]');
     await expect(addKeyBtn).toBeVisible();
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('8. Custom columns appear in CSV export', async ({ page }) => {
@@ -173,7 +173,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const classes = await container.getAttribute('class');
     expect(classes).toContain('flex');
     expect(classes).toContain('flex-wrap');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('2. Pairing key section shows muted + separators between dropdowns', async ({ page }) => {
@@ -186,7 +186,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     expect(count).toBeGreaterThanOrEqual(1);
     const text = await separators.first().textContent();
     expect(text.trim()).toBe('+');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('3. Pairing key add button reads "+ Add pairing component"', async ({ page }) => {
@@ -197,7 +197,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const addBtn = page.locator('#gap-add-pair-key-btn');
     await expect(addBtn).toBeVisible();
     await expect(addBtn).toHaveText('+ Add pairing component');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('4. Pairing key add button hidden at 4 components', async ({ page }) => {
@@ -212,7 +212,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     await addBtn.click();
     await page.waitForTimeout(100);
     await expect(addBtn).toBeHidden();
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('5. Pairing key remove button hidden when only 1 component remains', async ({ page }) => {
@@ -230,7 +230,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     await page.waitForTimeout(100);
     const removeCountAfter = await page.locator('#gap-pairing-keys button[title="Remove component"]').count();
     expect(removeCountAfter).toBe(0);
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('6. Additional columns render in a grid grid-cols-2 container', async ({ page }) => {
@@ -242,7 +242,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const classes = await container.getAttribute('class');
     expect(classes).toContain('grid');
     expect(classes).toContain('grid-cols-2');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('7. Additional column entries are grouped in bordered containers', async ({ page }) => {
@@ -256,7 +256,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const classes = await entry.getAttribute('class');
     expect(classes).toContain('border');
     expect(classes).toContain('rounded-lg');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('8. Additional column grouped unit contains header dropdown + display name input', async ({ page }) => {
@@ -269,7 +269,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const entry = page.locator('#gap-additional-columns > div').first();
     await expect(entry.locator('select.gap-add-col-header')).toBeVisible();
     await expect(entry.locator('input.gap-add-col-name')).toBeVisible();
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('9. Mapping grid uses 4-column layout', async ({ page }) => {
@@ -280,7 +280,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const grid = page.locator('#gap-column-mappings');
     const classes = await grid.getAttribute('class');
     expect(classes).toContain('grid-cols-4');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('10. Mapping selects have pr-8 for chevron spacing', async ({ page }) => {
@@ -291,7 +291,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const sel = page.locator('#gap-column-mappings select').first();
     const classes = await sel.getAttribute('class');
     expect(classes).toContain('pr-8');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('11. Pairing key X button is positioned above dropdown', async ({ page }) => {
@@ -304,7 +304,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     expect(classes).toContain('absolute');
     expect(classes).toContain('-top-');
     expect(classes).toContain('-right-');
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('12. Pairing Key section appears before column mappings', async ({ page }) => {
@@ -315,7 +315,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const pairingBox = await page.locator('#gap-pairing-keys').boundingBox();
     const mappingsBox = await page.locator('#gap-column-mappings').boundingBox();
     expect(pairingBox.y).toBeLessThan(mappingsBox.y);
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('13. Map Columns section header exists above the mappings grid', async ({ page }) => {
@@ -328,7 +328,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     const headerBox = await header.boundingBox();
     const mappingsBox = await page.locator('#gap-column-mappings').boundingBox();
     expect(headerBox.y).toBeLessThan(mappingsBox.y);
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('14. Settings modal state resets on cancel — added pairing key disappears', async ({ page }) => {
@@ -341,13 +341,13 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     await page.waitForTimeout(200);
     const afterAddCount = await page.locator('#gap-pairing-keys .gap-pair-key').count();
     expect(afterAddCount).toBe(initialCount + 1);
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
     await page.waitForTimeout(300);
     await page.click('[data-testid="gap-settings-btn"]');
     await page.waitForSelector('#gap-column-modal', { state: 'visible', timeout: 5000 });
     const reopenedCount = await page.locator('#gap-pairing-keys .gap-pair-key').count();
     expect(reopenedCount).toBe(initialCount);
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
   test('15. Settings modal state persists after Analyze — added pairing key remains', async ({ page }) => {
@@ -369,7 +369,7 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     await page.waitForSelector('#gap-column-modal', { state: 'visible', timeout: 5000 });
     const reopenedCount = await page.locator('#gap-pairing-keys .gap-pair-key').count();
     expect(reopenedCount).toBe(afterAddCount);
-    await page.click('button[aria-label="Close modal"]');
+    await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
 });

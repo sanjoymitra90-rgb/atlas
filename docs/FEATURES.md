@@ -10,12 +10,8 @@ the same fact.
 
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
-- Known defects → `REVIEW.md`
 
-**Last verified against the app:** 2026-08-06 (upgrade plan removed, marginal orange, collapsible sections).
-
-> Where behaviour below is currently defective, it is marked ⚠ with the `REVIEW.md` reference.
-> The description is of *intended* behaviour; the marker says don't trust it yet.
+**Last verified against the app:** 2026-08-10 (Phase 8: Paired Calls tile, 4+4 grid, proc bucket fix).
 
 ---
 
@@ -27,19 +23,19 @@ ATLAS covers three points in a customer's lifecycle:
 2. **Scope and price the onboarding** — how many engineering hours, over what timeline, at what
    price (Onboarding Calculator)
 3. **Verify production data quality** — whether signing and verification records reconcile, and
-   whether destination numbers are sound (Gap Analyzer)
+   whether destination numbers are sound (Call Auditor)
 
 The three modules are independent. There is no shared customer record — a customer's name is
 entered separately in each. This is a known and accepted limitation.
 
 **Who uses it.** Solutions architects and PMs use the Optimizer and the Onboarding Calculator.
-Network operations and monitoring teams use the Gap Analyzer.
+Network operations and monitoring teams use the Call Auditor.
 
 **Common to all three.** A landing page with one-click launch into any module. A persistent
 header with a home button and module-specific actions. Context-aware help: a floating "?" button
 opens the help drawer on the tab for the module you are in, each tab with a table of contents.
 Toast notifications for every action that completes or fails. Dark theme throughout, with a
-colour per module — green for the Optimizer, blue for Onboarding, violet for the Gap Analyzer.
+colour per module — green for the Optimizer, blue for Onboarding, violet for the Call Auditor.
 
 **Privacy.** Nothing is uploaded. All processing happens in the browser, and session state moves
 between machines as exported files rather than through a server.
@@ -196,7 +192,7 @@ covering the financials plus all three tier schedules.
 
 ---
 
-## Gap Analyzer
+## Call Auditor
 
 Upload an EDR call-data export and find out whether signing and verification records reconcile,
 and whether destination numbers are valid.
@@ -249,7 +245,9 @@ Five outcomes: **Paired**, **Signed · not verified**, **Verified · not signed*
 (a superseded retry), and **Unpairable** (no usable timestamp).
 
 The Call Pairing panel shows match rate, unverified and unsigned counts, duplicates, unpairable
-records, and the median and 95th-percentile time to verify. Each block is clickable and filters
+records, and the median and 95th-percentile time to verify. An info icon on the Time-to-Verify
+tile explains that median is the typical hand-off, P95 is the slow 5%, and a large P95-vs-median
+gap means sporadic slow hand-offs. Each block is clickable and filters
 the table. A correlation line relates unverified signings to invalid destinations — the question
 of whether failures cluster on bad numbers.
 
@@ -267,12 +265,14 @@ format ever gains millisecond timestamps, recalibrate using the observed 95th pe
 
 ### Dashboard and filters
 
-Seven headline tiles: total records, signing requests, verification requests, gap count, gap
-percentage, invalid UK numbers, and slow requests. **Every tile is clickable** and filters the
-table to the records behind it.
+Eight headline tiles in a 4×2 grid: total records, paired calls, signing requests, verification
+requests, destination issues, slow requests, gap count, and gap percentage. **Every tile is
+clickable** and filters the table to the records behind it. The Paired Calls tile shows the
+distinct pair count from filtered data and displays the global match rate beneath.
 
 Tiles reflect the current filter. When a filter is active, a strip appears showing the
-unfiltered totals alongside, so you always know what fraction of the dataset you are looking at.
+unfiltered totals alongside the paired count, so you always know what fraction of the dataset you
+are looking at.
 
 Filters cover service type, validation status, from and to substring search, status code,
 customer, source IP, processing-time range, and pair status, with one-click Reset All.
@@ -288,7 +288,8 @@ Four charts, all clickable to filter the table to the time bucket you click:
 4. **Time to Verify** — median and 95th percentile
 
 Bucket size is chosen automatically from the span of the data — minutes for an hour of data, days
-for a month — and each chart has its own override dropdown. Axis labels are human-readable
+for a month — and each chart has its own override dropdown. Changing the Processing Time bucket
+dropdown correctly re-renders that chart. Axis labels are human-readable
 (`Jul 31, 19:00`) in UTC.
 
 > Charts now update when filters change.

@@ -7,9 +7,8 @@ a bug — fix it in the same commit.
 
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
-- Known defects and the current work list → `REVIEW.md`
 
-**Last verified against `index.html`:** 2026-08-06 (review pass — 5,670 lines).
+**Last verified against `index.html`:** 2026-08-10 (Phase 8 — 5,984 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -48,6 +47,7 @@ assertion is noted where one is practical.
     discard a successful parse. *Resolved R27.*
 10. **Chart.js instances are destroyed via `gapChartInstances` before recreation**; Leaflet
     maps are torn down (`off()`, remove non-tile layers, `remove()`, null the ref) before rebuild.
+    `gapChartInstances` is a `let` binding mirrored on `window` for test access.
 11. **Element IDs are unique across the whole file.** Nearly every early bug in this project
     was an ID mismatch between HTML and JS.
 12. **UK validation rules live only in `validateUKNumber()`.** No validation logic elsewhere.
@@ -62,9 +62,9 @@ planning and cost assessment at Provenant Inc. No framework, no bundler, no back
 persistence layer beyond `localStorage` for optimiser scenarios. All state is module-scope
 globals; all rendering is direct DOM manipulation.
 
-Data never leaves the browser. This is deliberate — call data is sensitive. Note the caveat in
-`REVIEW.md` R17: six third-party scripts run with full DOM access, so the claim is currently
-asserted rather than enforced.
+Data never leaves the browser. This is deliberate — call data is sensitive. Note that six
+third-party scripts run with full DOM access, so the claim is currently asserted rather than
+enforced.
 
 Four views swapped by `showModule(name)`:
 
@@ -73,7 +73,7 @@ Four views swapped by `showModule(name)`:
 | Gateway | — | Landing page, three launch cards |
 | Cell Placement Optimizer | green / emerald `#10b981` | AWS cell placement against SLA latency |
 | Onboarding Calculator | blue `#3b82f6` | Engineering-hours scoping and quoting |
-| Gap Analyzer | violet `#8b5cf6` / `#a78bfa` | EDR call-data quality analysis |
+| Call Auditor | violet `#8b5cf6` / `#a78bfa` | EDR call-data quality analysis |
 
 Use the accent colours consistently for any new UI. Dark theme only.
 
@@ -89,7 +89,7 @@ CDN, no build step. **No other libraries may be assumed.**
 | Font Awesome | 6.5.1 | all | yes |
 | Leaflet | 1.9.4 | Optimizer | yes |
 | DHTMLX Gantt | 8.0 | Onboarding | no — no SRI available |
-| Chart.js | 4.4.1 | Gap Analyzer | no — recalled hashes removed (R3) |
+| Chart.js | 4.4.1 | Call Auditor | no — recalled hashes removed (R3) |
 | html2pdf.js | 0.10.1 | Proposal PDF | no |
 
 The CSV parser is hand-rolled (`parseGapCSV`) — there is no PapaParse. CSP sets
@@ -104,11 +104,11 @@ a single file.
 ## 3. Architecture
 
 `index.html` in order: head and `<style>` → ARIA live region and skip link → Gateway markup →
-Optimizer markup (4-step wizard) → Gap Analyzer markup → Onboarding markup → global components
+Optimizer markup (4-step wizard) → Call Auditor markup → Onboarding markup → global components
 (help FAB, toast, proposal modal, confirm modal, loading overlay) → help drawer → scripts.
 
 Scripts in order: navigation and module state → Onboarding (Gantt engine, financials) → help
-drawer → Optimizer (constants, maps, coverage) → Gap Analyzer (CSV pipeline, validation,
+drawer → Optimizer (constants, maps, coverage) → Call Auditor (CSV pipeline, validation,
 charts, table, export).
 
 **Module pattern.** Each module owns its markup, its globals and its functions. Cross-module
@@ -131,7 +131,9 @@ disk; tests are dev tooling and require network for CDNs.
 Optimizer module-scope `let` bindings are mirrored onto `window` with a `_` prefix
 (`_customers`, `_globalSLA`, `_selectedFootprint`, …) plus `window._regions` and
 `window._AWS_PRICE_INDEX`, because `let` at module scope does not become a `window` property.
-This bridge exists solely for tests.
+This bridge exists solely for tests. Similarly, `window.gapChartInstances` is kept in sync
+with the `let gapChartInstances` binding at initialization and at both reassignment sites
+inside `renderGapCharts()` to support test access.
 
 ---
 
@@ -287,7 +289,7 @@ schedules.
 
 ---
 
-## 7. Module: Gap Analyzer
+## 7. Module: Call Auditor
 
 ### 7.1 Pipeline
 
@@ -363,6 +365,8 @@ near-miss outlier into the median.
 signing and its verification may sit in different filter buckets. This is the documented exception
 to invariant 5. Pairing keys use normalised phone numbers for `from`/`to` headers (not `row.raw`).
 Duplicate reclassification checks `gapPairWindow` between the unverified and paired signing.
+The Time-to-Verify tile has an info icon (`fa-info-circle`) with a tooltip explaining median,
+P95, and what a large P95-vs-median gap indicates.
 
 ### 7.5 Charts
 
@@ -416,7 +420,7 @@ tile shows the signed difference. This is a known discrepancy.
 
 ## 9. Recipes
 
-- **Add a Gap metric tile:** add a card with a `gap-metric-*` id to the metrics grid, compute it
+- **Add a Gap metric tile:** add a card with a `gap-metric-*` id and `data-testid="gap-tile-*"` to the metrics grid, compute it
   in `updateGapMetrics()`, optionally extend `drillDownGap()`.
 - **Add a Gap filter:** add the control, read it in `applyGapFilters()`, reset it in
   `resetGapFilters()` **and** `drillDownPair()` — both clear filters and drift apart (R23).

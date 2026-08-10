@@ -10,7 +10,7 @@ const APP_URL = pathToFileURL(path.resolve(__dirname, '..', 'index.html')).href;
   await page.goto(APP_URL);
   await page.getByTestId('gap-launch').click();
   await page.getByTestId('gap-upload-prompt').waitFor({ state: 'visible' });
-  const csvPath = path.resolve(__dirname, '..', 'test_gap_phase2a.csv');
+  const csvPath = path.resolve(__dirname, '..', 'fixtures', 'gap-core.csv');
   await page.getByTestId('gap-upload-input').setInputFiles(csvPath);
   await page.getByTestId('gap-analyze-btn').click();
   await page.waitForFunction(() => {

@@ -55,4 +55,14 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     await expect(rows.locator('[data-pair-status="unverified"]')).toHaveCount(2);
   });
 
+  test('TTV tile has info icon with tooltip text', async ({ page }) => {
+    const ttvTile = page.locator('[data-testid="gap-pair-ttv"]').locator('..');
+    const infoIcon = ttvTile.locator('i.fa-info-circle');
+    await expect(infoIcon).toBeVisible();
+    const title = await infoIcon.getAttribute('title');
+    expect(title).toContain('median');
+    expect(title).toContain('P95');
+    expect(title).toContain('sporadic slow hand-offs');
+  });
+
 });

@@ -41,16 +41,6 @@ test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
     await expect(page.locator('#gap-chart-processing')).toHaveCount(1);
   });
 
-  test('Gap Count tile shows signing − verify difference', async ({ page }) => {
-    await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'gap-core.csv');
-    const gap = await tileText(page, 'gap');
-    const signing = parseInt(await tileText(page, 'signing'), 10);
-    const verify = parseInt(await tileText(page, 'verify'), 10);
-    const expected = Math.abs(signing - verify);
-    expect(gap).toContain(String(expected));
-  });
-
   test('Processing Time chart has no suggestedMax of 100', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');
@@ -91,6 +81,41 @@ test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
     await uploadAndAnalyze(page, 'gap-core.csv');
     const canvas = page.locator('#gap-chart-ttv');
     await expect(canvas).toBeVisible();
+  });
+
+  test('proc bucket dropdown: selecting 1min on proc chart re-renders with more buckets', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const before = await page.evaluate(() => (window.gapChartInstances || {}).proc ? window.gapChartInstances.proc.data.labels.length : 0);
+    await page.getByTestId('gap-bucket-interval-proc').selectOption('1min');
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => (window.gapChartInstances || {}).proc ? window.gapChartInstances.proc.data.labels.length : 0);
+    expect(after).toBeGreaterThan(before);
+  });
+
+  test('proc bucket dropdown: auto returns to original bucket count', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const original = await page.evaluate(() => (window.gapChartInstances || {}).proc ? window.gapChartInstances.proc.data.labels.length : 0);
+    await page.getByTestId('gap-bucket-interval-proc').selectOption('1min');
+    await page.waitForTimeout(300);
+    await page.getByTestId('gap-bucket-interval-proc').selectOption('auto');
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => (window.gapChartInstances || {}).proc ? window.gapChartInstances.proc.data.labels.length : 0);
+    expect(after).toBe(original);
+  });
+
+  test('proc bucket dropdown: changing proc does not affect other charts', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const beforeInvalid = await page.evaluate(() => (window.gapChartInstances || {}).invalid ? window.gapChartInstances.invalid.data.labels.length : 0);
+    const beforeVolume = await page.evaluate(() => (window.gapChartInstances || {}).volume ? window.gapChartInstances.volume.data.labels.length : 0);
+    await page.getByTestId('gap-bucket-interval-proc').selectOption('5min');
+    await page.waitForTimeout(300);
+    const afterInvalid = await page.evaluate(() => (window.gapChartInstances || {}).invalid ? window.gapChartInstances.invalid.data.labels.length : 0);
+    const afterVolume = await page.evaluate(() => (window.gapChartInstances || {}).volume ? window.gapChartInstances.volume.data.labels.length : 0);
+    expect(afterInvalid).toBe(beforeInvalid);
+    expect(afterVolume).toBe(beforeVolume);
   });
 
 });

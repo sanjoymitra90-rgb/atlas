@@ -477,9 +477,9 @@ tr.gap-pair-dim { opacity: 0.45; }
       <div class="gateway-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); color: #a78bfa;">
         <i class="fas fa-chart-line"></i>
       </div>
-      <h2 class="text-2xl font-bold text-white mb-3">Gap Analyzer</h2>
+      <h2 class="text-2xl font-bold text-white mb-3">Call Auditor</h2>
       <p class="text-slate-400 text-sm leading-relaxed mb-6">
-        Upload call data CSVs to analyze gaps between signing and verification requests and validate UK numbers.
+        Reconcile signing vs verification, validate destination numbers, and surface duplicates and hand-off latency.
       </p>
       <div class="mt-auto pt-4 border-t border-slate-700/50 w-full text-violet-400 font-semibold text-sm flex items-center justify-center gap-2 group">
         Launch Analyzer <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
@@ -755,7 +755,7 @@ tr.gap-pair-dim { opacity: 0.45; }
         <i class="fas fa-home gap-muted"></i>
       </button>
       <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center"><i class="fas fa-chart-line text-violet-400 text-lg"></i></div>
-      <div><h1 class="text-base sm:text-lg font-bold gap-heading">Gap Analyzer</h1><p class="text-xs gap-label">EDR Call Data Analysis & Validation</p></div>
+      <div><h1 class="text-base sm:text-lg font-bold gap-heading">Call Auditor</h1><p class="text-xs gap-label">EDR Call Data Analysis & Validation</p></div>
     </div>
     <div class="flex items-center gap-1 sm:gap-2 relative" id="header-actions-gap">
       <input type="file" id="gap-csv-upload" accept=".csv" class="hidden" data-testid="gap-upload-input" onchange="handleGapCSVUpload(event)">
@@ -996,7 +996,18 @@ tr.gap-pair-dim { opacity: 0.45; }
           <div class="text-3xl font-bold text-white" id="gap-metric-total" data-testid="gap-tile-total">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-total-desc">-</div>
         </div>
-        
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownPair('paired')">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+              <i class="fas fa-link text-cyan-400"></i>
+            </div>
+            <span class="text-xs text-slate-400">Paired Calls</span>
+          </div>
+          <div class="text-3xl font-bold text-white" id="gap-metric-paired" data-testid="gap-tile-paired">0</div>
+          <div class="text-xs text-slate-500 mt-1" id="gap-metric-paired-desc">-</div>
+        </div>
+
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownGap('signing')">
           <div class="flex items-center justify-between mb-3">
             <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
@@ -1007,7 +1018,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           <div class="text-3xl font-bold text-white" id="gap-metric-signing" data-testid="gap-tile-signing">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-signing-desc">-</div>
         </div>
-        
+
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-violet-500/50 transition-all" onclick="drillDownGap('verify')">
           <div class="flex items-center justify-between mb-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -1018,18 +1029,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           <div class="text-3xl font-bold text-white" id="gap-metric-verify" data-testid="gap-tile-verify">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-verify-desc">-</div>
         </div>
-        
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-red-500/50 transition-all" onclick="drillDownGap('gap')">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-              <i class="fas fa-exclamation-triangle text-red-400"></i>
-            </div>
-            <span class="text-xs text-slate-400">Gap Count <i class="fas fa-info-circle text-[10px] text-violet-400" title="Difference between signing and verification request counts. Positive = more signings; negative = more verifications."></i></span>
-          </div>
-          <div class="text-3xl font-bold text-white" id="gap-metric-gap" data-testid="gap-tile-gap">0</div>
-          <div class="text-xs text-slate-500 mt-1" id="gap-metric-gap-desc">-</div>
-        </div>
-        
+
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-amber-500/50 transition-all" onclick="drillDownGap('invalid')">
           <div class="flex items-center justify-between mb-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
@@ -1040,7 +1040,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           <div class="text-3xl font-bold text-white" id="gap-metric-invalid" data-testid="gap-tile-invalid">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-invalid-desc">-</div>
         </div>
-        
+
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 cursor-pointer hover:border-purple-500/50 transition-all" onclick="drillDownGap('outliers')">
           <div class="flex items-center justify-between mb-3">
             <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
@@ -1050,19 +1050,6 @@ tr.gap-pair-dim { opacity: 0.45; }
           </div>
           <div class="text-3xl font-bold text-white" id="gap-metric-outliers" data-testid="gap-tile-slow">0</div>
           <div class="text-xs text-slate-500 mt-1" id="gap-metric-outliers-desc">-</div>
-        </div>
-        
-
-        
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-slate-500/20 flex items-center justify-center">
-              <i class="fas fa-percentage text-slate-400"></i>
-            </div>
-            <span class="text-xs text-slate-400">Gap Percentage <i class="fas fa-info-circle text-[10px] text-violet-400" title="Gap count as a percentage of total signing requests. Higher values indicate larger discrepancies between signing and verification."></i></span>
-          </div>
-          <div class="text-3xl font-bold text-white" id="gap-metric-gap-pct" data-testid="gap-tile-gappct">0%</div>
-          <div class="text-xs text-slate-500 mt-1">of signing requests</div>
         </div>
       </div>
 
@@ -1098,7 +1085,7 @@ tr.gap-pair-dim { opacity: 0.45; }
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
             <div class="text-lg font-bold text-white" id="gap-pair-ttv" data-testid="gap-pair-ttv" title="Milliseconds between each signing and its matched verification. Median = a typical call; p95 = the slowest 5%. Use this to calibrate the pairing window in Settings.">-</div>
-            <div class="text-xs text-slate-400 mt-1">Time to verify</div>
+            <div class="text-xs text-slate-400 mt-1">Time to verify <i class="fas fa-info-circle text-[10px] text-violet-400" title="Time to verify = delay between a signing request and its matched verification (the signing → verification hand-off). We show the median (typical hand-off) and P95 (the slow 5%). A large P95-vs-median gap means sporadic slow hand-offs."></i></div>
             <div class="text-[10px] text-slate-500 mt-0.5">signing &rarr; verification handoff</div>
           </div>
         </div>
@@ -1476,7 +1463,7 @@ tr.gap-pair-dim { opacity: 0.45; }
   <div class="flex border-b border-slate-700/80 bg-slate-800/80 shrink-0">
     <button class="flex-1 py-3 text-sm font-semibold transition text-white bg-slate-700/50 border-b-2 border-emerald-400" id="help-tab-optimizer" onclick="switchHelpTab('optimizer')">Placement Optimizer</button>
     <button class="flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent" id="help-tab-onboarding" onclick="switchHelpTab('onboarding')">Onboarding Calculator</button>
-    <button class="flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent" id="help-tab-gap" onclick="switchHelpTab('gap')">Gap Analyzer</button>
+    <button class="flex-1 py-3 text-sm font-semibold transition text-slate-400 hover:text-slate-200 border-b-2 border-transparent" id="help-tab-gap" onclick="switchHelpTab('gap')">Call Auditor</button>
   </div>
 
   <!-- HELP CONTENT: OPTIMIZER -->
@@ -1565,8 +1552,8 @@ tr.gap-pair-dim { opacity: 0.45; }
   <div id="help-content-gap" class="flex-1 overflow-y-auto flex flex-col" style="display:none;">
     <div class="help-body" id="help-body-gap">
       <section class="help-section" id="gap-intro">
-        <h3><i class="fas fa-chart-line text-violet-400"></i> What Is the Gap Analyzer?</h3>
-        <p>The Gap Analyzer helps Network Operations and Monitoring teams analyze EDR (Event Detail Record) call data to identify discrepancies between <strong>Signing</strong> and <strong>Verification</strong> requests, with built-in <strong>UK destination number validation</strong>.</p>
+        <h3><i class="fas fa-chart-line text-violet-400"></i> What Is the Call Auditor?</h3>
+        <p>The Call Auditor helps Network Operations and Monitoring teams analyze EDR (Event Detail Record) call data to identify discrepancies between <strong>Signing</strong> and <strong>Verification</strong> requests, with built-in <strong>UK destination number validation</strong>.</p>
         <p>Upload a CSV export of your call records, map the columns, and the tool automatically computes metrics and generates time-series visualizations &mdash; all in your browser with no data sent to any server.</p>
       </section>
 
@@ -1589,7 +1576,6 @@ tr.gap-pair-dim { opacity: 0.45; }
         <ul>
           <li><strong>Total Records</strong> &mdash; rows parsed from the CSV.</li>
           <li><strong>Signing / Verification</strong> &mdash; split by service type.</li>
-          <li><strong>Gap Count</strong> &mdash; the difference between signing and verification request counts. Positive = more signings than verifications; negative = more verifications than signings; zero = balanced.</li>
           <li><strong>Destination Issues</strong> &mdash; destination numbers are categorised three ways: <em>Malformed</em> (fails E.164 structure), <em>Non-UK</em> (valid number, wrong country code), and <em>Suspected</em> (passes structure but shows repeated or sequential digits). A breakdown panel with clickable reason chips appears below the tiles when issues are present.</li>
           <li><strong>Processing Time Outliers</strong> &mdash; rows exceeding the processing-time threshold (configurable in Settings, default 100ms).</li>
         </ul>
@@ -1675,7 +1661,7 @@ function showModule(moduleName) {
   // Announce module change to screen readers
   const ariaLive = document.getElementById('aria-live');
   if (ariaLive) {
-    const moduleNames = { 'gateway': 'ATLAS Home', 'optimizer': 'Cell Placement Optimizer', 'onboarding': 'Onboarding Calculator', 'gap-analyzer': 'Gap Analyzer' };
+    const moduleNames = { 'gateway': 'ATLAS Home', 'optimizer': 'Cell Placement Optimizer', 'onboarding': 'Onboarding Calculator', 'gap-analyzer': 'Call Auditor' };
     ariaLive.textContent = `Navigated to ${moduleNames[moduleName] || moduleName}`;
   }
 
@@ -4195,6 +4181,7 @@ let gapSortColumn = "time";
 let gapSortAscending = false;
 let gapChartData = { labels: [], gaps: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [], invalidTotal: [], ttvMedian: [], ttvP95: [] };
 let gapChartInstances = {};
+window.gapChartInstances = gapChartInstances;
 let gapInvalidReason = '';
 let gapSlowThreshold = 100;
 let gapBucketFilter = null;
@@ -4936,7 +4923,8 @@ function updateGapMetrics() {
   if (strip) {
     if (isFiltered) {
       strip.classList.remove('hidden');
-      if (stripCount) stripCount.textContent = 'showing ' + gapFilteredData.length + ' of ' + gapData.length + ' records';
+      const pairedGlobal = new Set(gapData.filter(d => d.pairStatus === 'paired').map(d => d.pairId)).size;
+      if (stripCount) stripCount.textContent = 'showing ' + gapFilteredData.length + ' of ' + gapData.length + ' records \u00b7 ' + pairedGlobal + ' paired';
     } else {
       strip.classList.add('hidden');
     }
@@ -4944,29 +4932,23 @@ function updateGapMetrics() {
   const globalTotal = gapData.length;
   const globalSigning = gapData.filter(d => d.isSigning).length;
   const globalVerify = gapData.filter(d => d.isVerify).length;
-  const globalSignedGap = globalSigning - globalVerify;
-  const globalGap = Math.abs(globalSignedGap);
-  const globalGapPct = globalSigning > 0 ? ((globalGap / globalSigning) * 100).toFixed(1) : 0;
   const globalInvalid = gapData.filter(d => !d.ukValid).length;
   const globalOutliers = gapData.filter(d => d.processingTime > gapSlowThreshold).length;
+  const globalPaired = new Set(gapData.filter(d => d.pairStatus === 'paired').map(d => d.pairId)).size;
   const total = gapFilteredData.length;
   const signing = gapFilteredData.filter(d => d.isSigning).length;
   const verify = gapFilteredData.filter(d => d.isVerify).length;
-  const signedGap = signing - verify;
-  const gap = Math.abs(signedGap);
-  const gapPct = signing > 0 ? ((gap / signing) * 100).toFixed(1) : 0;
   const invalid = gapFilteredData.filter(d => !d.ukValid).length;
   const outliers = gapFilteredData.filter(d => d.processingTime > gapSlowThreshold).length;
+  const paired = new Set(gapFilteredData.filter(d => d.pairStatus === 'paired').map(d => d.pairId)).size;
   document.getElementById("gap-metric-total").textContent = total.toLocaleString();
+  document.getElementById("gap-metric-paired").textContent = paired.toLocaleString();
   document.getElementById("gap-metric-signing").textContent = signing.toLocaleString();
   document.getElementById("gap-metric-verify").textContent = verify.toLocaleString();
-  const gapSign = signedGap > 0 ? '+' : (signedGap < 0 ? '\u2212' : '');
-  document.getElementById("gap-metric-gap").textContent = gapSign + gap.toLocaleString();
-  document.getElementById("gap-metric-gap-pct").textContent = gapPct + "%";
   document.getElementById("gap-metric-invalid").textContent = invalid.toLocaleString();
   document.getElementById("gap-metric-outliers").textContent = outliers.toLocaleString();
-  const tileIds = ['gap-metric-total','gap-metric-signing','gap-metric-verify','gap-metric-gap','gap-metric-gap-pct','gap-metric-invalid','gap-metric-outliers'];
-  const globalVals = [globalTotal, globalSigning, globalVerify, globalGap, globalGapPct + '%', globalInvalid, globalOutliers];
+  const tileIds = ['gap-metric-total','gap-metric-paired','gap-metric-signing','gap-metric-verify','gap-metric-invalid','gap-metric-outliers'];
+  const globalVals = [globalTotal, globalPaired, globalSigning, globalVerify, globalInvalid, globalOutliers];
   tileIds.forEach((id, i) => {
     const el = document.getElementById(id);
     if (el) {
@@ -4976,19 +4958,10 @@ function updateGapMetrics() {
     }
   });
   document.getElementById("gap-metric-total-desc").textContent = "in current view";
+  const matchRate = gapPairSummary.matchRate || '0.0';
+  document.getElementById("gap-metric-paired-desc").textContent = matchRate + '% match rate';
   document.getElementById("gap-metric-signing-desc").textContent = (signing > 0 ? ((signing/total)*100).toFixed(1) : 0) + "% of total";
   document.getElementById("gap-metric-verify-desc").textContent = (verify > 0 ? ((verify/total)*100).toFixed(1) : 0) + "% of total";
-  const gapTile = document.getElementById("gap-metric-gap").closest('.bg-slate-900\\/50');
-  if (signedGap > 0) {
-    document.getElementById("gap-metric-gap-desc").textContent = '+' + signedGap + ' net \u00b7 signed but not verified';
-    if (gapTile) { gapTile.classList.remove('hover:border-amber-500/50'); gapTile.classList.add('hover:border-red-500/50'); }
-  } else if (signedGap < 0) {
-    document.getElementById("gap-metric-gap-desc").textContent = '\u2212' + Math.abs(signedGap) + ' net \u00b7 verified but not signed';
-    if (gapTile) { gapTile.classList.remove('hover:border-red-500/50'); gapTile.classList.add('hover:border-amber-500/50'); }
-  } else {
-    document.getElementById("gap-metric-gap-desc").textContent = "balanced";
-    if (gapTile) { gapTile.classList.remove('hover:border-red-500/50', 'hover:border-amber-500/50'); gapTile.classList.add('hover:border-violet-500/50'); }
-  }
   document.getElementById("gap-metric-invalid-desc").textContent = invalid > 0 ? ((invalid/total)*100).toFixed(1) + "% invalid" : "All valid";
   document.getElementById("gap-metric-outliers-desc").textContent = outliers > 0 ? "Needs investigation" : "Normal performance";
   const invalidData = gapFilteredData.filter(d => !d.ukValid);
@@ -5464,6 +5437,7 @@ function renderGapCharts() {
   if (!validData.length) {
     Object.values(gapChartInstances).forEach(chart => { if (chart) chart.destroy(); });
     gapChartInstances = {};
+    window.gapChartInstances = gapChartInstances;
     gapChartData = { labels: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [], invalidTotal: [], ttvMedian: [], ttvP95: [] };
     window.gapChartData = gapChartData;
     gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [] };
@@ -5536,6 +5510,7 @@ function renderGapCharts() {
 
   Object.values(gapChartInstances).forEach(chart => { if (chart) chart.destroy(); });
   gapChartInstances = {};
+  window.gapChartInstances = gapChartInstances;
 
   const invalidCtx = document.getElementById('gap-chart-invalid');
   const th = gapChartTheme();
@@ -5594,7 +5569,7 @@ function renderGapCharts() {
 
   const procCtx = document.getElementById('gap-chart-processing');
   if (procCtx) {
-    gapChartInstances.processing = new Chart(procCtx, {
+    gapChartInstances.proc = new Chart(procCtx, {
       type: 'line',
       data: {
         labels: chartData.proc.displayLabels,
@@ -5648,7 +5623,7 @@ function renderGapCharts() {
 function renderSingleChart(chartType) {
   const validData = gapFilteredData.filter(row => row.timeValid && row.timestamp);
   if (!validData.length) {
-    if (gapChartInstances[chartType]) { gapChartInstances[chartType].destroy(); gapChartInstances[chartType] = null; }
+  if (gapChartInstances[chartType]) { gapChartInstances[chartType].destroy(); gapChartInstances[chartType] = null; }
     return;
   }
   const minTime = Math.min(...validData.map(r => r.timestamp));
@@ -5707,7 +5682,7 @@ function renderSingleChart(chartType) {
   } else if (chartType === 'proc') {
     const th2 = gapChartTheme();
     const processing = labels.map(k => { const arr = timeBuckets[k].processing; return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0; });
-    gapChartInstances.processing = new Chart(ctx, {
+    gapChartInstances.proc = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: [{ label: 'Avg Processing Time (ms)', data: processing, borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)', fill: true, tension: 0.4 }] },
       options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('proc'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }

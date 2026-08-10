@@ -4,7 +4,7 @@ module.exports = defineConfig({
   timeout: 90000,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: [['list']],
+  reporter: [['list'], [require.resolve('./e2e/reporters/csv-reporter.js')]],
   globalSetup: require.resolve('./e2e/global-setup.js'),
   use: { headless: true, viewport: { width: 1440, height: 900 } },
   projects: [
