@@ -5,3 +5,8 @@ dist/
 screenshots/
 index.html.tmp
 _v.mjs
+
+# Real production call data — never publish.
+# Kept locally for testing; synthetic equivalents live in fixtures/.
+jwt.csv
+*.local.csv
