@@ -5678,6 +5678,7 @@ function renderGapTable() {
     const start = (gapCurrentPage - 1) * gapRowsPerPage;
     const end = start + gapRowsPerPage;
     const pageData = sorted.slice(start, end);
+    const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
 
     tableBody.innerHTML = pageData.map(row => {
       let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
