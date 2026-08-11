@@ -4420,8 +4420,25 @@ function handleImport(event) {
         }
         return true;
       });
-      if (droppedEndpoints > 0) showToast(droppedEndpoints + ' endpoint(s) dropped — unknown region index', true);
-      if (droppedCells > 0) showToast(droppedCells + ' cell(s) dropped — unknown region index', true);
+      // Validate lat/lng are finite numbers, coerce tier to 1-4
+      const beforeValidate = customers.length;
+      customers = customers.filter(c => {
+        if (c.lat !== undefined && !Number.isFinite(c.lat)) { droppedEndpoints++; return false; }
+        if (c.lng !== undefined && !Number.isFinite(c.lng)) { droppedEndpoints++; return false; }
+        if (c.tier !== undefined) c.tier = Math.max(1, Math.min(4, Math.round(Number(c.tier) || 1)));
+        return true;
+      });
+      droppedEndpoints += beforeValidate - customers.length;
+      // Validate cellCosts values are numeric
+      const validatedCosts = {};
+      let droppedCosts = 0;
+      Object.entries(cellCosts).forEach(([k, v]) => {
+        if (typeof v === 'number' && Number.isFinite(v)) validatedCosts[k] = v;
+        else droppedCosts++;
+      });
+      cellCosts = validatedCosts;
+      const droppedTotal = droppedEndpoints + droppedCells + droppedCosts;
+      if (droppedTotal > 0) showToast(droppedTotal + ' item(s) dropped — invalid data', true);
       
       slaMode = data.slaMode || 'global';
       globalSLA = data.globalSLA ?? 150;
