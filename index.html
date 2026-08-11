@@ -5314,11 +5314,24 @@ function renderGapBucketChip() {
   }
 }
 
+function pairKey(row, pairingKeys, columnMapping) {
+  if (pairingKeys.length > 0) {
+    return pairingKeys.map(h => {
+      if (h === columnMapping.from) return row.from;
+      if (h === columnMapping.to) return row.to;
+      return row.raw && row.raw[h] != null ? String(row.raw[h]) : '';
+    }).join('|');
+  }
+  return row.from + '|' + row.to;
+}
+
 function pairGapCalls() {
   gapData.forEach(row => {
     row.pairStatus = 'unpairable';
     row.pairId = null;
     row.timeToVerify = null;
+    row.pairProc = null;
+    row.pairEndToEnd = null;
   });
   const pairable = gapData.filter(r => r.timeValid && (r.isSigning || r.isVerify));
   pairable.sort((a, b) => {
@@ -5330,13 +5343,7 @@ function pairGapCalls() {
   const unmatched = {};
   let pairCount = 0;
   pairable.forEach(row => {
-    const key = gapPairingKeys.length > 0
-      ? gapPairingKeys.map(h => {
-          if (h === gapColumnMapping.from) return row.from;
-          if (h === gapColumnMapping.to) return row.to;
-          return row.raw && row.raw[h] != null ? String(row.raw[h]) : '';
-        }).join('|')
-      : row.from + '|' + row.to;
+    const key = pairKey(row, gapPairingKeys, gapColumnMapping);
     if (!unmatched[key]) unmatched[key] = [];
     if (row.isSigning) {
       unmatched[key].push(row);
@@ -5365,31 +5372,12 @@ function pairGapCalls() {
     stack.forEach(row => { row.pairStatus = 'unverified'; });
   });
   const pairedSignings = gapData.filter(r => r.pairStatus === 'paired' && r.isSigning);
-  const pairedKeys = new Set(pairedSignings.map(r => gapPairingKeys.length > 0
-    ? gapPairingKeys.map(h => {
-        if (h === gapColumnMapping.from) return r.from;
-        if (h === gapColumnMapping.to) return r.to;
-        return r.raw && r.raw[h] != null ? String(r.raw[h]) : '';
-      }).join('|')
-    : r.key));
+  const pairedKeys = new Set(pairedSignings.map(r => pairKey(r, gapPairingKeys, gapColumnMapping)));
   let duplicateCount = 0;
   gapData.forEach(row => {
     if (row.pairStatus !== 'unverified' || !row.isSigning) return;
-    const rowKey = gapPairingKeys.length > 0
-      ? gapPairingKeys.map(h => {
-          if (h === gapColumnMapping.from) return row.from;
-          if (h === gapColumnMapping.to) return row.to;
-          return row.raw && row.raw[h] != null ? String(row.raw[h]) : '';
-        }).join('|')
-      : row.key;
-    const pairedOnKey = pairedSignings.filter(r => {
-      const pk = gapPairingKeys.length > 0 ? gapPairingKeys.map(h => {
-        if (h === gapColumnMapping.from) return r.from;
-        if (h === gapColumnMapping.to) return r.to;
-        return r.raw && r.raw[h] != null ? String(r.raw[h]) : '';
-      }).join('|') : r.key;
-      return pk === rowKey;
-    });
+    const rowKey = pairKey(row, gapPairingKeys, gapColumnMapping);
+    const pairedOnKey = pairedSignings.filter(r => pairKey(r, gapPairingKeys, gapColumnMapping) === rowKey);
     if (pairedOnKey.some(p => Math.abs(row.timestamp - p.timestamp) <= gapPairWindow)) {
       row.pairStatus = 'duplicate';
       row.pairId = null;
