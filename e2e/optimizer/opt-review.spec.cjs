@@ -35,6 +35,7 @@ test.describe('Review pass — optimizer tests', () => {
       }
       return { regionCount: regions.length, violations };
     });
+    expect(result.error).toBeUndefined();
     expect(result.regionCount).toBeGreaterThan(0);
     expect(result.violations).toEqual([]);
   });
