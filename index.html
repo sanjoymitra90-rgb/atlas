@@ -5621,7 +5621,7 @@ function renderGapTable() {
         }
       }
       return summaryRow + `<tr class="${trClasses}" data-pair-group="${groupKey}">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? escapeHtml(row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
@@ -5675,7 +5675,7 @@ function renderGapTable() {
         if (row.pairEndToEnd != null) pillTitle += ' \u00b7 end-to-end ' + row.pairEndToEnd + 'ms';
       }
       return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? (row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? escapeHtml(row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
@@ -5689,7 +5689,6 @@ function renderGapTable() {
     </tr>`;
     }).join('');
 
-    const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
     document.getElementById("gap-pagination-info").textContent = `Showing ${start + 1}-${Math.min(end, gapFilteredData.length)} of ${gapFilteredData.length}`;
     document.getElementById("gap-page-indicator").textContent = `Page ${gapCurrentPage} of ${totalPages}`;
     document.getElementById("gap-prev-btn").disabled = gapCurrentPage <= 1;

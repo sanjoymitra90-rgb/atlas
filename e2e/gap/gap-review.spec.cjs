@@ -61,4 +61,22 @@ test.describe('Review pass — gap analyzer tests', () => {
     expect(deps.chart).toBe(true);
   });
 
+  // B1: Unescaped timestamp cell — live XSS
+  test('B1 — timestamp cell is escaped even when timeValid is true', async ({ page }) => {
+    await helpers.openGapAnalyzer(page);
+    await helpers.uploadAndAnalyze(page, 'gap-xss-time.csv');
+    // Check the first data cell in the table
+    const result = await page.evaluate(() => {
+      const cells = document.querySelectorAll('#gap-table-body td');
+      if (cells.length === 0) return { error: 'no cells found' };
+      const timeCell = cells[0]; // first cell is Time
+      return {
+        hasElement: timeCell.querySelector('img, script, iframe') !== null,
+        text: timeCell.textContent
+      };
+    });
+    expect(result.hasElement).toBe(false);
+    expect(result.text).toContain('<img');
+  });
+
 });
