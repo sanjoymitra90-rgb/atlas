@@ -11,10 +11,11 @@ async function loadApp(page) {
 // Helper: run computeCoverage via page.evaluate with synthetic data
 async function runCoverage(page, input) {
   return page.evaluate((inp) => {
-    const regions = window.regions || [];
-    const matrix = window.matrix || [];
+    const regions = window._regions || [];
+    const matrix = window._matrix || [];
     const getLatency = window.getCustomerLatency;
-    return window.computeCoverage({ ...inp, getLatency });
+    const getRegionCost = window.estimateRegionCost;
+    return window.computeCoverage({ ...inp, getLatency, regions, getRegionCost });
   }, input);
 }
 

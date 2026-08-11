@@ -3229,11 +3229,14 @@ function getTopCandidatesForCustomer(customer, sla, topN = 5) {
 }
 
 function computeCoverage(input) {
-  const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency } = input;
+  const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency, regions, getRegionCost } = input;
+
+  // Assign stable idx to every customer before first loop (fixes memo key bug)
+  customers.forEach((c, i) => { c.idx = i; });
 
   const _latCache = {};
   function cachedLatency(cellIdx, cust) {
-    const key = `${cellIdx}|${cust.idx !== undefined ? cust.idx : cust.name}`;
+    const key = `${cellIdx}|${cust.idx}`;
     if (_latCache[key] === undefined) _latCache[key] = getLatency(cellIdx, cust, true);
     return _latCache[key];
   }
@@ -3294,7 +3297,7 @@ function computeCoverage(input) {
 
       const count = coversNow.length;
       const minHeadroom = Math.min(...coversNow.map(c => c.headroom));
-      const regionCost = estimateRegionCost(ci);
+      const regionCost = getRegionCost(ci);
 
       if (count > bestCount ||
           (count === bestCount && minHeadroom > bestMinHeadroom) ||
@@ -3360,9 +3363,9 @@ function computeCoverage(input) {
 window.computeCoverage = computeCoverage;
 
 function computeGreenPlan(input) {
-  const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency } = input;
+  const { customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency, regions, getRegionCost } = input;
   const baseline = computeCoverage(input);
-  const baselineOPEX = baseline.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
+  const baselineOPEX = baseline.recommendations.reduce((s, r) => s + getRegionCost(r.cellIdx), 0);
 
   const perEndpoint = customers.map((c, i) => {
     const sla = slaMode === 'global' ? globalSLA : (perCustomerSLA[i] !== undefined ? perCustomerSLA[i] : 150);
@@ -3404,9 +3407,9 @@ function computeGreenPlan(input) {
   const relaxedSLA = allUnreachable ? null : globalSLA + globalRelaxation;
 
   const relaxedResult = allUnreachable ? null : computeCoverage({
-    customers, slaMode, globalSLA: relaxedSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency
+    customers, slaMode, globalSLA: relaxedSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency, regions, getRegionCost
   });
-  const relaxedOPEX = relaxedResult ? relaxedResult.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0) : 0;
+  const relaxedOPEX = relaxedResult ? relaxedResult.recommendations.reduce((s, r) => s + getRegionCost(r.cellIdx), 0) : 0;
 
   return {
     globalRelaxation,
@@ -3451,7 +3454,7 @@ function getOptScenarios() {
 
 function saveOptScenario(name) {
   const scenarios = getOptScenarios();
-  const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+  const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency, regions, getRegionCost: estimateRegionCost });
   const opex = result.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
   scenarios.push({
     name, ts: Date.now(),
@@ -3546,7 +3549,7 @@ window.renderScenarioList = renderScenarioList;
 function renderDashboard() {
   const result = computeCoverage({
     customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint,
-    getLatency: getCustomerLatency
+    getLatency: getCustomerLatency, regions, getRegionCost: estimateRegionCost
   });
   const { covered, uncovered, recommendations, pendingCovered, marginal, impossible, avgLatency, minHeadroomAll, avgHeadroomAll } = result;
 
@@ -3633,7 +3636,7 @@ function renderDashboard() {
   const gpCard = document.getElementById('green-plan-card');
   if (gpCard && (marginal.length > 0 || impossible.length > 0)) {
     gpCard.classList.remove('hidden');
-    const gp = computeGreenPlan({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+    const gp = computeGreenPlan({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency, regions, getRegionCost: estimateRegionCost });
     const gpSummary = document.getElementById('green-plan-summary');
     const gpDetails = document.getElementById('green-plan-details');
     const gpToggle = document.getElementById('green-plan-toggle');
@@ -4104,7 +4107,7 @@ function exportSessionJSON() {
 function generateHeadlessAnalysis() {
   const result = computeCoverage({
     customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint,
-    getLatency: getCustomerLatency
+    getLatency: getCustomerLatency, regions, getRegionCost: estimateRegionCost
   });
   const { covered, recommendations, pendingCovered, marginal, impossible } = result;
 
@@ -4212,7 +4215,7 @@ function exportSessionCSV() {
 }
 
 function exportShareReport() {
-  const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency });
+  const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency, regions, getRegionCost: estimateRegionCost });
   const opex = result.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
   const slaLabel = slaMode === 'global' ? globalSLA + 'ms (Global)' : 'Per-Endpoint';
   const modeLabel = 'Unified';

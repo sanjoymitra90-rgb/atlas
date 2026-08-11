@@ -14,14 +14,14 @@ async function loadApp(page) {
 async function runCoverage(page, input) {
   return page.evaluate((inp) => {
     const customers = inp.customers || window._customers;
-    return window.computeCoverage({ ...inp, customers, getLatency: window.getCustomerLatency });
+    return window.computeCoverage({ ...inp, customers, getLatency: window.getCustomerLatency, regions: window._regions, getRegionCost: window.estimateRegionCost });
   }, input);
 }
 
 async function runGreenPlan(page, input) {
   return page.evaluate((inp) => {
     const customers = inp.customers || window._customers;
-    return window.computeGreenPlan({ ...inp, customers, getLatency: window.getCustomerLatency });
+    return window.computeGreenPlan({ ...inp, customers, getLatency: window.getCustomerLatency, regions: window._regions, getRegionCost: window.estimateRegionCost });
   }, input);
 }
 
@@ -197,13 +197,13 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
       const cityResult = window.computeCoverage({
         customers: [{ name: 'Paris, France', lat: 48.8566, lng: 2.3522, type: 'city', tier: 1 }],
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
-        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency
+        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency, regions: window._regions, getRegionCost: window.estimateRegionCost
       });
       // Paris via AWS Regions (aws type with regionIdx)
       const awsResult = window.computeCoverage({
         customers: [{ name: 'Paris', lat: 48.8566, lng: 2.3522, type: 'aws', regionIdx: 22 }],
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
-        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency
+        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency, regions: window._regions, getRegionCost: window.estimateRegionCost
       });
       const cityLat = cityResult.pendingCovered.length > 0 ? cityResult.pendingCovered[0].recBreakdown.total : 0;
       const awsLat = awsResult.pendingCovered.length > 0 ? awsResult.pendingCovered[0].recBreakdown.total : 0;
@@ -220,7 +220,7 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
       const r = window.computeCoverage({
         customers: [{ name: 'Lagos, Nigeria', lat: 6.5244, lng: 3.3792, type: 'city', tier: 3 }],
         slaMode: 'global', globalSLA: 300, perCustomerSLA: {},
-        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency
+        safetyFloor: 0, selectedFootprint: [], getLatency: window.getCustomerLatency, regions: window._regions, getRegionCost: window.estimateRegionCost
       });
       const ep = r.pendingCovered.length > 0 ? r.pendingCovered[0] : null;
       return ep ? { total: ep.recBreakdown.total, isDirect: ep.recBreakdown.isDirect, infra: ep.recBreakdown.infra } : null;
@@ -350,7 +350,7 @@ test.describe('Optimizer Phase O3: Scenarios & Green-Plan', () => {
         perCustomerSLA: window._perCustomerSLA,
         safetyFloor: window._safetyFloor,
         selectedFootprint: window._selectedFootprint,
-        getLatency: window.getCustomerLatency
+        getLatency: window.getCustomerLatency, regions: window._regions, getRegionCost: window.estimateRegionCost
       });
       const opex = result.recommendations.reduce((s, r) => s + window.estimateRegionCost(r.cellIdx), 0);
       return {
