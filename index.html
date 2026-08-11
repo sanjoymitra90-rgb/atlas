@@ -6104,7 +6104,7 @@ function exportGapData() {
       return;
     }
     const headers = ['pairId', 'from', 'to', 'signTime', 'verifyTime', 'handoffMs', 'signProcMs', 'verifyProcMs', 'pairProcessingMs', 'endToEndMs'];
-    const csvRows = [headers.join(',')];
+    const csvRows = [headers.map(csvCell).join(',')];
     paired.forEach(signRow => {
       const verifyRow = gapData.find(r => r.pairId === signRow.pairId && r.isVerify);
       if (!verifyRow) return;
@@ -6164,7 +6164,7 @@ function exportGapData() {
     '',
     ...(breakdownLine ? [breakdownLine, ''] : []),
     ...(pairLine ? [pairLine, ''] : []),
-    allHeaders.join(',')
+    allHeaders.map(csvCell).join(',')
   ];
   
   dataToExport.forEach(row => {
