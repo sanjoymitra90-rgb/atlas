@@ -7,9 +7,11 @@ import * as validate from './auditor/validate.js';
 import * as parse from './auditor/parse.js';
 import * as buckets from './auditor/buckets.js';
 import * as geo from './optimizer/geo.js';
+import * as download from './core/download.js';
 
 Object.assign(window, format);
 Object.assign(window, validate);
 Object.assign(window, parse);
 Object.assign(window, buckets);
 Object.assign(window, geo);
+Object.assign(window, download);
