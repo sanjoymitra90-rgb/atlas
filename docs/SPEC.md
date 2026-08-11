@@ -425,8 +425,6 @@ verifyProcMs, pairProcessingMs, endToEndMs. Filtered/All produce CSV with a metr
 an invalid-reason breakdown line, a pairing summary line, then quoted data rows including pair
 status, pair ID, time-to-verify and any custom columns. Values beginning with `=`, `+`, `-`, or
 `@` are guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
-**Note:** the CSV summary gap count uses `Math.abs(signing - verify)` (unsigned) while the UI
-tile shows the signed difference. This is a known discrepancy.
 
 ### 7.7 Column-header filters
 

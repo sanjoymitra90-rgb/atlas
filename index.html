@@ -6152,7 +6152,6 @@ function exportGapData() {
   const total = dataToExport.length;
   const signing = dataToExport.filter(d => d.isSigning).length;
   const verify = dataToExport.filter(d => d.isVerify).length;
-  const gap = Math.abs(signing - verify);
   const invalid = dataToExport.filter(d => !d.ukValid).length;
   const outliers = dataToExport.filter(d => d.processingTime > gapSlowThreshold).length;
   const ps = gapPairSummary;
@@ -6166,8 +6165,8 @@ function exportGapData() {
   const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
   const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.duplicates + ' duplicates, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
   const csvRows = [
-    'Total Records,Signing,Verification,Gap,Destination Issues,Processing Time Outliers',
-    [total, signing, verify, gap, invalid, outliers].join(','),
+    'Total Records,Signing,Verification,Destination Issues,Processing Time Outliers',
+    [total, signing, verify, invalid, outliers].join(','),
     '',
     ...(breakdownLine ? [breakdownLine, ''] : []),
     ...(pairLine ? [pairLine, ''] : []),
