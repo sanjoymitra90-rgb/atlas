@@ -48,10 +48,6 @@ test.describe('Review pass — optimizer tests', () => {
       ...session34,
       selectedFootprint: [0, N + 5, 1] // N+5 is out of range
     };
-    // Listen for toast
-    const toastPromise = page.waitForEvent('console', {
-      predicate: msg => msg.text().includes('dropped')
-    }).catch(() => null);
     // Trigger import via file input
     const fileInput = page.locator('#import-file');
     await fileInput.setInputFiles({

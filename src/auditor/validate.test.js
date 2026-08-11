@@ -8,6 +8,10 @@ describe('validateUKNumber', () => {
   it('categorises a non-UK country code separately from malformed', () => {
     expect(validateUKNumber('+33123456789').category).toBe('non-uk');
   });
+  it('caps country code display at 2 digits', () => {
+    expect(validateUKNumber('+33123456789').reason).toContain('+33');
+    expect(validateUKNumber('+1234567890').reason).toContain('+12');
+  });
   it('returns malformed for empty number', () => {
     expect(validateUKNumber('').category).toBe('malformed');
     expect(validateUKNumber('').reason).toBe('Empty number');

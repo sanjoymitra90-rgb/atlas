@@ -2960,15 +2960,16 @@ function tryAddEndpoint(candidate) {
   const locKey = candidate.lat != null && candidate.lng != null
     ? Math.round(candidate.lat * 1000) + ',' + Math.round(candidate.lng * 1000)
     : 'c' + candidate.name;
-  const exists = customers.some(c => {
+  const existing = customers.find(c => {
     if (c.lat != null && c.lng != null) {
       const existingLocKey = Math.round(c.lat * 1000) + ',' + Math.round(c.lng * 1000);
       return existingLocKey === locKey;
     }
     return ('c' + c.name) === locKey;
   });
-  if (exists) {
-    showToast('Endpoint already added — same location exists', true);
+  if (existing) {
+    const source = existing.type === 'aws' ? 'an AWS region' : 'a city';
+    showToast(existing.name + ' is already added as ' + source + ' — same physical location', true);
     return false;
   }
   customers.push(candidate);

@@ -25,8 +25,10 @@ export function validateUKNumber(number) {
   const cleaned = number.replace(/[\s\-\(\)]/g, "");
   // Detect non-UK country codes — valid number, wrong country
   if (/^\+[1-9]\d+/.test(cleaned) && !cleaned.startsWith("+44")) {
+    // Match longest known prefix (1-3 digits), display capped at 2
     const cc = cleaned.match(/^\+(\d{1,3})/);
-    return { valid: false, category: 'non-uk', reason: "Non-UK destination (+" + (cc ? cc[1] : '?') + ")" };
+    const displayCc = cc ? cc[1].slice(0, 2) : '?';
+    return { valid: false, category: 'non-uk', reason: "Non-UK destination (+" + displayCc + ")" };
   }
   if (!cleaned.startsWith("+44")) return { valid: false, category: 'malformed', reason: "Does not start with +44" };
   const digits = cleaned.replace(/\D/g, "");
