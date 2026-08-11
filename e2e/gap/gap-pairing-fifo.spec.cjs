@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze } = require('./helpers');
+const { openGapAnalyzer, uploadAndAnalyze } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
 
@@ -63,6 +63,50 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     expect(title).toContain('median');
     expect(title).toContain('P95');
     expect(title).toContain('sporadic slow hand-offs');
+  });
+
+  test('Pair processing stat block exists with mean/median/P95', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
+    const pairProc = page.getByTestId('gap-pair-proc');
+    await expect(pairProc).toBeVisible();
+    const text = await pairProc.textContent();
+    expect(text).toContain('mean');
+    expect(text).toContain('median');
+    expect(text).toContain('p95');
+  });
+
+  test('End-to-end stat block exists with mean/median/P95', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
+    const endToEnd = page.getByTestId('gap-pair-endtoend');
+    await expect(endToEnd).toBeVisible();
+    const text = await endToEnd.textContent();
+    expect(text).toContain('mean');
+    expect(text).toContain('median');
+    expect(text).toContain('p95');
+  });
+
+  test('Pair pill tooltip contains proc and end-to-end', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
+    const pill = page.locator('[data-pair-status="paired"]').first();
+    const title = await pill.getAttribute('title');
+    expect(title).toContain('proc');
+    expect(title).toContain('end-to-end');
+  });
+
+  test('Group-by-pair shows summary rows for paired groups', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
+    await page.locator('.gap-switch-track').click();
+    const summaryRows = page.locator('tr.gap-pair-summary');
+    const count = await summaryRows.count();
+    expect(count).toBeGreaterThan(0);
+    const firstText = await summaryRows.first().textContent();
+    expect(firstText).toContain('handoff');
+    expect(firstText).toContain('proc');
+    expect(firstText).toContain('end-to-end');
   });
 
 });

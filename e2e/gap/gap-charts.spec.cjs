@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze, tileText } = require('./helpers');
+const { openGapAnalyzer, uploadAndAnalyze, tileText } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
 
@@ -116,6 +116,136 @@ test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
     const afterVolume = await page.evaluate(() => (window.gapChartInstances || {}).volume ? window.gapChartInstances.volume.data.labels.length : 0);
     expect(afterInvalid).toBe(beforeInvalid);
     expect(afterVolume).toBe(beforeVolume);
+  });
+
+  test('dark theme: every select is dark-styled with light text and no native appearance', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+
+    // Assert color-scheme is dark
+    const colorScheme = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+    expect(colorScheme).toBe('dark');
+
+    // Assert every select carries .atlas-select and passes luminance checks
+    const result = await page.evaluate(() => {
+      function luminance(rgb) {
+        const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (!m) return 0;
+        const [, r, g, b] = m.map(Number);
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      }
+      const selects = document.querySelectorAll('select');
+      const failures = [];
+      for (const sel of selects) {
+        const cs = getComputedStyle(sel);
+        const hasClass = sel.classList.contains('atlas-select');
+        const bgLum = luminance(cs.backgroundColor);
+        const fgLum = luminance(cs.color);
+        const appearance = cs.appearance;
+        const paddingRight = parseFloat(cs.paddingRight);
+        if (!hasClass || bgLum >= 0.25 || fgLum <= 0.6 || appearance !== 'none' || paddingRight < 30) {
+          failures.push({
+            testid: sel.getAttribute('data-testid') || sel.id || '(no id)',
+            hasClass, bgLum: bgLum.toFixed(3), fgLum: fgLum.toFixed(3),
+            appearance, paddingRight: paddingRight.toFixed(1)
+          });
+        }
+      }
+      return { total: selects.length, failures };
+    });
+
+    expect(result.failures).toEqual([]);
+    expect(result.total).toBeGreaterThan(0);
+
+    // Take screenshots for visual confirmation
+    const chartHeader = page.locator('[data-testid="gap-chart-card-invalid"], .gap-card, .gap-panel').first();
+    if (await chartHeader.isVisible()) {
+      await chartHeader.screenshot({ path: 'test-results/dark-theme-chart-header.png' });
+    }
+    const tableHeader = page.locator('table thead, .gap-table-header, th').first();
+    if (await tableHeader.isVisible()) {
+      await tableHeader.screenshot({ path: 'test-results/dark-theme-table-header.png' });
+    }
+  });
+
+  test('Requests Over Time chart renders two lines', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const hasChart = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).requests;
+      return chart && chart.data && chart.data.datasets && chart.data.datasets.length === 2;
+    });
+    expect(hasChart).toBe(true);
+  });
+
+  test('Requests Over Time bucket dropdown re-renders only that chart', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const beforeInvalid = await page.evaluate(() => (window.gapChartInstances || {}).invalid ? window.gapChartInstances.invalid.data.labels.length : 0);
+    await page.getByTestId('gap-bucket-interval-requests').selectOption('1min');
+    await page.waitForTimeout(300);
+    const afterInvalid = await page.evaluate(() => (window.gapChartInstances || {}).invalid ? window.gapChartInstances.invalid.data.labels.length : 0);
+    expect(afterInvalid).toBe(beforeInvalid);
+  });
+
+  test('Requests chart series dropdown "Signing only" hides verification line', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    await page.getByTestId('gap-series-requests').selectOption('signing');
+    await page.waitForTimeout(300);
+    const datasetCount = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).requests;
+      return chart ? chart.data.datasets.length : 0;
+    });
+    expect(datasetCount).toBe(1);
+    const label = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).requests;
+      return chart ? chart.data.datasets[0].label : '';
+    });
+    expect(label).toBe('Signing Requests');
+  });
+
+  test('Requests chart series dropdown "Both" restores both lines', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    await page.getByTestId('gap-series-requests').selectOption('signing');
+    await page.waitForTimeout(300);
+    await page.getByTestId('gap-series-requests').selectOption('both');
+    await page.waitForTimeout(300);
+    const datasetCount = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).requests;
+      return chart ? chart.data.datasets.length : 0;
+    });
+    expect(datasetCount).toBe(2);
+  });
+
+  test('Volume chart series dropdown "Signing only" hides verification datasets', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    await page.getByTestId('gap-series-volume').selectOption('signing');
+    await page.waitForTimeout(300);
+    const datasetCount = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).volume;
+      return chart ? chart.data.datasets.length : 0;
+    });
+    expect(datasetCount).toBe(2);
+  });
+
+  test('TTV chart series dropdown "Median" hides P95 line', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-pairing.csv');
+    await page.getByTestId('gap-series-ttv').selectOption('median');
+    await page.waitForTimeout(300);
+    const datasetCount = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).ttv;
+      return chart ? chart.data.datasets.length : 0;
+    });
+    expect(datasetCount).toBe(1);
+    const label = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).ttv;
+      return chart ? chart.data.datasets[0].label : '';
+    });
+    expect(label).toBe('Median TTV (ms)');
   });
 
 });

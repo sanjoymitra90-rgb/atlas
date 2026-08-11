@@ -1,13 +1,10 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const path = require('path');
-const { pathToFileURL } = require('url');
-
-const APP = pathToFileURL(path.resolve(__dirname, '..', '..', 'index.html')).href;
+const { APP_URL } = require('../app-url.cjs');
 
 // Helper: navigate to app and wait for load
 async function loadApp(page) {
-  await page.goto(APP);
+  await page.goto(APP_URL);
   await page.waitForFunction(() => typeof window.computeCoverage === 'function');
 }
 

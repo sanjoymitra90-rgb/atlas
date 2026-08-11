@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx playwright test",
+    "dev": "vite",
+    "build": "vite build",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "test": "npm run test:unit && npm run build && npm run test:e2e",
     "test:gap": "npx playwright test --project=gap",
     "test:optimizer": "npx playwright test --project=optimizer",
     "test:headed": "npx playwright test --headed"
@@ -16,12 +20,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/sanjoymitra90-rgb/qwen-test-atlas/issues"
   },
   "homepage": "https://github.com/sanjoymitra90-rgb/qwen-test-atlas#readme",
   "devDependencies": {
-    "@playwright/test": "^1.62.1"
+    "@playwright/test": "^1.62.1",
+    "vite": "^7.0.6",
+    "vite-plugin-singlefile": "^2.1.1",
+    "vitest": "^3.2.4"
   }
 }

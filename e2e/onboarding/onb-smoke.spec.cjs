@@ -1,9 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const path = require('path');
-const { pathToFileURL } = require('url');
-
-const APP = pathToFileURL(path.resolve(__dirname, '..', '..', 'index.html')).href;
+const { APP_URL } = require('../app-url.cjs');
 
 async function loadApp(page) {
   await page.goto(APP);
@@ -13,7 +10,8 @@ async function loadApp(page) {
 test.describe('Onboarding smoke tests', () => {
 
   async function enterOnboarding(page) {
-    await loadApp(page);
+    await page.goto(APP_URL);
+    await page.waitForTimeout(2000);
     await page.click('.gateway-card:has-text("Onboarding Calculator")');
     await page.waitForTimeout(2000);
   }
@@ -41,8 +39,8 @@ test.describe('Onboarding smoke tests', () => {
     expect(result).toBe(10000);
   });
 
-  // Margin = 100 shows error toast
-  test('margin >= 100 shows error', async ({ page }) => {
+  // Margin = 100 clamps to 99 and writes back
+  test('margin >= 100 clamps to 99', async ({ page }) => {
     await enterOnboarding(page);
     const result = await page.evaluate(() => {
       let toastMsg = '';
@@ -51,9 +49,21 @@ test.describe('Onboarding smoke tests', () => {
       const el = document.getElementById('ob-margin');
       if (el) { el.value = '100'; el.dispatchEvent(new Event('change')); }
       window.showToast = orig;
-      return toastMsg;
+      return { toast: toastMsg, value: el ? el.value : null };
     });
-    expect(result).toContain('below 100');
+    expect(result.toast).toContain('clamped');
+    expect(result.value).toBe('99');
+  });
+
+  // Negative margin clamps to 0
+  test('negative margin clamps to 0', async ({ page }) => {
+    await enterOnboarding(page);
+    const result = await page.evaluate(() => {
+      const el = document.getElementById('ob-margin');
+      if (el) { el.value = '-50'; el.dispatchEvent(new Event('change')); }
+      return { value: el ? el.value : null };
+    });
+    expect(result.value).toBe('0');
   });
 
   // Tier switching preserves edited tasks (deployment scope dropdown exists)

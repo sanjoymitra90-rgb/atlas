@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { openGapAnalyzer, uploadAndAnalyze } from './helpers.js';
+const { test, expect } = require('@playwright/test');
+const { openGapAnalyzer, uploadAndAnalyze } = require('../_helpers.cjs');
 const fs = require('fs');
 
 const TEST_CSV = 'gap-phase6.csv';
@@ -283,14 +283,14 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
-  test('10. Mapping selects have pr-8 for chevron spacing', async ({ page }) => {
+  test('10. Mapping selects have atlas-select class for chevron spacing', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, TEST_CSV);
     await page.click('[data-testid="gap-settings-btn"]');
     await page.waitForSelector('#gap-column-modal', { state: 'visible', timeout: 5000 });
     const sel = page.locator('#gap-column-mappings select').first();
     const classes = await sel.getAttribute('class');
-    expect(classes).toContain('pr-8');
+    expect(classes).toContain('atlas-select');
     await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 

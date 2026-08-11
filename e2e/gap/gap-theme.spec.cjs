@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze } = require('./helpers');
+const { openGapAnalyzer, uploadAndAnalyze } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Theme Toggle', () => {
   test.beforeEach(async ({ page }) => {

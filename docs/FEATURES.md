@@ -71,9 +71,10 @@ nearest known city. Leave that mode by clicking the toggle again, pressing Escap
 Adding the same endpoint twice is refused with a toast rather than silently duplicated. Each row
 shows coordinates and can be deleted with the button or by focusing the row and pressing Delete.
 
-> The same physical location can be added two ways — "London, UK" as a city, or the London AWS
-> region — and the tool will estimate different latencies for each. When a city is within 50km
-> of an AWS region, a proximity note shows which backbone region is used.
+> Each physical location can only be added once. If you add "London, UK" as a city and then try
+> to add the London AWS region (which shares the same coordinates), the tool rejects the duplicate
+> with a toast. When a city is within 50km of an AWS region, a proximity note shows which backbone
+> region is used.
 
 ### Step 3 — SLA configuration
 
@@ -279,20 +280,42 @@ customer, source IP, processing-time range, and pair status, with one-click Rese
 
 ### Charts
 
-Four charts, all clickable to filter the table to the time bucket you click:
+Five charts, all clickable to filter the table to the time bucket you click:
 
-1. **Invalid Numbers Over Time**
-2. **Signing vs Verification Volume** — stacked so valid and invalid volume are readable per
+1. **Requests Over Time** — signing and verification request counts as two lines
+2. **Invalid Numbers Over Time** — split into signing-invalid and verification-invalid
+3. **Signing vs Verification Volume** — stacked so valid and invalid volume are readable per
    service in one bar
-3. **Processing Time Distribution**
-4. **Time to Verify** — median and 95th percentile
+4. **Processing Time Distribution** — split into signing-avg and verification-avg
+5. **Time to Verify** — median and 95th percentile
+
+Each chart has a **Series dropdown** that lets you show/hide individual series (e.g., "Signing only"
+or "Verification only"). Default is "Both" for all charts.
 
 Bucket size is chosen automatically from the span of the data — minutes for an hour of data, days
-for a month — and each chart has its own override dropdown. Changing the Processing Time bucket
+for a month — and each chart has its own override dropdown. All dropdowns use the `.atlas-select`
+class for consistent dark-theme styling: dark background, light text, custom light chevron,
+and `color-scheme: dark` for native dark popups. Changing the Processing Time bucket
 dropdown correctly re-renders that chart. Axis labels are human-readable
 (`Jul 31, 19:00`) in UTC.
 
 > Charts now update when filters change.
+
+### Column-header filters
+
+Every column header has a filter icon that opens a dropdown with the same filter controls as the
+filter bar. Changing a header filter updates the matching filter bar control and vice versa.
+Reset All clears both. The Time and Processing Time columns have custom range inputs.
+
+### Call Pairing panel
+
+The Call Pairing panel shows pair-level metrics:
+
+- **Time to verify** — mean, median, and P95 handoff time between signing and verification
+- **Pair processing (S+V)** — mean, median, and P95 of signing + verification processing time
+- **End-to-end (S+H+V)** — mean, median, and P95 of signing + handoff + verification
+
+The TTV chart shows median + P95 only (no mean line); mean lives in the panel.
 
 ### Data table
 
@@ -300,10 +323,12 @@ Ten columns, sortable, paginated at 25, 50 or 100 rows. Rows with unreadable tim
 amber warning icon and always sort to the bottom. Paired rows show their pair ID on the pill.
 
 Hovering a paired row highlights its partner and dims everything else; if the partner is on
-another page, the tooltip says which one.
+another page, the tooltip says which one. Paired pill tooltips include processing time and
+end-to-end metrics.
 
 **Group by pair** reorders the table so paired rows sit together, with alternating shading and a
-divider between groups. Pagination then counts groups rather than rows, and the label changes to
+divider between groups. Each paired group gets a summary row showing handoff, processing, and
+end-to-end times. Pagination then counts groups rather than rows, and the label changes to
 say so.
 
 > All ten columns are sortable. Sorting by Time compares the parsed timestamp rather than
@@ -311,9 +336,15 @@ say so.
 
 ### Export
 
-Choose filtered or full dataset. The CSV opens with a summary block — totals, invalid-reason
-breakdown, pairing summary — followed by the full rows including pair status, pair ID, time to
-verify, and any custom columns.
+Three export scopes:
+
+1. **Filtered Results** — export only currently filtered and visible rows
+2. **All Results** — export complete dataset without any filters applied
+3. **Pair Summary** — one row per paired pair with timing metrics (pairId, from, to, signTime,
+   verifyTime, handoffMs, signProcMs, verifyProcMs, pairProcessingMs, endToEndMs)
+
+The CSV opens with a summary block — totals, invalid-reason breakdown, pairing summary — followed
+by the full rows including pair status, pair ID, time to verify, and any custom columns.
 
 > Values beginning with `=`, `+`, `-`, or `@` are now prefixed to prevent formula execution
 > in Excel. Processing times of 0 ms are exported as `0` rather than blank.

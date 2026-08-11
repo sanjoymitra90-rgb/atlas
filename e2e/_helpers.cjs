@@ -1,7 +1,5 @@
 const path = require('path');
-const { pathToFileURL } = require('url');
-
-const APP_URL = pathToFileURL(path.resolve(__dirname, '..', '..', 'index.html')).href;
+const { APP_URL } = require('./app-url.cjs');
 
 async function openGapAnalyzer(page) {
   await page.goto(APP_URL);
@@ -10,7 +8,7 @@ async function openGapAnalyzer(page) {
 }
 
 async function uploadAndAnalyze(page, csvName) {
-  const csvPath = path.resolve(__dirname, '..', '..', 'fixtures', csvName);
+  const csvPath = path.resolve(__dirname, '..', 'fixtures', csvName);
   await page.getByTestId('gap-upload-input').setInputFiles(csvPath);
   await page.getByTestId('gap-analyze-btn').click();
   await page.waitForFunction(() => {

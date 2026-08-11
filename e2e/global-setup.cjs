@@ -4,7 +4,7 @@ const { chromium } = require('@playwright/test');
 const path = require('path');
 const { pathToFileURL } = require('url');
 
-const APP = pathToFileURL(path.resolve(__dirname, '..', 'index.html')).href;
+const APP = pathToFileURL(path.resolve(__dirname, '..', 'dist', 'index.html')).href;
 
 async function globalSetup() {
   const browser = await chromium.launch();

@@ -1,4 +1,7 @@
 node_modules/
 test-results/
 reports/
+dist/
+screenshots/
 index.html.tmp
+_v.mjs

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze, tileText, APP_URL } = require('./helpers');
+const { openGapAnalyzer, uploadAndAnalyze, tileText, APP_URL } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer', () => {
 

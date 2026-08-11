@@ -7,7 +7,93 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-10 (Phase 11: Removed Gap Count & Gap Percentage tiles)
+**Last updated:** 2026-08-12 (Phase 1: extract pure modules, bug fixes)
+
+---
+
+### Phase 1 — Extract pure modules, unit tests, five bug fixes
+
+**Tooling:**
+- Vite + Vitest + vite-plugin-singlefile installed. `npm test` = unit → build → e2e.
+- Playwright now targets `dist/index.html`. All spec files renamed `.cjs` for CommonJS.
+- Build produces single self-contained HTML file via `vite-plugin-singlefile`.
+
+**Module extraction:**
+- `src/core/format.js` — `escapeHtml`, `csvCell`, `formatMoney`
+- `src/auditor/validate.js` — `normalizePhoneNumber`, `validateUKNumber`, `gapReasonBucket`
+- `src/auditor/parse.js` — `parseGapCSV`, `dedupHeaders`
+- `src/auditor/buckets.js` — `getGapBucketKey`, `getAutoBucketInterval`, `formatBucketLabel`
+- `src/optimizer/geo.js` — `haversine`
+- `src/main.js` — window bridge (temporary scaffolding for Phases 1–2)
+
+**Unit tests:** 66 tests across 4 files (validate, parse, buckets, format). Test-first for all bug fixes.
+
+**Bug fix D1 — `normalizePhoneNumber` precision guard:**
+- Regex generalized from `/^(\d)(?:\.(\d+))?[Ee]\+(\d+)$/` to `/^\+?(\d+)(?:\.(\d+))?[Ee]\+(\d+)$/`.
+- Rejects `44.7305E+10`, `4473054E+5`, `+4.47305E+11` (precision loss).
+- Non-scientific control `447305409280` still converts normally.
+
+**Bug fix D2 — Duplicate CSV header collision:**
+- `dedupHeaders()` extracted to `parse.js`. Counter now increments: `['A','A','A']` → `['A','A (2)','A (3)']`.
+- Post-analysis toast shows duped count.
+
+**Bug fix D3 — Footprint cells dropped silently on import:**
+- `handleImport` now emits error toast when `droppedCells > 0`.
+- R13 test rewritten to drive real file input instead of re-implementing logic.
+
+**Bug fix D4 — Margin clamping:**
+- `updateOnboardingFinancials` clamps margin to 0–99, writes clamped value back to `#ob-margin`.
+- Toast fires only when clamp actually changes the value.
+- Negative contingency (`#ob-contingency`) clamped to 0.
+
+**Bug fix D5 — Endpoint double-counting:**
+- `tryAddEndpoint` dedup key changed from `r{idx}`/`c{name}` to lat/lng rounded to 3 decimal places.
+- Same physical location can no longer be added twice (e.g., us-east-1 as AWS region and as city).
+- `window._matrix` exposed for R5 test.
+
+**Test retirement:**
+- R9 (truncated scientific notation) — deleted, superseded by unit tests.
+- R16 (csvCell formula injection) — deleted, superseded by unit tests.
+- R15 (escapeHtml) — strengthened with live-element assertion.
+- R8 (charts update) — strengthened with dataset length check.
+- R5 (physics invariant) — rewritten to iterate all 32×32 pairs against haversine floor.
+- R13 (import out-of-range) — rewritten to drive real file input.
+
+**Final counts:** 66 unit tests + 179 e2e tests = 245 total, all green.
+
+---
+
+### Phase 7 — Requests Over Time, series filters, pair metrics, header filter sync
+- **Requests Over Time chart** — New line chart showing signing-request and verification-request counts over time as two lines (green/blue). Own Time Bucket dropdown (`gap-bucket-interval-requests`), registered in `gapChartInstances` and `gapChartBucketOrders`. Clickable for drill-through. Excludes `timeValid === false` rows.
+- **Per-graph Series dropdown** — Second dropdown in each chart card header defaulting to "Both". Requests: Both/Signing only/Verification only. Volume: Both/Signing/Verification. Invalid: Both/Signing/Verification (split into signing-invalid/verification-invalid). Proc: Both/Signing/Verification (split into signing-avg/verification-avg). TTV: Both/Median/P95. State: `gapSeriesFilters`. Hidden series removed from dataset.
+- **Header filter sync** — Extracted `clearGapFilterInputs()` (deferred R23). Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`. Two-way sync between filter bar and column header inputs via `syncFromColFilter()`/`syncToColDropdowns()`.
+- **Pair-level time metrics** — `pairGapCalls()` now computes `pairProc` (signing + verification processing) and `pairEndToEnd` (signing + handoff + verification) on each paired row. `gapPairSummary` extended with `timeToVerifyMean`, `pairProcMean/Median/P95`, `endToEndMean/Median/P95`.
+- **Call Pairing panel** — TTV block now shows mean/median/P95. Two new stat blocks: "Pair processing (S+V)" and "End-to-end (S+H+V)" with mean/median/P95. Testids: `gap-pair-proc`, `gap-pair-endtoend`.
+- **Pair summary rows** — When Group by pair is on, each paired group gets a summary row: `P{n} · handoff {h}ms · proc {p}ms · end-to-end {e}ms`. Orphan groups get none. Pagination group count unchanged.
+- **Pair pill tooltip** — Paired pill title now includes `· proc {p}ms · end-to-end {e}ms` in both flat and grouped views.
+- **Pair-level CSV export** — New "Pair summary" scope in export modal. Columns: pairId, from, to, signTime, verifyTime, handoffMs, signProcMs, verifyProcMs, pairProcessingMs, endToEndMs. One row per paired pair.
+- **TTV decision** — TTV chart shows median+P95 only (no mean line). Mean lives in the panel. Recorded in SPEC.
+- **Tests** — Updated `gap-layout.spec.js` to filter out pair summary rows. All 111 gap tests passing.
+
+---
+
+### Phase 6D — Dark-theme select/icon fixes, round 2
+- **`color-scheme: dark`** — Added to `:root` and `select, input` for native dark rendering of select listboxes, datetime-local pickers, and scrollbars.
+- **Chevron geometry** — `.atlas-select` now has `appearance: none; -webkit-appearance: none; padding-right: 2rem;` with light-stroke SVG chevron (`#e2e8f0`). Background-position and size adjusted for proper alignment.
+- **Column filter dropdown selects** — Added `.atlas-select` class to all 5 column filter dropdowns (`col-filter-service`, `col-filter-status`, `col-filter-customer`, `col-filter-validation`, `col-filter-pair`).
+- **Column filter icon color** — Changed `.gap-col-filter` color from `#475569` (slate-600) to `#94a3b8` (slate-400) for better visibility on dark backgrounds.
+- **Filter bar padding** — Removed `px-*` Tailwind utilities from filter bar selects to let `.atlas-select` handle padding via CSS.
+- **JS template literals** — Removed `px-*` and `pr-8` from mapping modal, pairing keys, and additional columns selects.
+- **Stronger regression test** — Test #12 now asserts: `color-scheme: dark`, every select has `.atlas-select` class, background luminance < 0.25, foreground luminance > 0.6, `appearance: none`, and `padding-right >= 30px`.
+- **Tests** — 111/111 gap tests passing.
+
+---
+
+### Dark theme select/icon fix
+- **Shared `.atlas-select` class** — Extracted dark-theme select styling into a single CSS class using CSS variables. All selects (filter bar, bucket dropdowns, mapping modal, pairing keys, additional columns, rows-per-page) now use `.atlas-select` instead of ad-hoc Tailwind utilities. Light-theme support is automatic via CSS variable overrides.
+- **Select chevron visibility** — Native `<select>` chevron replaced with custom SVG via `appearance: none` + `background-image`. Light gray chevron (`#94a3b8`) visible on dark background.
+- **Tests** — Added Playwright spec asserting bucket dropdown background is not white and text color is light.
+- **Unused `.gap-input` class removed** — No element referenced it; the CSS variable `--gap-input` remains used by `.atlas-select`, `.gap-pill-muted`, and `.gap-chip`.
 
 ---
 

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze } = require('./helpers');
+const { openGapAnalyzer, uploadAndAnalyze } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
   test.beforeEach(async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
 
   test('Idea C — grouping yields 9 contiguous groups (3 pairs + 6 orphans)', async ({ page }) => {
     await page.locator('.gap-switch-track').click();
-    const groups = await page.locator('[data-testid="gap-table"] tbody tr')
+    const groups = await page.locator('[data-testid="gap-table"] tbody tr[data-pair-group]')
       .evaluateAll(rows => {
         const seq = rows.map(r => r.getAttribute('data-pair-group'));
         const out = [];
@@ -77,7 +77,7 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
   test('Idea C — grouped + sorted by Proc Time keeps groups monotonic by representative', async ({ page }) => {
     await page.locator('.gap-switch-track').click();
     await page.locator('[data-testid="gap-table"] thead th', { hasText: 'Proc. Time' }).click();
-    const reps = await page.locator('[data-testid="gap-table"] tbody tr')
+    const reps = await page.locator('[data-testid="gap-table"] tbody tr[data-pair-group]')
       .evaluateAll(rows => {
         const byGroup = {};
         const order = [];
@@ -113,7 +113,7 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
 
   test('Banding: no spines, alt-zebra alternates, 9 groups with correct sizes', async ({ page }) => {
     await page.locator('.gap-switch-track').click();
-    const results = await page.locator('[data-testid="gap-table"] tbody tr').evaluateAll(rows => {
+    const results = await page.locator('[data-testid="gap-table"] tbody tr[data-pair-group]').evaluateAll(rows => {
       const out = [];
       rows.forEach(r => {
         const hasAlt = r.classList.contains('gap-group-alt');

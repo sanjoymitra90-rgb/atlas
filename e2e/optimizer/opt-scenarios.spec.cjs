@@ -1,15 +1,13 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { pathToFileURL } = require('url');
 const fs = require('fs');
-
-const APP = pathToFileURL(path.resolve(__dirname, '..', '..', 'index.html')).href;
+const { APP_URL } = require('../app-url.cjs');
 const session34 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', 'fixtures', 'opt-session-34.json'), 'utf8'));
 const session7 = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', 'fixtures', 'opt-session-7.json'), 'utf8'));
 
 async function loadApp(page) {
-  await page.goto(APP);
+  await page.goto(APP_URL);
   await page.waitForFunction(() => typeof window.computeCoverage === 'function');
 }
 

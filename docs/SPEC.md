@@ -8,7 +8,7 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-10 (Phase 8 — 5,984 lines).
+**Last verified against `index.html`:** 2026-08-12 (Phase 1 — 6,343 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -34,8 +34,9 @@ assertion is noted where one is practical.
 5. **Charts and table read the same array.** `renderGapCharts()`, `renderSingleChart()`,
    `renderGapTable()` and `updateGapMetrics()` all derive from `gapFilteredData`. Documented
    exception: the Call Pairing panel is global (§4.4). *Resolved R8.*
-6. **`computeCoverage()` and `computeGreenPlan()` are pure.** No DOM access, no global reads
-   beyond their `input` argument. This is what makes them testable; do not regress it.
+6. **`computeCoverage()` and `computeGreenPlan()` are DOM-free but not pure.** They read the
+   module-level `regions` binding and call `estimateRegionCost()`, which reads `cellCosts`,
+   `baselineMode` and `specificBaselineIdx`. No DOM access; do not regress it.
 7. **Pairing keys use normalised phone numbers**, matching the rest of the app.
    *Resolved R10.*
 8. **A row with `timeValid === false` never enters a time-bucketed chart**, always appears in
@@ -57,10 +58,14 @@ assertion is noted where one is practical.
 
 ## 1. What ATLAS is
 
-A single-file (`index.html`), zero-build, vanilla HTML/JS/CSS application for infrastructure
-planning and cost assessment at Provenant Inc. No framework, no bundler, no backend, no
+A single-file (`index.html`), Vite-built, vanilla HTML/JS/CSS application for infrastructure
+planning and cost assessment at Provenant Inc. No framework beyond Vite, no backend, no
 persistence layer beyond `localStorage` for optimiser scenarios. All state is module-scope
 globals; all rendering is direct DOM manipulation.
+
+Pure logic is extracted into `src/` modules (`format.js`, `validate.js`, `parse.js`, `buckets.js`,
+`geo.js`) imported by `src/main.js` and re-exposed on `window` via a temporary bridge for
+inline handlers. Vite builds a single self-contained `dist/index.html` via `vite-plugin-singlefile`.
 
 Data never leaves the browser. This is deliberate — call data is sensitive. Note that six
 third-party scripts run with full DOM access, so the claim is currently asserted rather than
@@ -240,8 +245,9 @@ Wizard gating via `currentStep` / `maxStepReached`. SLA inputs validated in `ana
 ### 5.7 Endpoint management
 
 `tryAddEndpoint(candidate)` is the single entry point for all three add paths (AWS Regions tab,
-World Cities tab, click-to-place). Dedup identity: `r{regionIdx}` for regions, `c{name}` for
-cities. Duplicate → toast, no mutation, returns `false`.
+World Cities tab, click-to-place). Dedup identity: lat/lng rounded to 3 decimal places
+(`Math.round(lat * 1000) + ',' + Math.round(lng * 1000)`). Same physical location cannot be
+added twice regardless of source tab. Duplicate → toast, no mutation, returns `false`.
 
 Click-to-place snaps to the nearest `worldCities` entry and exits three ways: toggle button,
 Escape (`custMapEscHandler`, scoped to step 2), or the "Done placing" button. Endpoint rows are
@@ -356,6 +362,10 @@ of outcomes, 500 ms only 49.1%. The 500 ms misses are a timestamp-resolution art
 logged at whole-second granularity, so cross-tick pairs show an apparent 1000 ms gap. Sub-second
 latency is not observable from this data. 1000 ms is therefore the minimum usable window.
 
+**Pair-level metrics:** After pairing, `pairGapCalls()` computes `pairProc` (signing + verification
+processing time) and `pairEndToEnd` (signing + handoff + verification) on each paired row.
+Both rows of a pair carry the same values.
+
 **Median convention:** `timeToVerifyMedian` takes the upper-middle value for even samples
 (`[400,500,600,1500]` → `600`), not the statistical mean of the two middle values. Chosen because
 verification times are discrete integer milliseconds and the upper-middle avoids averaging a
@@ -365,18 +375,31 @@ near-miss outlier into the median.
 signing and its verification may sit in different filter buckets. This is the documented exception
 to invariant 5. Pairing keys use normalised phone numbers for `from`/`to` headers (not `row.raw`).
 Duplicate reclassification checks `gapPairWindow` between the unverified and paired signing.
-The Time-to-Verify tile has an info icon (`fa-info-circle`) with a tooltip explaining median,
-P95, and what a large P95-vs-median gap indicates.
+The Time-to-Verify tile has an info icon (`fa-info-circle`) with a tooltip explaining mean,
+median, P95, and what a large P95-vs-median gap indicates.
+
+`gapPairSummary` fields: `pairedPairs`, `unverified`, `unsigned`, `unpairable`, `duplicates`,
+`matchRate`, `matchRateNum`, `matchRateDenom`, `timeToVerifyMean`, `timeToVerifyMedian`,
+`timeToVerifyP95`, `pairProcMean`, `pairProcMedian`, `pairProcP95`, `endToEndMean`,
+`endToEndMedian`, `endToEndP95`, `signingPairs`, `verifyPairs`, `invalidUnverified`, `invalidPairs`.
 
 ### 7.5 Charts
 
-Four Chart.js instances, all UTC, all destroyed and rebuilt per render, all clickable for
-drill-through, each with its own bucket dropdown:
+Five Chart.js instances, all UTC, all destroyed and rebuilt per render, all clickable for
+drill-through, each with its own bucket dropdown and series dropdown:
 
-1. Invalid Numbers Over Time — amber line
-2. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks (valid over invalid per service)
-3. Processing Time Distribution — violet line, per-bucket average, dynamic Y axis
-4. Time to Verify — dual line, median cyan and P95 pink dashed, from paired rows
+1. Requests Over Time — green (signing) and blue (verification) lines
+2. Invalid Numbers Over Time — amber (signing-invalid) and red (verification-invalid) lines
+3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks (valid over invalid per service)
+4. Processing Time Distribution — violet (signing-avg) and cyan (verification-avg) lines, per-bucket average
+5. Time to Verify — dual line, median cyan and P95 pink dashed, from paired rows
+
+**Series filters:** `gapSeriesFilters = { requests:'both', volume:'both', invalid:'both', proc:'both', ttv:'both' }`.
+Each change re-renders only that chart. Hidden series are removed from the dataset (legend updates).
+TTV options: Both / Median / P95.
+
+**TTV decision:** The TTV chart shows median + P95 only (no mean line). Mean lives in the Call
+Pairing panel alongside median and P95.
 
 **Smart auto-bucketing** via `getAutoBucketInterval(min, max)`: ≤1 h → 1 min, ≤6 h → 5 min,
 ≤3 d → 1 hour, >3 d → 1 day. `gapBucketIntervals` holds per-chart overrides;
@@ -391,15 +414,28 @@ currently compares the raw string rather than `row.timestamp` (R12). Pagination 
 Group-by-pair is a render layer: paired rows share a group, orphans are solo, pagination counts
 groups, and sorting uses a representative row (the signing leg if present). Banding is luminance
 zebra (`gap-group-alt`) plus a seam on each group's first row — presentation only, exports
-unchanged. Hovering a paired row highlights its partner and dims the rest via `tbody` delegation;
-off-page partners are noted in the pill tooltip.
+unchanged. Each paired group gets a summary row (`<tr class="gap-pair-summary">`) showing
+handoff, processing, and end-to-end times. Orphan groups get none. Hovering a paired row
+highlights its partner and dims the rest via `tbody` delegation; off-page partners are noted in
+the pill tooltip. Paired pill tooltips include `· proc {p}ms · end-to-end {e}ms`.
 
-Export is a modal choosing Filtered or All scope, producing CSV with a metrics summary block, an
-invalid-reason breakdown line, a pairing summary line, then quoted data rows including pair status,
-pair ID, time-to-verify and any custom columns. Values beginning with `=`, `+`, `-`, or `@` are
-guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
+Export is a modal choosing Filtered, All, or Pair Summary scope. Pair Summary produces one row
+per paired pair with columns: pairId, from, to, signTime, verifyTime, handoffMs, signProcMs,
+verifyProcMs, pairProcessingMs, endToEndMs. Filtered/All produce CSV with a metrics summary block,
+an invalid-reason breakdown line, a pairing summary line, then quoted data rows including pair
+status, pair ID, time-to-verify and any custom columns. Values beginning with `=`, `+`, `-`, or
+`@` are guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
 **Note:** the CSV summary gap count uses `Math.abs(signing - verify)` (unsigned) while the UI
 tile shows the signed difference. This is a known discrepancy.
+
+### 7.7 Column-header filters
+
+Every column header has a filter icon that opens a dropdown with the same filter controls as the
+filter bar. Both UIs read/write the same `gap*` filter globals and call `applyGapFilters()`.
+`syncFromColFilter(col)` copies column header → filter bar then calls `applyGapFilters()`.
+`syncToColDropdowns()` copies filter bar → column headers, called at the end of `applyGapFilters()`.
+`clearGapFilterInputs()` clears all filter inputs (both bar and column header) and globals.
+Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`.
 
 ---
 
@@ -423,7 +459,7 @@ tile shows the signed difference. This is a known discrepancy.
 - **Add a Gap metric tile:** add a card with a `gap-metric-*` id and `data-testid="gap-tile-*"` to the metrics grid, compute it
   in `updateGapMetrics()`, optionally extend `drillDownGap()`.
 - **Add a Gap filter:** add the control, read it in `applyGapFilters()`, reset it in
-  `resetGapFilters()` **and** `drillDownPair()` — both clear filters and drift apart (R23).
+  `clearGapFilterInputs()` (used by `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`).
 - **Add a chart:** add a `<canvas>` wrapper (fixed 200 px height), create the instance in
   `renderGapCharts()`, register it in `gapChartInstances` for teardown.
 - **Change UK rules:** `validateUKNumber()` only.
@@ -433,3 +469,8 @@ tile shows the signed difference. This is a known discrepancy.
   physics assertion.
 - **Add a module:** copy a module block and header, register in `showModule()`, add a gateway
   card, add a help tab, extend `openHelpDefault()`, update this file.
+- **Add a select:** use the `.atlas-select` class. Do NOT use per-element Tailwind utilities for
+  select styling (no `px-*`, `pr-*`, `bg-*`, `border-*`, `text-*` on the element). The class
+  provides: `color-scheme: dark` (via `select, input` rule), `appearance: none`, `padding-right: 2rem`,
+  a light-stroke SVG chevron (`#e2e8f0`), and CSS variable-driven theming. Light-theme support
+  is automatic via `--gap-*` variable overrides in `[data-theme="light"]`.
