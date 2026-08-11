@@ -2204,23 +2204,6 @@ function updateOnboardingFinancials() {
   const contRaw = document.getElementById('ob-contingency').value;
   ob_contingency = contRaw !== '' ? parseFloat(contRaw) : 0;
   
-  // Clamp margin to 0-99
-  const preMargin = ob_margin;
-  if (ob_margin >= 100) { ob_margin = 99; }
-  if (ob_margin < 0) { ob_margin = 0; }
-  if (ob_margin !== preMargin) {
-    document.getElementById('ob-margin').value = ob_margin;
-    showToast('Margin clamped to 0–99%.', true);
-  }
-  
-  // Clamp contingency to 0+
-  const preCont = ob_contingency;
-  if (ob_contingency < 0) { ob_contingency = 0; }
-  if (ob_contingency !== preCont) {
-    document.getElementById('ob-contingency').value = ob_contingency;
-    showToast('Contingency cannot be negative.', true);
-  }
-  
   let totalHours = 0;
   let maxDate = gantt.config.start_date;
   
@@ -2231,19 +2214,26 @@ function updateOnboardingFinancials() {
       });
   }
   
-  const contingencyHours = Math.round(totalHours * (ob_contingency / 100));
-  const billableHours = totalHours + contingencyHours;
-  const internalCost = billableHours * ob_hourlyRate;
-  const marginMultiplier = 1 - (ob_margin / 100);
-  const customerPrice = marginMultiplier > 0 ? internalCost / marginMultiplier : internalCost;
+  const result = computeOnboardingFinancials({ totalHours, rate: ob_hourlyRate, marginPct: ob_margin, contingencyPct: ob_contingency });
   
-  // Math adjusted to compute from PROJECT_START (Day 1) instead of TIMELINE_START
+  // Write back clamped values
+  if (result.margin !== ob_margin) {
+    ob_margin = result.margin;
+    document.getElementById('ob-margin').value = ob_margin;
+    showToast('Margin clamped to 0–99%.', true);
+  }
+  if (result.contingency !== ob_contingency) {
+    ob_contingency = result.contingency;
+    document.getElementById('ob-contingency').value = ob_contingency;
+    showToast('Contingency cannot be negative.', true);
+  }
+  
   const totalDays = ob_gantt_initialized ? Math.max(0, Math.round((maxDate - PROJECT_START) / (1000 * 60 * 60 * 24))) : 0;
 
   document.getElementById('ob-total-days').textContent = `${totalDays} Days`;
-  document.getElementById('ob-total-hours').textContent = `${totalHours} base + ${contingencyHours} contingency (${billableHours} billable)`;
-  document.getElementById('ob-internal-cost').textContent = '$' + internalCost.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
-  document.getElementById('ob-customer-price').textContent = '$' + customerPrice.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ob-total-hours').textContent = `${totalHours} base + ${result.contingencyHours} contingency (${result.billableHours} billable)`;
+  document.getElementById('ob-internal-cost').textContent = '$' + result.internalCost.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  document.getElementById('ob-customer-price').textContent = '$' + result.customerPrice.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 
 function initDhtmlxGantt() {
