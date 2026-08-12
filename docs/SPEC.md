@@ -354,7 +354,7 @@ validation). `from` numbers are normalised but never validated.
 `validateUKNumber()` returns `{valid, category, reason}` with categories:
 - `valid` — passes all checks (green pill)
 - `malformed` — fails E.164 structure (red pill)
-- `non-uk` — valid number, non-UK country code (amber pill)
+- `non-uk` — valid number, non-UK country code (amber pill); reason is "Non-UK destination"
 - `suspected-test` — passes structure but sequential/identical digits (blue pill)
 
 ### 7.4 Pairing — `pairGapCalls()`
@@ -433,8 +433,8 @@ Export is a modal choosing Filtered, All, or Pair Summary scope. Pair Summary pr
 per paired pair with columns: pairId, from, to, signTime, verifyTime, handoffMs, signProcMs,
 verifyProcMs, pairProcessingMs, endToEndMs. Filtered/All produce CSV with a metrics summary block,
 an invalid-reason breakdown line, a pairing summary line, then quoted data rows including pair
-status, pair ID, time-to-verify and any custom columns. Values beginning with `=`, `+`, `-`, or
-`@` are guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
+status, pair ID, time-to-verify and any custom columns. Values beginning with `=`, `@`, or `+`/`-`
+not followed by a digit are guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
 
 ### 7.7 Column-header filters
 

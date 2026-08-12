@@ -183,7 +183,7 @@ Tier 3 is a light path — QA, training, cutover, coordination.
 Customer price is derived from internal cost and the margin you set: a 20% margin means the price
 is the cost divided by 0.8.
 
-> Setting margin to 100 (or above) shows an error and clamps to 99%. Contingency is now a
+> Setting margin above 99% clamps to 99%. Non-numeric input is treated as 0%. Contingency is now a
 > separate control used as a buffer for estimation uncertainty.
 
 ### Export

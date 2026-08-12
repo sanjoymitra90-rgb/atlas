@@ -163,6 +163,11 @@ no characterisation tests were written. The commit message says "prepare", and `
 invariant 6 still correctly reads "DOM-free but not pure" — **nothing is misrepresented**, the work
 just stopped halfway.
 
+**Deferral recorded in Phase 2.5.** The Phase 2.5 spec explicitly asked whether to finish D or
+defer. Deferral chosen: the valuable half (pairKey deduplication, memo-key fix) already landed.
+What remains is structural work with no user-visible benefit. `computeCoverage()` stays in
+`index.html` until a future phase owns the extraction.
+
 Two blockers if it is ever resumed: `computeCoverage()` **mutates its input** (it writes `idx` onto
 the caller's customer objects), and it still calls module-scope `findNearestRegionIdx()`. Invariant
 6 cannot become "pure" until both are gone.
