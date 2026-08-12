@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-13 (Phase 4: charts — colour, UTC, crowding, empty states, TTV, encoding).
+**Last verified against the app:** 2026-08-13 (Phase 4.5: CI fix, tests, screenshot harness, UI defects).
 
 ---
 

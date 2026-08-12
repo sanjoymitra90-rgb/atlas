@@ -8,7 +8,7 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-13 (Phase 4 — 6,399 lines).
+**Last verified against `index.html`:** 2026-08-13 (Phase 4.5 — 6,414 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -489,7 +489,9 @@ Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`.
 - **Add a module:** copy a module block and header, register in `showModule()`, add a gateway
   card, add a help tab, extend `openHelpDefault()`, update this file.
 - **Add a select:** use the `.atlas-select` class. Do NOT use per-element Tailwind utilities for
-  select styling (no `px-*`, `pr-*`, `bg-*`, `border-*`, `text-*` on the element). The class
-  provides: `color-scheme: dark` (via `select, input` rule), `appearance: none`, `padding-right: 2rem`,
+  select styling (no `px-*`, `pr-*`, `py-*`, `bg-*`, `border-*`, `text-*` on the element). **Padding
+  on selects is owned by `.atlas-select` and its size modifier `.atlas-select-sm`. Never set padding
+  on the element.** The class provides: `color-scheme: dark` (via `select, input` rule),
+  `appearance: none`, `padding: 0.5rem 2rem 0.5rem 0.75rem` (right leaves room for the chevron),
   a light-stroke SVG chevron (`#e2e8f0`), and CSS variable-driven theming. Light-theme support
   is automatic via `--gap-*` variable overrides in `[data-theme="light"]`.

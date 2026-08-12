@@ -379,11 +379,16 @@ tr.gap-pair-dim { opacity: 0.45; }
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 2rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.6rem center;
   background-size: 0.625rem;
+}
+.atlas-select-sm {
+  padding: 0.25rem 1.75rem 0.25rem 0.625rem;
+  background-position: right 0.45rem center;
+  font-size: 0.75rem;
 }
 .atlas-select:focus { border-color: var(--gap-accent); }
 .atlas-select option { background: var(--gap-panel-solid); color: var(--gap-text-1); }
@@ -1028,7 +1033,7 @@ th:hover .gap-col-filter {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label class="block text-xs text-slate-400 mb-1">Service Type</label>
-            <select id="gap-filter-service" class="w-full atlas-select py-2 text-sm" data-testid="gap-service-filter" onchange="applyGapFilters()">
+            <select id="gap-filter-service" class="w-full atlas-select" data-testid="gap-service-filter" onchange="applyGapFilters()">
               <option value="all">All Services</option>
               <option value="signing">Signing Only</option>
               <option value="verify">Verification Only</option>
@@ -1036,7 +1041,7 @@ th:hover .gap-col-filter {
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">UK Validation Status</label>
-            <select id="gap-filter-validation" class="w-full atlas-select py-2 text-sm" onchange="gapInvalidReason=''; applyGapFilters()">
+            <select id="gap-filter-validation" class="w-full atlas-select" onchange="gapInvalidReason=''; applyGapFilters()">
               <option value="all">All Numbers</option>
               <option value="valid">Valid UK Numbers</option>
               <option value="invalid">Destination Issues</option>
@@ -1052,13 +1057,13 @@ th:hover .gap-col-filter {
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Status Code</label>
-            <select id="gap-filter-status" class="w-full atlas-select py-2 text-sm" onchange="applyGapFilters()">
+            <select id="gap-filter-status" class="w-full atlas-select" onchange="applyGapFilters()">
               <option value="all">All Statuses</option>
             </select>
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Customer</label>
-            <select id="gap-filter-customer" class="w-full atlas-select py-2 text-sm" onchange="applyGapFilters()">
+            <select id="gap-filter-customer" class="w-full atlas-select" onchange="applyGapFilters()">
               <option value="all">All Customers</option>
             </select>
           </div>
@@ -1075,7 +1080,7 @@ th:hover .gap-col-filter {
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Pair Status</label>
-            <select id="gap-filter-pair" data-testid="gap-filter-pair" class="w-full atlas-select py-2 text-sm" onchange="applyGapFilters()">
+            <select id="gap-filter-pair" data-testid="gap-filter-pair" class="w-full atlas-select" onchange="applyGapFilters()">
               <option value="all">All Pair Statuses</option>
               <option value="paired">Paired</option>
               <option value="unverified">Signed not verified</option>
@@ -1210,17 +1215,17 @@ th:hover .gap-col-filter {
       </div>
 
       <!-- Charts Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="gap-charts-grid">
         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-line text-green-400 mr-2"></i>Requests Over Time</h3>
             <div class="flex items-center gap-2">
-              <select class="atlas-select py-1 text-xs" data-testid="gap-series-requests" onchange="handleSeriesFilterChange('requests', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-series-requests" onchange="handleSeriesFilterChange('requests', this.value)">
                 <option value="both">Both</option>
                 <option value="signing">Signing only</option>
                 <option value="verify">Verification only</option>
               </select>
-              <select class="atlas-select py-1 text-xs" data-testid="gap-bucket-interval-requests" onchange="handleChartBucketIntervalChange('requests', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-requests" onchange="handleChartBucketIntervalChange('requests', this.value)">
                 <option value="auto">Auto</option>
                 <option value="1min">1 Min</option>
                 <option value="5min">5 Min</option>
@@ -1235,12 +1240,12 @@ th:hover .gap-col-filter {
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-area text-amber-400 mr-2"></i>Invalid Numbers Over Time</h3>
             <div class="flex items-center gap-2">
-              <select class="atlas-select py-1 text-xs" data-testid="gap-series-invalid" onchange="handleSeriesFilterChange('invalid', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-series-invalid" onchange="handleSeriesFilterChange('invalid', this.value)">
                 <option value="both">Both</option>
                 <option value="signing">Signing only</option>
                 <option value="verify">Verification only</option>
               </select>
-              <select class="atlas-select py-1 text-xs" data-testid="gap-bucket-interval-invalid" onchange="handleChartBucketIntervalChange('invalid', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-invalid" onchange="handleChartBucketIntervalChange('invalid', this.value)">
                 <option value="auto">Auto</option>
                 <option value="1min">1 Min</option>
                 <option value="5min">5 Min</option>
@@ -1255,12 +1260,12 @@ th:hover .gap-col-filter {
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-stacked text-blue-400 mr-2"></i>Signing vs Verification Volume</h3>
             <div class="flex items-center gap-2">
-              <select class="atlas-select py-1 text-xs" data-testid="gap-series-volume" onchange="handleSeriesFilterChange('volume', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-series-volume" onchange="handleSeriesFilterChange('volume', this.value)">
                 <option value="both">Both</option>
                 <option value="signing">Signing only</option>
                 <option value="verify">Verification only</option>
               </select>
-              <select class="atlas-select py-1 text-xs" data-testid="gap-bucket-interval-volume" onchange="handleChartBucketIntervalChange('volume', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-volume" onchange="handleChartBucketIntervalChange('volume', this.value)">
                 <option value="auto">Auto</option>
                 <option value="1min">1 Min</option>
                 <option value="5min">5 Min</option>
@@ -1275,12 +1280,12 @@ th:hover .gap-col-filter {
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-chart-bar text-purple-400 mr-2"></i>Processing Time Distribution</h3>
             <div class="flex items-center gap-2">
-              <select class="atlas-select py-1 text-xs" data-testid="gap-series-proc" onchange="handleSeriesFilterChange('proc', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-series-proc" onchange="handleSeriesFilterChange('proc', this.value)">
                 <option value="both">Both</option>
                 <option value="signing">Signing only</option>
                 <option value="verify">Verification only</option>
               </select>
-              <select class="atlas-select py-1 text-xs" data-testid="gap-bucket-interval-proc" onchange="handleChartBucketIntervalChange('proc', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-proc" onchange="handleChartBucketIntervalChange('proc', this.value)">
                 <option value="auto">Auto</option>
                 <option value="1min">1 Min</option>
                 <option value="5min">5 Min</option>
@@ -1295,12 +1300,12 @@ th:hover .gap-col-filter {
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-stopwatch text-cyan-400 mr-2"></i>Time to Verify Over Time</h3>
             <div class="flex items-center gap-2">
-              <select class="atlas-select py-1 text-xs" data-testid="gap-series-ttv" onchange="handleSeriesFilterChange('ttv', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-series-ttv" onchange="handleSeriesFilterChange('ttv', this.value)">
                 <option value="both">Both</option>
                 <option value="median">Median</option>
                 <option value="p95">P95</option>
               </select>
-              <select class="atlas-select py-1 text-xs" data-testid="gap-bucket-interval-ttv" onchange="handleChartBucketIntervalChange('ttv', this.value)">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-ttv" onchange="handleChartBucketIntervalChange('ttv', this.value)">
                 <option value="auto">Auto</option>
                 <option value="1min">1 Min</option>
                 <option value="5min">5 Min</option>
@@ -1325,7 +1330,7 @@ th:hover .gap-col-filter {
           <h3 class="text-sm font-semibold text-white"><i class="fas fa-table text-violet-400 mr-2"></i>Call Data</h3>
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400" id="gap-pagesize-label" data-testid="gap-pagesize-label">Rows per page:</span>
-            <select id="gap-rows-per-page" class="atlas-select py-1 text-xs" onchange="changeGapRowsPerPage(this.value)">
+            <select id="gap-rows-per-page" class="atlas-select atlas-select-sm" onchange="changeGapRowsPerPage(this.value)">
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
@@ -1345,8 +1350,8 @@ th:hover .gap-col-filter {
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:140px" onclick="handleGapSort('time')">Time (UTC) <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('time')" data-col="time"><i class="fas fa-filter text-xs"></i></span>
                   <div class="gap-col-dropdown hidden" id="col-dd-time">
                     <label>Time Range</label>
-                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-from" onchange="syncFromColFilter('time')" style="margin-bottom:4px;width:100%"></div>
-                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-to" onchange="syncFromColFilter('time')" style="width:100%"></div>
+                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-from" onchange="syncFromColFilter('time')" style="margin-bottom:4px;width:100%;accent-color:var(--gap-accent)"></div>
+                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-to" onchange="syncFromColFilter('time')" style="width:100%;accent-color:var(--gap-accent)"></div>
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('service')">Service <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('service')" data-col="service"><i class="fas fa-filter text-xs"></i></span>
@@ -1525,7 +1530,7 @@ th:hover .gap-col-filter {
         
         <div class="flex flex-col justify-center gap-3">
           <div class="w-[340px] relative">
-              <select id="deployment-scope" onchange="handleScopeChange(this.value)" class="atlas-select w-full py-2 pl-3 text-xs font-medium">
+              <select id="deployment-scope" onchange="handleScopeChange(this.value)" class="atlas-select w-full text-xs font-medium">
                   <option value="1">Tier 1: Full Deployment (New Cell + New Provider)</option>
                   <option value="2">Tier 2: Integration Only (Existing Cell + New Provider)</option>
                   <option value="3">Tier 3: Standard Onboarding (Existing Cell & Provider)</option>
@@ -4579,7 +4584,7 @@ function openGapSettings(headers) {
       "<label class=\"block text-xs text-slate-400 mb-1.5\">" +
       "<i class=\"fas " + field.icon + " text-violet-400 mr-1.5\"></i>" + field.label +
       "</label>" +
-      "<select id=\"gap-map-" + field.key + "\" class=\"w-full atlas-select py-1.5 text-xs\">" +
+      "<select id=\"gap-map-" + field.key + "\" class=\"w-full atlas-select atlas-select-sm\">" +
       "<option value=\"\">-- Select Column --</option>" +
       (headers || []).map(h => "<option value=\"" + h + "\">" + h + "</option>").join("") +
       "</select></div>";
@@ -4685,7 +4690,7 @@ function renderAdditionalColumnsUI() {
       '<span class="text-xs text-slate-400 font-medium">Column ' + (i + 1) + '</span>' +
       '<button class="text-red-400 hover:text-red-300 text-xs" onclick="removeGapAdditionalColumn(' + i + ')" title="Remove"><i class="fas fa-times"></i></button>' +
       '</div>' +
-      '<select class="w-full atlas-select py-1.5 text-xs gap-add-col-header" data-idx="' + i + '" onchange="handleAdditionalColHeaderChange(' + i + ', this.value)">' +
+      '<select class="w-full atlas-select atlas-select-sm gap-add-col-header" data-idx="' + i + '" onchange="handleAdditionalColHeaderChange(' + i + ', this.value)">' +
       '<option value="">-- Select Header --</option>' + options + '</select>' +
       '<input type="text" placeholder="Display name" value="' + escapeHtml(col.displayName) + '" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500 focus:outline-none gap-add-col-name" data-idx="' + i + '" oninput="handleAdditionalColNameChange(' + i + ', this.value)">' +
       '</div>';
@@ -4744,12 +4749,12 @@ function renderPairingKeysUI() {
       return '<option value="' + h + '"' + (key === h ? ' selected' : '') + (disabled ? ' disabled' : '') + '>' + h + (disabled ? ' (in use)' : '') + '</option>';
     }).join('');
     const removeBtn = gapPairingKeys.length > 1
-      ? '<button class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500/80 hover:bg-red-400 text-white flex items-center justify-center text-[9px] leading-none z-10" onclick="removeGapPairingKey(' + i + ')" title="Remove component"><i class="fas fa-times"></i></button>'
+      ? '<button class="text-slate-500 hover:text-red-400 transition ml-1 shrink-0" onclick="removeGapPairingKey(' + i + ')" title="Remove component"><i class="fas fa-times text-xs"></i></button>'
       : '';
-    return '<div class="relative flex flex-col items-center shrink-0">' +
-      removeBtn +
-      '<select class="atlas-select py-2 text-sm gap-pair-key" data-idx="' + i + '" onchange="handlePairingKeyChange(' + i + ', this.value)">' +
+    return '<div class="flex items-center shrink-0">' +
+      '<select class="atlas-select gap-pair-key" data-idx="' + i + '" onchange="handlePairingKeyChange(' + i + ', this.value)">' +
       '<option value="">-- Select Column --</option>' + options + '</select>' +
+      removeBtn +
       '</div>';
   });
   const separator = '<span class="text-slate-500 text-sm font-semibold px-1 shrink-0">+</span>';
@@ -5118,10 +5123,10 @@ function syncFromColFilter(col) {
   } else if (col === 'time') {
     const fromEl = document.getElementById('col-filter-time-from');
     const toEl = document.getElementById('col-filter-time-to');
-    gapTimeFrom = fromEl && fromEl.value ? new Date(fromEl.value).getTime() : null;
-    gapTimeTo = toEl && toEl.value ? new Date(toEl.value).getTime() : null;
-    applyGapFilters();
-    return;
+    const fromVal = fromEl && fromEl.value ? new Date(fromEl.value).getTime() : null;
+    const toVal = toEl && toEl.value ? new Date(toEl.value).getTime() : null;
+    gapTimeFrom = (fromVal && isFinite(fromVal)) ? fromVal : null;
+    gapTimeTo = (toVal && isFinite(toVal)) ? toVal : null;
   } else {
     const mapping = gapColFilterMap[col];
     if (!mapping) return;

@@ -143,7 +143,7 @@ test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
         const fgLum = luminance(cs.color);
         const appearance = cs.appearance;
         const paddingRight = parseFloat(cs.paddingRight);
-        if (!hasClass || bgLum >= 0.25 || fgLum <= 0.6 || appearance !== 'none' || paddingRight < 30) {
+        if (!hasClass || bgLum >= 0.25 || fgLum <= 0.6 || appearance !== 'none' || paddingRight < 20) {
           failures.push({
             testid: sel.getAttribute('data-testid') || sel.id || '(no id)',
             hasClass, bgLum: bgLum.toFixed(3), fgLum: fgLum.toFixed(3),
@@ -246,6 +246,48 @@ test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
       return chart ? chart.data.datasets[0].label : '';
     });
     expect(label).toBe('Median TTV (ms)');
+  });
+
+});
+
+test.describe('Phase 4 required tests', () => {
+
+  test('Volume chart has 4 distinct dataset colours', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const colors = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).volume;
+      if (!chart) return [];
+      return chart.data.datasets.map(d => d.backgroundColor);
+    });
+    expect(colors.length).toBe(4);
+    const unique = new Set(colors);
+    expect(unique.size).toBe(4);
+  });
+
+  test('Requests chart x-axis tick labels < 20', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    const tickCount = await page.evaluate(() => {
+      const chart = (window.gapChartInstances || {}).requests;
+      if (!chart) return 0;
+      const scale = chart.scales.x;
+      return scale.ticks.length;
+    });
+    expect(tickCount).toBeLessThan(20);
+  });
+
+  test('Sub-minute fixture shows empty-state message, not canvas', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-phase6.csv');
+    const canvas = page.locator('#gap-chart-ttv');
+    await expect(canvas).toBeAttached();
+    const wrapper = canvas.locator('xpath=..');
+    const msg = wrapper.locator('.chart-empty-msg');
+    const canvasVisible = await canvas.isVisible().catch(() => false);
+    const msgVisible = await msg.isVisible().catch(() => false);
+    expect(canvasVisible || msgVisible).toBe(true);
+    expect(msgVisible).toBe(true);
   });
 
 });

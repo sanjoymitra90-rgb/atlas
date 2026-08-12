@@ -13,8 +13,8 @@ document permitted to describe project *state*; `docs/SPEC.md` describes the sys
 `docs/FEATURES.md` describes behaviour in user language, `docs/CHANGELOG.md` is history. If two
 documents state the same fact, one of them will eventually be wrong.
 
-**Last updated:** 2026-08-13 — Phase 3 complete and verified. Screenshot harness found broken;
-fixing it is a precondition of Phase 4.
+**Last updated:** 2026-08-13 — Phase 4 code complete and correct; CI red, no tests added,
+chart screenshots still not capturing charts. Phase 4.5 prompt written.
 
 ---
 
@@ -51,10 +51,55 @@ tests were removed because the function no longer exists, and four bucket tests 
 outcome-blocks reversal that panel definitively will not contain the pairing problems, so
 "Attention" would misrepresent it.
 
+**Phase 4: code complete and correct; verification absent.** Commit `e5fef6f`.
+
+All seven items verified present in source: four distinct volume colours **in both
+`renderGapCharts()` and `renderSingleChart()`**; `timeHadOffset` with a `Time (UTC)` header and a
+toast disclosing the assumption; `maxTicksLimit` and an `Auto (5 min)` label; empty-state messages
+via `showChartMessage()`; `lg:col-span-2` on the TTV card; the Requests area fill implemented better
+than specced, with `{ target: 1, above, below }` so the shading changes colour by which series
+leads; the Invalid chart switched to bars. Docs were updated in the same commit as the code.
+
+Three things went wrong, none of them in the code:
+
+1. **CI is red and the site is not deploying.** `gap-flexibility.spec.cjs` → "9. TTV chart canvas
+   exists in DOM" asserts `toBeVisible()`. Its fixture `gap-phase6.csv` spans six seconds and
+   carries `SMS` service values, so there are no pairs and one bucket — Task D correctly hides the
+   canvas. **The test encodes pre-Phase-4 behaviour; the app is right.**
+2. **No tests were added.** `git diff --name-only` across the phase shows no test file touched. The
+   spec required four. "258 total, all green" is the same 258 as Phase 3, reported as evidence for
+   work it does not cover — and CI shows a *different* test failing than the one the report named
+   as flaky. Third occasion a green-suite claim has not survived checking.
+3. **The chart screenshot still does not show charts.** `capture-screenshots.cjs` scrolls to
+   `.grid.grid-cols-1.lg\:grid-cols-2`, a selector matching nothing, behind an `if (charts)` guard
+   that swallows the miss. Confirmed by opening `04-charts.png`: it shows filters and tiles. The
+   harness fix verified the *gateway* capture; the chart capture was never checked. **The one
+   entirely visual phase shipped with no verified image of what it changed.**
+
+**Four UI defects reported by Sanjoy on 2026-08-13**, all diagnosed and specced in
+`2026-08-13-phase-4.5-fixes-prompt.md`:
+
+- Pairing-key remove badges (`absolute -top-1.5 -right-1.5 z-10`) float over the modal header when
+  the body scrolls. Recommended fix is to move the control into normal flow, which also resolves the
+  earlier UI finding that red filled circles read as error badges.
+- **`.atlas-select` sets `padding-right` and no other padding.** A previous change stripped the
+  `px-*` utilities "to let the class handle padding"; the class never took the job. This is why the
+  chevron was too close, then the text was. Needs one owning rule plus a `SPEC.md` §9 note saying
+  padding is owned by the class.
+- Column filters appear to filter before any value is entered. Two real defects found — no `NaN`
+  guard on `new Date(fromEl.value).getTime()` in the `time` branch, and that branch returning early
+  so it skips `closeAllColDropdowns()`. Not fully diagnosed; the prompt requires reproduction before
+  a fix.
+- The `datetime-local` picker does not match the theme. Largely browser-controlled;
+  `accent-color` is most of what is available. The prompt tells the agent to apply it and stop
+  rather than start a custom picker.
+
+**`_p3.mjs` — a reviewer's scratch file — was committed to the public repo** and needs removing.
+
 **Where things stand:**
 
-- CI is green. The live site serves the current build.
-- 71 unit tests plus the Playwright suite; 258 total reported by the dev.
+- CI **red**. The live site serves the last good build, not Phase 4.
+- 71 unit tests plus the Playwright suite; 258 total, unchanged since Phase 3.
 - `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` accurate as of this commit, with one
   known exception noted in §4.
 
@@ -319,6 +364,12 @@ The pattern is fixing the named line rather than reading the whole function, and
 without re-checking whether the original defect moved with it. **When closing an item, read the
 function end to end, and ask where else the thing you just fixed now lives.**
 
+**Guards that swallow missing elements.** `if (charts) charts.scrollIntoView(...)` is why the chart
+screenshot was wrong for two phases. Four close-out tests hid missing elements behind
+`if (await ….isVisible().catch(() => false))`. In both cases the code ran, produced a plausible
+artefact, and reported success. **A missing element is a failure, not a branch** — in test code and
+in tooling alike. When reviewing either, grep for `if (` around DOM lookups.
+
 **A claimed blocker is a claim like any other — check it.** The Phase 3 report skipped screenshots
 on the grounds that the capture tooling "was deleted in Phase 2". It had not been; it was untracked
 and moved, and sat in the working folder the whole time. One `find` would have settled it. The
@@ -404,6 +455,11 @@ Say so up front rather than appearing to ignore the local folder.
 
 ## 9. Update log for this file
 
+- **2026-08-13 (later)** — Phase 4 recorded: code correct on all seven items, but CI red, no tests
+  added, and the chart screenshot still capturing the wrong region. Recorded the four UI defects
+  Sanjoy reported and their diagnoses, including the `.atlas-select` padding-ownership gap that
+  explains the recurring dropdown problems. Added "guards that swallow missing elements" to §6 as a
+  named failure mode — it now accounts for two separate incidents.
 - **2026-08-13** — Phase 3 recorded complete and verified by execution. Corrected the screenshot
   baseline claim: nine captures not eleven, two identical, all against the unbuilt source. Recorded
   that the Phase 3 report asserted a non-existent blocker. Resolved the panel-heading question in

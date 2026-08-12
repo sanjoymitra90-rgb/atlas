@@ -7,6 +7,7 @@ screenshots-before/
 screenshots-after/
 index.html.tmp
 _v.mjs
+_p3.mjs
 
 # Real production call data — never publish.
 # Kept locally for testing; synthetic equivalents live in fixtures/.

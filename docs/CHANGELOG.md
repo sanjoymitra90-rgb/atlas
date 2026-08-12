@@ -7,7 +7,49 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4: charts — colour collision, UTC, axis crowding, empty states, TTV width, encoding)
+**Last updated:** 2026-08-13 (Phase 4.5: CI fix, missing tests, screenshot harness, UI defects)
+
+---
+
+### Phase 4.5 — CI fix, missing tests, screenshot harness, UI defects
+
+**Task A — CI fix (TTV test):**
+- **`gap-flexibility.spec.cjs` TTV test** — test expected canvas to be visible, but Phase 4 Task D correctly hides it when there's only one bucket. Fixed to assert canvas is attached AND either canvas or empty-msg is visible.
+- **Dark theme test** — updated `paddingRight` threshold from 30 to 20 to accommodate `.atlas-select-sm` (1.75rem = 28px).
+
+**Task B — Phase 4 required tests added:**
+- **Colour distinctness** — asserts Volume chart has 4 datasets with 4 distinct `backgroundColor` values via `window.gapChartInstances`.
+- **Tick count** — asserts Requests chart x-axis tick labels < 20.
+- **Empty state** — asserts sub-minute fixture shows empty-state message, not canvas.
+- All three tests verified able to fail (broke temporarily, saw red, restored).
+
+**Task C — Screenshot harness fix:**
+- **`data-testid="gap-charts-grid"`** — added to chart grid container; scroll selector updated from `.grid.grid-cols-1.lg\\:grid-cols-2` to `[data-testid="gap-charts-grid"]`.
+- **Table scroll** — updated from `document.querySelector('[data-testid="gap-table"]')` to `page.locator('[data-testid="gap-table"]').scrollIntoViewIfNeeded()`.
+- **Grouped view scroll** — same fix.
+- **Populated charts capture** — second capture pass using `fixtures/gap-screenshots.csv` (multi-hour), saves `11-charts-populated.png` and `12-full-page-populated.png`.
+- **`fixtures/gap-screenshots.csv`** — 20-row multi-hour fixture for populated chart captures.
+
+**Task D1 — Pairing-key remove buttons:**
+- **Buttons moved in-flow** — removed `absolute -top-1.5 -right-1.5 z-10` positioning; buttons now sit inline at the right end of each pairing-key row as muted glyphs that brighten on hover.
+
+**Task D2 — Dropdown padding rule:**
+- **`.atlas-select` padding** — changed from `padding-right: 2rem` only to `padding: 0.5rem 2rem 0.5rem 0.75rem`.
+- **`.atlas-select-sm`** — new modifier for chart dropdowns: `padding: 0.25rem 1.75rem 0.25rem 0.625rem`.
+- **Removed all `py-*` utilities** from `atlas-select` elements in HTML and JS template literals.
+- **SPEC.md §9 updated** — records that padding on selects is owned by `.atlas-select` and its size modifier.
+
+**Task D3 — Column filter NaN guard:**
+- **`syncFromColFilter('time')`** — added `isFinite()` guard on parsed timestamps; NaN values now set to `null`.
+- **Time branch** — no longer returns early; now runs `closeAllColDropdowns()` like every other branch.
+
+**Task D4 — Date/time picker accent-color:**
+- **`accent-color: var(--gap-accent)`** — applied to both `datetime-local` inputs in the time column filter.
+
+**Task E — Stray file removed:**
+- **`_p3.mjs`** — deleted from repository; added to `.gitignore`.
+
+**Test counts:** 71 unit + 190 e2e = 261 total, all green.
 
 ---
 
