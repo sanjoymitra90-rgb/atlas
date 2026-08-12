@@ -3,6 +3,8 @@ test-results/
 reports/
 dist/
 screenshots/
+screenshots-before/
+screenshots-after/
 index.html.tmp
 _v.mjs
 
