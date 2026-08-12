@@ -1,3 +1,6 @@
+// Tailwind CSS (build-time, replacing CDN runtime)
+import './tailwind.css';
+
 // CDN dependencies migrated to npm (must load before other modules)
 import './deps.js';
 
