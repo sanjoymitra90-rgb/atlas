@@ -76,4 +76,39 @@ test.describe('Review pass — optimizer tests', () => {
     expect(region.lat).toBeCloseTo(3.139, 1);
   });
 
+  // B2: XSS in scenario name — saved scenario with HTML payload
+  test('B2 — scenario name with HTML payload is rendered as text, not parsed as HTML', async ({ page }) => {
+    await loadApp(page);
+    // Seed atlas-opt-scenarios with a scenario carrying the XSS payload as its name
+    await page.evaluate(() => {
+      const scenarios = JSON.parse(localStorage.getItem('atlas-opt-scenarios') || '[]');
+      scenarios.push({
+        name: '<img src=x onerror=alert(1)>',
+        ts: Date.now(),
+        summary: { covered: 0, marginal: 0, impossible: 0, opex: 0 }
+      });
+      localStorage.setItem('atlas-opt-scenarios', JSON.stringify(scenarios));
+    });
+    // Reload to pick up the saved scenario
+    await page.reload();
+    await page.waitForFunction(() => typeof window.computeCoverage === 'function');
+    // Open the scenarios modal
+    await page.evaluate(() => window.openScenariosModal());
+    await page.waitForTimeout(500);
+    // Check that no live img element exists in the scenario list
+    const hasLiveElement = await page.evaluate(() => {
+      const list = document.getElementById('scenario-list');
+      if (!list) return false;
+      return list.querySelector('img[src="x"]') !== null;
+    });
+    expect(hasLiveElement).toBe(false);
+    // Check the literal text is visible
+    const hasLiteralText = await page.evaluate(() => {
+      const list = document.getElementById('scenario-list');
+      if (!list) return false;
+      return list.textContent.includes('<img src=x onerror=alert(1)>');
+    });
+    expect(hasLiteralText).toBe(true);
+  });
+
 });
