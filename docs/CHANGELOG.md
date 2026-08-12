@@ -16,6 +16,15 @@ to stay true, only to stay complete.
 **Task F — Trust repairs:**
 - **Fake test removed** — Deleted `src/auditor/pairing.test.js` which contained no application imports and trivial assertions that always passed.
 - **Phase 2 changelog corrected** — Fixed 5 factual errors: financials.js function names, CSV header escaping function, country code cap location, physics test description, Gap column removal attribution.
+- **Screenshot baseline fixed** — `screenshots-before/` untracked and added to `.gitignore`. Capture script repaired to produce distinct screens for dashboard, charts, and table.
+
+**Task G — Import and onboarding correctness:**
+- **G1: Doubled drop count fixed** — Removed duplicate counting in `handleImport()` lat/lng validation filter.
+- **G2: Drop warning preserved** — Merged the "N items dropped" toast with the "imported successfully" toast into a single terminal message.
+- **G3: Missing lat/lng dropped** — Endpoints without `lat` or `lng` keys are now filtered during import instead of crashing the render.
+- **G4: Onboarding toast merged** — `updateOnboardingFinancials()` now emits one combined message when both margin and contingency are clamped.
+- **G5: NaN margin coerced** — `computeOnboardingFinancials()` now coerces non-finite margin and contingency to 0 before clamping.
+- **G6: Margin > 99 clamped** — `computeOnboardingFinancials()` now clamps any margin above 99 to 99 (was only clamping at >= 100).
 
 ### Phase 2 — Repo hygiene, security hardening, pure extraction, build pipeline
 
