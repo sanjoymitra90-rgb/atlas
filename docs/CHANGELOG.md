@@ -7,7 +7,59 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-12 (Phase 1: extract pure modules, bug fixes)
+**Last updated:** 2026-08-12 (Phase 2: repo hygiene, security, pure extraction, build-time Tailwind, CSP)
+
+---
+
+### Phase 2 — Repo hygiene, security hardening, pure extraction, build pipeline
+
+**Phase 2A — Secrets hygiene & CI/CD:**
+- **GitHub Actions CI/CD** — `.github/workflows/deploy.yml` runs unit tests, Vite build, and Playwright e2e on push to main. Deploys `dist/` to GitHub Pages.
+- **DEPLOY.md** — Non-technical maintainer guide for pushing to GitHub and triggering deployment.
+- **Secrets hygiene** — No secrets, API keys, or credentials in the repository. All processing is client-side only.
+
+**Phase 2B — XSS fixes, validation, import hardening:**
+- **XSS: row.time** — Timestamp cell now escaped via `escapeHtml()` before innerHTML injection.
+- **XSS: customer names** — `s.name` escaped in all tooltip and popup templates.
+- **CSV header escaping** — Header values passed through `escapeHtml()` in filter dropdowns and mapping preview.
+- **Import validation** — Out-of-range footprint indices filtered with toast; falsy-zero defaults changed to `??` operator.
+- **Blob URL revocation** — Export blob URLs revoked after download to prevent memory leaks.
+- **Retired Gap column** — Removed Gap Count and Gap Percentage tiles; grid simplified to 4+2 layout.
+
+**Phase 2C — Cleanup:**
+- **Toast naming** — Consistent toast message format across all modules.
+- **Dead code removal** — Removed orphaned variables and unreachable branches.
+- **Country code cap** — `normalizePhoneNumber()` caps digit count to prevent excessive-length numbers.
+- **Physics test** — Unit test added for light-in-fibre RTT invariant assertion.
+
+**Phase 2D — Pure extraction (pairKey, financials):**
+- **`pairKey(row)` extracted** — Pairing key construction moved to a pure function; all call sites use the same key construction.
+- **`computeCoverage()` prepared** — Input interface expanded to accept `regions` and `getRegionCost` as parameters, removing module-level coupling.
+- **`src/onboarding/financials.js`** — `snappingHours()`, `computeFinancials()`, `computeCustomerPrice()` extracted as pure functions with 6 unit tests.
+
+**Phase 2E1 — CDN-to-npm (Leaflet, Chart.js, html2pdf, Gantt):**
+- **Leaflet 1.9.4**, **Chart.js 4.4.1**, **html2pdf.js 0.10.1**, **DHTMLX Gantt 8.0** moved from CDN `<script>` tags to npm imports via `src/deps.js`.
+- **MAP_BOUNDS lazy init** — `getMapBounds()` computed on first call, not at module load time.
+- **Single-file output** — `vite-plugin-singlefile` inlines all JS into `dist/index.html`.
+
+**Phase 2E2 — Tailwind build-time:**
+- **Tailwind CSS** moved from CDN runtime (`<script src="https://cdn.tailwindcss.com">`) to build-time PostCSS.
+- **`postcss.config.cjs`** + **`tailwind.config.cjs`** — Content scans `index.html` + `src/**/*.js`. Safelist: `text-emerald-400`, `text-amber-400`, `text-red-400`, `text-[10px]`.
+- **`src/tailwind.css`** — Tailwind directives (`@tailwind base/components/utilities`) imported by `src/main.js`.
+- **CDN script removed** — `<script src="https://cdn.tailwindcss.com">` deleted from `index.html`.
+
+**Phase 2E3 — CSP tightening:**
+- **Strict CSP** — `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'none';`
+- **`connect-src 'none'`** — Blocks `fetch` and `XMLHttpRequest`; privacy claim is asserted (image beacons still possible via `img-src https:`).
+- **`style-src https:`** — Allows Font Awesome and Google Fonts CDN stylesheets.
+- **`script-src 'self'`** — No external scripts; all JS bundled via Vite.
+- **SPEC.md updated** — Privacy claim description corrected to reflect actual CSP behavior.
+
+**Flaky test fix:**
+- **`custMap` guard** — `toggleClickPlace()` and `updateCustMap()` now check `if (custMap)` before accessing map container, preventing crashes when the Leaflet map hasn't initialized yet.
+- **Escape handler** — Global `keydown` listener now handles Escape for click-to-place mode directly, removing the dependency on `initCustMap()` registration timing.
+
+**Final counts:** 76 unit tests + 180 e2e tests = 256 total, all green.
 
 ---
 

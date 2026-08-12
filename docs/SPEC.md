@@ -8,7 +8,7 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-12 (Phase 1 — 6,343 lines).
+**Last verified against `index.html`:** 2026-08-12 (Phase 2 — 6,318 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -86,11 +86,12 @@ Use the accent colours consistently for any new UI. Dark theme only.
 
 ## 2. Tech stack
 
-CDN, no build step. **No other libraries may be assumed.**
+Vite + vite-plugin-singlefile build. Tailwind CSS via build-time PostCSS (not CDN runtime).
+No other libraries may be assumed.
 
 | Dependency | Version | Used by | SRI |
 |---|---|---|---|
-| Tailwind CSS | CDN runtime | all | no — rolling; requires CSP `unsafe-eval` |
+| Tailwind CSS | v3 (build-time) | all | n/a — PostCSS |
 | Font Awesome | 6.5.1 | all | yes |
 | Leaflet | 1.9.4 | Optimizer | yes |
 | DHTMLX Gantt | 8.0 | Onboarding | no — no SRI available |
@@ -129,11 +130,18 @@ live region. On `optimizer` it invalidates Leaflet maps via nested `requestAnima
 never `setTimeout`; layout must settle before measuring. On `onboarding` it lazily initialises
 the Gantt on first visit.
 
+**Build pipeline.** Vite + vite-plugin-singlefile builds a single self-contained `dist/index.html`.
+Pure logic is extracted into `src/` modules (`format.js`, `validate.js`, `parse.js`, `buckets.js`,
+`geo.js`, `financials.js`, `deps.js`, `tailwind.css`) imported by `src/main.js` and re-exposed on
+`window` via a temporary bridge for inline handlers. Tailwind CSS is built via PostCSS
+(`postcss.config.cjs` + `tailwind.config.cjs`), not loaded from CDN runtime.
+
 **Test surface.** Playwright e2e in `e2e/gap/`, `e2e/optimizer/`, and `e2e/onboarding/`,
-fixtures in `fixtures/`, projects `gap`, `optimizer`, and `onboarding` in `playwright.config.js`.
-`globalSetup` runs a CDN dependency check before any tests execute. Run `npm test`,
-`npm run test:gap`, `npm run test:optimizer`. The app stays a single HTML file openable from
-disk; tests are dev tooling and require network for CDNs.
+fixtures in `fixtures/`, projects `gap`, `optimizer`, and `onboarding` in `playwright.config.cjs`.
+`globalSetup` runs a CDN dependency check before any tests execute. Unit tests via Vitest in
+`src/**/*.test.js`. Run `npm test`, `npm run test:gap`, `npm run test:optimizer`.
+The app stays a single HTML file openable from disk; tests are dev tooling and require network
+for CDNs.
 
 Optimizer module-scope `let` bindings are mirrored onto `window` with a `_` prefix
 (`_customers`, `_globalSLA`, `_selectedFootprint`, …) plus `window._regions` and
@@ -252,7 +260,7 @@ World Cities tab, click-to-place). Dedup identity: lat/lng rounded to 3 decimal 
 added twice regardless of source tab. Duplicate → toast, no mutation, returns `false`.
 
 Click-to-place snaps to the nearest `worldCities` entry and exits three ways: toggle button,
-Escape (`custMapEscHandler`, scoped to step 2), or the "Done placing" button. Endpoint rows are
+Escape (global `keydown` handler), or the "Done placing" button. Endpoint rows are
 `tabindex="0"` with Delete/Backspace removal, guarded against firing inside inputs.
 
 ---

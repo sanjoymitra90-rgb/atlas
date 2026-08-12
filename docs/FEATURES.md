@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-10 (Phase 8: Paired Calls tile, 4+4 grid, proc bucket fix).
+**Last verified against the app:** 2026-08-12 (Phase 2: repo hygiene, security, build-time Tailwind).
 
 ---
 
