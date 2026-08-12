@@ -4,13 +4,12 @@
  * No DOM access, no side effects.
  */
 export function computeOnboardingFinancials({ totalHours, rate, marginPct, contingencyPct }) {
-  // Clamp margin to 0-99
-  let margin = marginPct;
-  if (margin >= 100) margin = 99;
+  // Coerce non-finite inputs to 0, then clamp
+  let margin = Number.isFinite(marginPct) ? marginPct : 0;
+  if (margin > 99) margin = 99;
   if (margin < 0) margin = 0;
 
-  // Clamp contingency to 0+
-  let contingency = contingencyPct;
+  let contingency = Number.isFinite(contingencyPct) ? contingencyPct : 0;
   if (contingency < 0) contingency = 0;
 
   const contingencyHours = Math.round(totalHours * (contingency / 100));

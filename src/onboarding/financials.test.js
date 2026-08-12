@@ -34,4 +34,20 @@ describe('computeOnboardingFinancials', () => {
     expect(result.margin).toBe(99);
     expect(result.contingency).toBe(0);
   });
+
+  it('G5: coerces NaN margin to 0 instead of passing through', () => {
+    const result = computeOnboardingFinancials({ totalHours: 100, rate: 100, marginPct: NaN, contingencyPct: 0 });
+    expect(result.margin).toBe(0);
+    expect(result.customerPrice).toBe(10000);
+  });
+
+  it('G5: coerces NaN contingency to 0 instead of passing through', () => {
+    const result = computeOnboardingFinancials({ totalHours: 100, rate: 80, marginPct: 20, contingencyPct: NaN });
+    expect(result.contingency).toBe(0);
+  });
+
+  it('G6: clamps margin 99.5 to 99', () => {
+    const result = computeOnboardingFinancials({ totalHours: 100, rate: 80, marginPct: 99.5, contingencyPct: 0 });
+    expect(result.margin).toBe(99);
+  });
 });
