@@ -1166,7 +1166,7 @@ th:hover .gap-col-filter {
           <h4 class="text-sm font-semibold text-white"><i class="fas fa-link text-violet-400 mr-2"></i>Call Pairing</h4>
           <span id="gap-pair-window-label" class="text-xs text-slate-500"></span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 mb-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
             <div class="text-2xl font-bold text-white" id="gap-pair-rate" data-testid="gap-pair-matchrate">-</div>
             <div class="text-xs text-slate-400 mt-1" id="gap-pair-rate-desc">-</div>
@@ -1207,12 +1207,6 @@ th:hover .gap-col-filter {
           </div>
         </div>
         <div class="text-xs text-slate-500 bg-slate-800/30 rounded-lg px-3 py-2" id="gap-pair-correlation" data-testid="gap-pair-correlation"></div>
-      </div>
-
-      <!-- Invalid UK Numbers Breakdown -->
-      <div id="gap-invalid-reason-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mt-4">
-        <h4 class="text-xs font-semibold text-slate-400 mb-3"><i class="fas fa-layer-group text-amber-400 mr-1"></i>Destination Issues &mdash; breakdown</h4>
-        <div class="gap-reason-chips flex flex-wrap gap-2"></div>
       </div>
 
       <!-- Charts Section -->
@@ -1317,6 +1311,12 @@ th:hover .gap-col-filter {
           </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-ttv"></canvas></div>
         </div>
+      </div>
+
+      <!-- Invalid UK Numbers Breakdown -->
+      <div id="gap-invalid-reason-panel" class="hidden bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mt-4">
+        <h4 class="text-xs font-semibold text-slate-400 mb-3"><i class="fas fa-layer-group text-amber-400 mr-1"></i>Destination Issues &mdash; breakdown</h4>
+        <div class="gap-reason-chips flex flex-wrap gap-2"></div>
       </div>
 
       <!-- Data Table -->
@@ -4858,6 +4858,7 @@ function processGapData() {
       ukValid: ukValid.valid,
       ukValidationReason: ukValid.reason,
       ukCategory: ukValid.category || 'valid',
+      ukBucket: ukValid.bucket || 'other',
       ukCountryCode: ukValid.countryCode || '',
       isSigning: svc.includes('sign'),
       isVerify: svc.includes('verif'),
@@ -4905,8 +4906,8 @@ function processGapData() {
 
 function ukPillHtml(row) {
   const cat = row.ukCategory || (row.ukValid ? 'valid' : 'malformed');
-  const labels = { valid: 'Valid', malformed: 'Malformed', 'non-uk': 'Non-UK', 'suspected-test': 'Suspected', truncated: 'Truncated' };
-  const styles = { valid: 'bg-emerald-900/50 text-emerald-400', malformed: 'bg-red-900/50 text-red-400', 'non-uk': 'bg-amber-900/50 text-amber-400', 'suspected-test': 'bg-blue-900/50 text-blue-400', truncated: 'bg-slate-800 text-slate-400' };
+  const labels = { valid: 'Valid', malformed: 'Malformed', 'non-uk': 'Non-UK', 'suspected-test': 'Suspected' };
+  const styles = { valid: 'bg-emerald-900/50 text-emerald-400', malformed: 'bg-red-900/50 text-red-400', 'non-uk': 'bg-amber-900/50 text-amber-400', 'suspected-test': 'bg-blue-900/50 text-blue-400' };
   const tooltip = row.ukCountryCode ? row.ukValidationReason + ' (' + row.ukCountryCode + ')' : (row.ukValidationReason || '');
   return '<span class="px-2 py-1 rounded-full text-xs ' + (styles[cat] || styles.malformed) + '" title="' + escapeHtml(tooltip) + '">' + (labels[cat] || 'Invalid') + '</span>';
 }
@@ -4957,7 +4958,7 @@ function applyGapFilters() {
     if (validationFilter === "valid" && !row.ukValid) return false;
     if (validationFilter === "invalid" && row.ukValid) return false;
     if (gapInvalidReason && row.ukValid) return false;
-    if (gapInvalidReason && gapReasonBucket(row.ukValidationReason) !== gapInvalidReason) return false;
+    if (gapInvalidReason && row.ukBucket !== gapInvalidReason) return false;
     if (gapBucketFilter) {
       if (!row.timeValid || !row.timestamp) return false;
       const rowBucket = getGapBucketKey(row.timestamp, effectiveInterval);
@@ -5188,16 +5189,16 @@ function updateGapMetrics() {
   document.getElementById("gap-metric-outliers-desc").textContent = outliers > 0 ? "Needs investigation" : "Normal performance";
   const invalidData = gapFilteredData.filter(d => !d.ukValid);
   const reasonCounts = {};
-  invalidData.forEach(d => { const b = gapReasonBucket(d.ukValidationReason); reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
-  const reasonLabels = { 'empty': 'empty', 'not +44': 'not +44', 'wrong length': 'wrong length', 'identical digits': 'identical digits', 'sequential run': 'sequential run', 'bad prefix': 'bad prefix', 'other': 'other' };
+  invalidData.forEach(d => { const b = d.ukBucket || 'other'; reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
   const panel = document.getElementById('gap-invalid-reason-panel');
   if (panel) {
     const chips = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]);
     if (chips.length > 0) {
       panel.classList.remove('hidden');
-      panel.querySelector('.gap-reason-chips').innerHTML = chips.map(([reason, count]) => {
-        const active = gapInvalidReason === reason;
-        return '<button class="px-3 py-1 rounded-full text-xs font-medium transition-all ' + (active ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700') + '" onclick="toggleGapInvalidReason(\'' + reason + '\')">' + (reasonLabels[reason] || reason) + ' \u00d7' + count + '</button>';
+      panel.querySelector('.gap-reason-chips').innerHTML = chips.map(([bucket, count]) => {
+        const active = gapInvalidReason === bucket;
+        const label = (bucketLabels && bucketLabels[bucket]) || bucket;
+        return '<button class="px-3 py-1 rounded-full text-xs font-medium transition-all ' + (active ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700') + '" onclick="toggleGapInvalidReason(\'' + bucket + '\')">' + escapeHtml(label) + ' \u00d7' + count + '</button>';
       }).join('');
     } else {
       panel.classList.add('hidden');
@@ -6128,7 +6129,7 @@ function exportGapData() {
   const allHeaders = [...headers, ...customExportHeaders];
   const invalidData = dataToExport.filter(d => !d.ukValid);
   const reasonCounts = {};
-  invalidData.forEach(d => { const b = gapReasonBucket(d.ukValidationReason); reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
+  invalidData.forEach(d => { const b = d.ukBucket || 'other'; reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
   const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
   const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.duplicates + ' duplicates, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
   const csvRows = [

@@ -8,7 +8,7 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-12 (Phase 2 — 6,318 lines).
+**Last verified against `index.html`:** 2026-08-12 (Phase 3 — 6,318 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -352,11 +352,19 @@ Rules are centralised here and **must not change without sign-off**:
 Precision loss in scientific notation is detected and the original value is returned (fails
 validation). `from` numbers are normalised but never validated.
 
-`validateUKNumber()` returns `{valid, category, reason, countryCode}` with categories:
+`validateUKNumber()` returns `{valid, category, bucket, reason, countryCode}` with categories:
 - `valid` — passes all checks (green pill)
 - `malformed` — fails E.164 structure (red pill)
 - `non-uk` — valid number, non-UK country code (amber pill); reason is "Non-UK destination"; `countryCode` contains the matched prefix (e.g. "+33")
 - `suspected-test` — passes structure but sequential/identical digits (blue pill)
+
+`bucket` is a fine-grained identifier (7 values) set at each return point: `empty`, `non-uk`,
+`not-plus-44`, `wrong-length`, `bad-prefix`, `identical-digits`, `sequential-run`. `valid` returns
+bucket `valid`. Labels are exported as `bucketLabels` from `validate.js`, sitting next to the
+bucket definitions. The bucket is carried onto each row as `row.ukBucket` and drives the
+Destination Issues breakdown chips and the table filter. `category` remains coarse (4 values)
+and drives the table pill. `gapReasonBucket()` has been deleted — no code decides a category
+by matching prose.
 
 ### 7.4 Pairing — `pairGapCalls()`
 

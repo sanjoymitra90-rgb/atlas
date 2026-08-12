@@ -7,7 +7,28 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-12 (country code prefix fix)
+**Last updated:** 2026-08-12 (Phase 3: reason vocabulary, panel reorder, pairing grid)
+
+---
+
+### Phase 3 — Reason vocabulary, panel reorder, Call Pairing grid
+
+**Task A — the reason vocabulary:**
+- **`bucket` field on `validateUKNumber()`** — Each return point now carries an explicit `bucket` identifier (`empty`, `non-uk`, `not-plus-44`, `wrong-length`, `bad-prefix`, `identical-digits`, `sequential-run`, `valid`). Category and bucket are distinct: `category` is coarse (4 values, drives the table pill), `bucket` is fine (7 values, drives the breakdown chips). No code decides a category by matching prose.
+- **`bucketLabels` exported from `validate.js`** — Label map sits next to the bucket definitions so adding a bucket without a label is visible in the diff. Sentence case: `Wrong length ×7`.
+- **`gapReasonBucket()` deleted** — Replaced by `row.ukBucket` set at row-build time from `validateUKNumber().bucket`. Filter predicate and export both read `row.ukBucket` directly.
+- **`truncated` category removed** — Dead through several phases; nothing produced it. Removed from `gapReasonBucket()`, `ukPillHtml()`, and label/style maps.
+- **`row.ukBucket` added** — Set alongside `ukCategory` where the gap row is built, as `ukValid.bucket || 'other'`.
+- **3 Playwright chip tests** — Panel visibility, no bucket identifier in chip text (regression guard), click-to-filter and click-to-clear. `fixtures/gap-invalid-reasons.csv` created with invalid destinations covering all 7 buckets.
+- **Unit tests** — 22 tests in `validate.test.js` (was 28, now 22 after deleting `gapReasonBucket` block and adding `bucket`/`bucketLabels` assertions).
+
+**Task B — Attention panel relocation:**
+- **`#gap-invalid-reason-panel` moved** — From between charts and data table to directly above the data table. Contents, show/hide behaviour and filter wiring unchanged. Heading remains "Destination Issues — breakdown".
+
+**Task C — Call Pairing grid:**
+- **`lg:grid-cols-3` → `lg:grid-cols-4`** — Eight blocks now fill two clean rows at the large breakpoint. No other changes to the panel.
+
+**Test counts:** 71 unit tests + 187 e2e tests = 258 total, all green.
 
 ---
 

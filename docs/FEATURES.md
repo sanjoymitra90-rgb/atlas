@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-12 (Phase 2: repo hygiene, security, build-time Tailwind).
+**Last verified against the app:** 2026-08-12 (Phase 3: reason vocabulary, panel reorder, pairing grid).
 
 ---
 
@@ -226,13 +226,17 @@ numbering rules: correct country code, plausible length, an allocated prefix dig
 obvious placeholder such as all-identical or sequential digits.
 
 Results appear as a Valid or Invalid pill per row, an **Invalid UK Numbers** headline figure, and
-a breakdown panel of clickable reason chips (`sequential run ×3`, `wrong length ×1`, …) that
-filter the table when clicked.
+a breakdown panel of clickable reason chips (Empty, Non-UK, Not +44, Wrong length, Bad prefix,
+Identical digits, Sequential run) that filter the table when clicked. The chips show human-readable
+labels, never internal identifiers.
 
 > Destination numbers are now categorised three ways: **Malformed** (fails E.164 structure),
 > **Non-UK** (valid number, wrong country), and **Suspected** (test data patterns). Each gets
 > its own pill color. The tile reads "Destination Issues." Hovering a Non-UK chip shows the
 > destination's country code in the tooltip.
+>
+> The breakdown panel sits directly above the data table it filters, so clicking a chip shows
+> results immediately without scrolling.
 >
 > A number truncated by a spreadsheet during export fails validation rather than being reported
 > as Valid. Precision loss in scientific notation is detected at the normalisation stage.
@@ -310,7 +314,8 @@ Reset All clears both. The Time and Processing Time columns have custom range in
 
 ### Call Pairing panel
 
-The Call Pairing panel shows pair-level metrics:
+The Call Pairing panel shows pair-level metrics in a four-column grid (two clean rows at the
+large breakpoint):
 
 - **Time to verify** — mean, median, and P95 handoff time between signing and verification
 - **Pair processing (S+V)** — mean, median, and P95 of signing + verification processing time

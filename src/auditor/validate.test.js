@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizePhoneNumber, validateUKNumber, gapReasonBucket } from './validate.js';
+import { normalizePhoneNumber, validateUKNumber, bucketLabels } from './validate.js';
 
 describe('validateUKNumber', () => {
   it('accepts a well-formed UK mobile', () => {
@@ -24,25 +24,51 @@ describe('validateUKNumber', () => {
   });
   it('returns malformed for empty number', () => {
     expect(validateUKNumber('').category).toBe('malformed');
+    expect(validateUKNumber('').bucket).toBe('empty');
     expect(validateUKNumber('').reason).toBe('Empty number');
   });
   it('returns non-uk for non-UK country codes', () => {
     expect(validateUKNumber('+1234567890').category).toBe('non-uk');
+    expect(validateUKNumber('+1234567890').bucket).toBe('non-uk');
   });
   it('returns malformed for invalid length', () => {
     expect(validateUKNumber('+44123').category).toBe('malformed');
+    expect(validateUKNumber('+44123').bucket).toBe('wrong-length');
     expect(validateUKNumber('+4412345678901234').category).toBe('malformed');
+    expect(validateUKNumber('+4412345678901234').bucket).toBe('wrong-length');
   });
   it('returns malformed for invalid prefix', () => {
     expect(validateUKNumber('+4407305409280').category).toBe('malformed');
+    expect(validateUKNumber('+4407305409280').bucket).toBe('bad-prefix');
   });
   it('returns suspected-test for all identical digits', () => {
     expect(validateUKNumber('+447777777777').category).toBe('suspected-test');
+    expect(validateUKNumber('+447777777777').bucket).toBe('identical-digits');
     expect(validateUKNumber('+447777777777').reason).toBe('All digits identical');
   });
   it('returns suspected-test for sequential digits', () => {
     expect(validateUKNumber('+447123456789').category).toBe('suspected-test');
+    expect(validateUKNumber('+447123456789').bucket).toBe('sequential-run');
     expect(validateUKNumber('+447123456789').reason).toBe('Sequential digits detected');
+  });
+  it('returns bucket for not-plus-44', () => {
+    expect(validateUKNumber('07305409280').bucket).toBe('not-plus-44');
+  });
+  it('valid number returns bucket valid', () => {
+    expect(validateUKNumber('+447305409280').bucket).toBe('valid');
+  });
+});
+
+describe('bucketLabels', () => {
+  it('has labels for all seven buckets plus other', () => {
+    expect(Object.keys(bucketLabels)).toEqual(
+      expect.arrayContaining(['empty', 'non-uk', 'not-plus-44', 'wrong-length', 'bad-prefix', 'identical-digits', 'sequential-run', 'other'])
+    );
+  });
+  it('labels are user-friendly sentence case', () => {
+    expect(bucketLabels['wrong-length']).toBe('Wrong length');
+    expect(bucketLabels['sequential-run']).toBe('Sequential run');
+    expect(bucketLabels['not-plus-44']).toBe('Not +44');
   });
 });
 
@@ -75,39 +101,5 @@ describe('normalizePhoneNumber', () => {
   });
   it('non-scientific control: bare 44 number converts normally', () => {
     expect(normalizePhoneNumber('447305409280')).toBe('+447305409280');
-  });
-});
-
-describe('gapReasonBucket', () => {
-  it('returns other for null or Valid', () => {
-    expect(gapReasonBucket(null)).toBe('other');
-    expect(gapReasonBucket('Valid')).toBe('other');
-  });
-  it('returns empty for empty number', () => {
-    expect(gapReasonBucket('Empty number')).toBe('empty');
-  });
-  it('returns non-uk for non-UK reasons', () => {
-    expect(gapReasonBucket('Non-UK destination')).toBe('non-uk');
-  });
-  it('returns malformed for +44 reasons', () => {
-    expect(gapReasonBucket('Does not start with +44')).toBe('malformed');
-  });
-  it('returns malformed for length reasons', () => {
-    expect(gapReasonBucket('Invalid length')).toBe('malformed');
-  });
-  it('returns suspected-test for identical digits', () => {
-    expect(gapReasonBucket('All digits identical')).toBe('suspected-test');
-  });
-  it('returns suspected-test for sequential digits', () => {
-    expect(gapReasonBucket('Sequential digits detected')).toBe('suspected-test');
-  });
-  it('returns malformed for prefix reasons', () => {
-    expect(gapReasonBucket('Invalid UK number prefix')).toBe('malformed');
-  });
-  it('returns truncated for truncated reasons', () => {
-    expect(gapReasonBucket('Truncated value')).toBe('truncated');
-  });
-  it('returns other for unrecognized reasons', () => {
-    expect(gapReasonBucket('Something else')).toBe('other');
   });
 });

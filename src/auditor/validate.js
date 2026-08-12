@@ -42,41 +42,42 @@ export function normalizePhoneNumber(value) {
 }
 
 export function validateUKNumber(number) {
-  if (!number) return { valid: false, category: 'malformed', reason: "Empty number" };
+  if (!number) return { valid: false, category: 'malformed', bucket: 'empty', reason: "Empty number" };
   const cleaned = number.replace(/[\s\-\(\)]/g, "");
   // Detect non-UK country codes — valid number, wrong country
   if (/^\+[1-9]\d+/.test(cleaned) && !cleaned.startsWith("+44")) {
     const digitsAfterPlus = cleaned.slice(1); // strip the '+'
     const countryCode = '+' + extractCountryCode(digitsAfterPlus);
-    return { valid: false, category: 'non-uk', reason: "Non-UK destination", countryCode };
+    return { valid: false, category: 'non-uk', bucket: 'non-uk', reason: "Non-UK destination", countryCode };
   }
-  if (!cleaned.startsWith("+44")) return { valid: false, category: 'malformed', reason: "Does not start with +44" };
+  if (!cleaned.startsWith("+44")) return { valid: false, category: 'malformed', bucket: 'not-plus-44', reason: "Does not start with +44" };
   const digits = cleaned.replace(/\D/g, "");
-  if (digits.length < 11 || digits.length > 13) return { valid: false, category: 'malformed', reason: "Invalid length" };
+  if (digits.length < 11 || digits.length > 13) return { valid: false, category: 'malformed', bucket: 'wrong-length', reason: "Invalid length" };
   const validStarts = ["1", "2", "3", "7", "8"];
   const afterCode = digits.slice(2);
-  if (!validStarts.includes(afterCode[0])) return { valid: false, category: 'malformed', reason: "Invalid UK number prefix" };
+  if (!validStarts.includes(afterCode[0])) return { valid: false, category: 'malformed', bucket: 'bad-prefix', reason: "Invalid UK number prefix" };
   const uniqueDigits = new Set(afterCode);
-  if (uniqueDigits.size === 1) return { valid: false, category: 'suspected-test', reason: "All digits identical" };
+  if (uniqueDigits.size === 1) return { valid: false, category: 'suspected-test', bucket: 'identical-digits', reason: "All digits identical" };
   let maxRun = 1, run = 1;
   for (let i = 1; i < afterCode.length; i++) {
     if (parseInt(afterCode[i]) === parseInt(afterCode[i - 1]) + 1) { run++; if (run > maxRun) maxRun = run; }
     else { run = 1; }
   }
-  if (maxRun >= 5) return { valid: false, category: 'suspected-test', reason: "Sequential digits detected" };
-  return { valid: true, category: 'valid', reason: "Valid" };
+  if (maxRun >= 5) return { valid: false, category: 'suspected-test', bucket: 'sequential-run', reason: "Sequential digits detected" };
+  return { valid: true, category: 'valid', bucket: 'valid', reason: "Valid" };
 }
 
-export function gapReasonBucket(reason) {
-  if (!reason || reason === 'Valid') return 'other';
-  const r = reason.toLowerCase();
-  if (r === 'empty number') return 'empty';
-  if (r.includes('non-uk')) return 'non-uk';
-  if (r.includes('start with +44') || r.includes('+44')) return 'malformed';
-  if (r.includes('length')) return 'malformed';
-  if (r.includes('identical')) return 'suspected-test';
-  if (r.includes('sequential')) return 'suspected-test';
-  if (r.includes('prefix')) return 'malformed';
-  if (r.includes('truncated')) return 'truncated';
-  return 'other';
-}
+// Bucket labels — must sit next to the bucket definitions so they cannot drift apart.
+// Bucket names are internal identifiers; labels are what the user sees.
+export const bucketLabels = {
+  'empty': 'Empty',
+  'non-uk': 'Non-UK',
+  'not-plus-44': 'Not +44',
+  'wrong-length': 'Wrong length',
+  'bad-prefix': 'Bad prefix',
+  'identical-digits': 'Identical digits',
+  'sequential-run': 'Sequential run',
+  'other': 'Other'
+};
+
+
