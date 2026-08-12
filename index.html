@@ -2204,16 +2204,18 @@ function updateOnboardingFinancials() {
   const result = computeOnboardingFinancials({ totalHours, rate: ob_hourlyRate, marginPct: ob_margin, contingencyPct: ob_contingency });
   
   // Write back clamped values
+  let clampMsg = '';
   if (result.margin !== ob_margin) {
     ob_margin = result.margin;
     document.getElementById('ob-margin').value = ob_margin;
-    showToast('Margin clamped to 0–99%.', true);
+    clampMsg = 'Margin clamped to 0\u201399%';
   }
   if (result.contingency !== ob_contingency) {
     ob_contingency = result.contingency;
     document.getElementById('ob-contingency').value = ob_contingency;
-    showToast('Contingency cannot be negative.', true);
+    clampMsg += (clampMsg ? '; ' : '') + 'contingency cannot be negative';
   }
+  if (clampMsg) showToast(clampMsg + '.', true);
   
   const totalDays = ob_gantt_initialized ? Math.max(0, Math.round((maxDate - PROJECT_START) / (1000 * 60 * 60 * 24))) : 0;
 
@@ -4390,15 +4392,13 @@ function handleImport(event) {
         }
         return true;
       });
-      // Validate lat/lng are finite numbers, coerce tier to 1-4
-      const beforeValidate = customers.length;
+      // Validate lat/lng are present and finite numbers, coerce tier to 1-4
       customers = customers.filter(c => {
-        if (c.lat !== undefined && !Number.isFinite(c.lat)) { droppedEndpoints++; return false; }
-        if (c.lng !== undefined && !Number.isFinite(c.lng)) { droppedEndpoints++; return false; }
+        if (c.lat === undefined || !Number.isFinite(c.lat)) { droppedEndpoints++; return false; }
+        if (c.lng === undefined || !Number.isFinite(c.lng)) { droppedEndpoints++; return false; }
         if (c.tier !== undefined) c.tier = Math.max(1, Math.min(4, Math.round(Number(c.tier) || 1)));
         return true;
       });
-      droppedEndpoints += beforeValidate - customers.length;
       // Validate cellCosts values are numeric
       const validatedCosts = {};
       let droppedCosts = 0;
@@ -4408,7 +4408,6 @@ function handleImport(event) {
       });
       cellCosts = validatedCosts;
       const droppedTotal = droppedEndpoints + droppedCells + droppedCosts;
-      if (droppedTotal > 0) showToast(droppedTotal + ' item(s) dropped — invalid data', true);
       
       slaMode = data.slaMode || 'global';
       globalSLA = data.globalSLA ?? 150;
@@ -4428,7 +4427,11 @@ function handleImport(event) {
       setSLAMode(slaMode);
       
       goToStep(1);
-      showToast("Session imported successfully!");
+      if (droppedTotal > 0) {
+        showToast('Session imported \u2014 ' + droppedTotal + ' item(s) dropped as invalid', true);
+      } else {
+        showToast("Session imported successfully!");
+      }
     } catch (err) {
       console.error("Import error:", err);
       showToast("Failed to parse session file. Invalid JSON.", true);
