@@ -4263,21 +4263,17 @@ function exportOnboardingCSV() {
   
   const activeState = tierStates[currentScope] || { data: [] };
   const totalHours = activeState.data.reduce((sum, t) => sum + (t.hours || 0), 0);
-  const contingencyHours = Math.round(totalHours * (ob_contingency / 100));
-  const billableHours = totalHours + contingencyHours;
-  const internalCost = billableHours * ob_hourlyRate;
-  const marginMultiplier = 1 - (ob_margin / 100);
-  const customerPrice = marginMultiplier > 0 ? internalCost / marginMultiplier : internalCost;
+  const result = computeOnboardingFinancials({ totalHours, rate: ob_hourlyRate, marginPct: ob_margin, contingencyPct: ob_contingency });
   
   csvContent += "--- FINANCIAL SUMMARY (ACTIVE TIER) ---\n";
   csvContent += `Blended Hourly Rate,$${ob_hourlyRate}\n`;
-  csvContent += `Target Margin,${ob_margin}%\n`;
-  csvContent += `Contingency Buffer,${ob_contingency}%\n`;
+  csvContent += `Target Margin,${result.margin}%\n`;
+  csvContent += `Contingency Buffer,${result.contingency}%\n`;
   csvContent += `Base Project Hours,${totalHours}\n`;
-  csvContent += `Contingency Hours,${contingencyHours}\n`;
-  csvContent += `Billable Hours,${billableHours}\n`;
-  csvContent += `Total Internal Cost,$${internalCost.toFixed(2)}\n`;
-  csvContent += `Final Customer Price,$${customerPrice.toFixed(2)}\n`;
+  csvContent += `Contingency Hours,${result.contingencyHours}\n`;
+  csvContent += `Billable Hours,${result.billableHours}\n`;
+  csvContent += `Total Internal Cost,$${result.internalCost.toFixed(2)}\n`;
+  csvContent += `Final Customer Price,$${result.customerPrice.toFixed(2)}\n`;
   if (activeState.assumptions) {
     csvContent += `\nAssumptions & Exclusions,"${activeState.assumptions.replace(/"/g, '""')}"\n`;
   }
@@ -6137,8 +6133,8 @@ function exportGapData() {
     'Total Records,Signing,Verification,Destination Issues,Processing Time Outliers',
     [total, signing, verify, invalid, outliers].join(','),
     '',
-    ...(breakdownLine ? [breakdownLine, ''] : []),
-    ...(pairLine ? [pairLine, ''] : []),
+    ...(breakdownLine ? [csvCell(breakdownLine), ''] : []),
+    ...(pairLine ? [csvCell(pairLine), ''] : []),
     allHeaders.map(csvCell).join(',')
   ];
   
