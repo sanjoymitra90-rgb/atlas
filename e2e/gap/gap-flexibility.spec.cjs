@@ -299,14 +299,16 @@ test.describe('Gap Analyzer — Phase 6C: Mapping Modal Layout Refinements', () 
     await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 
-  test('11. Pairing key X button is inline with dropdown', async ({ page }) => {
+  test('11. Pairing key X button is a floating badge', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, TEST_CSV);
     await page.click('[data-testid="gap-settings-btn"]');
     await page.waitForSelector('#gap-column-modal', { state: 'visible', timeout: 5000 });
     const xBtn = page.locator('#gap-pairing-keys button[title="Remove component"]').first();
     const classes = await xBtn.getAttribute('class');
-    expect(classes).toContain('hover:text-red-400');
+    expect(classes).toContain('absolute');
+    expect(classes).toContain('-top-1.5');
+    expect(classes).toContain('-right-1.5');
     await page.click('#gap-column-modal button[aria-label="Close modal"]');
   });
 

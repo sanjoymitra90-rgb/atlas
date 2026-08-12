@@ -890,7 +890,7 @@ th:hover .gap-col-filter {
   <!-- Column Mapping Modal -->
   <div id="gap-column-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[3000] hidden items-center justify-center p-4" role="dialog" aria-labelledby="gap-modal-title" aria-modal="true" data-testid="gap-settings-modal">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
-      <div class="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+      <div class="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-900 z-20">
         <h2 id="gap-modal-title" class="text-lg font-bold text-white"><i class="fas fa-columns text-violet-400 mr-2"></i>Map CSV Columns</h2>
         <button class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center" onclick="closeGapColumnModal()" aria-label="Close modal">
           <i class="fas fa-times text-slate-400"></i>
@@ -1296,7 +1296,7 @@ th:hover .gap-col-filter {
           </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-processing"></canvas></div>
         </div>
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 lg:col-span-2">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-stopwatch text-cyan-400 mr-2"></i>Time to Verify Over Time</h3>
             <div class="flex items-center gap-2">
@@ -1316,6 +1316,47 @@ th:hover .gap-col-filter {
           </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-ttv"></canvas></div>
         </div>
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-clock text-orange-400 mr-2"></i>Pair Processing Over Time</h3>
+            <div class="flex items-center gap-2">
+              <select class="atlas-select atlas-select-sm" data-testid="gap-series-pairproc" onchange="handleSeriesFilterChange('pairproc', this.value)">
+                <option value="both">Both</option>
+                <option value="median">Median</option>
+                <option value="p95">P95</option>
+              </select>
+              <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-pairproc" onchange="handleChartBucketIntervalChange('pairproc', this.value)">
+                <option value="auto">Auto</option>
+                <option value="1min">1 Min</option>
+                <option value="5min">5 Min</option>
+                <option value="1hour">1 Hour</option>
+                <option value="1day">1 Day</option>
+              </select>
+            </div>
+          </div>
+          <div style="position:relative;height:200px;"><canvas id="gap-chart-pairproc"></canvas></div>
+        </div>
+      </div>
+      <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 lg:col-span-2 mt-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-white"><i class="fas fa-route text-pink-400 mr-2"></i>End-to-End Over Time</h3>
+          <div class="flex items-center gap-2">
+            <select class="atlas-select atlas-select-sm" data-testid="gap-series-e2e" onchange="handleSeriesFilterChange('e2e', this.value)">
+              <option value="both">Both</option>
+              <option value="median">Median</option>
+              <option value="p95">P95</option>
+            </select>
+            <select class="atlas-select atlas-select-sm" data-testid="gap-bucket-interval-e2e" onchange="handleChartBucketIntervalChange('e2e', this.value)">
+              <option value="auto">Auto</option>
+              <option value="1min">1 Min</option>
+              <option value="5min">5 Min</option>
+              <option value="1hour">1 Hour</option>
+              <option value="1day">1 Day</option>
+            </select>
+          </div>
+        </div>
+        <div style="position:relative;height:200px;"><canvas id="gap-chart-e2e"></canvas></div>
+      </div>
       </div>
 
       <!-- Invalid UK Numbers Breakdown -->
@@ -1348,14 +1389,14 @@ th:hover .gap-col-filter {
             <thead class="bg-slate-800/50">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:140px" onclick="handleGapSort('time')">Time (UTC) <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('time')" data-col="time"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-time">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-time">
                     <label>Time Range</label>
                     <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-from" onchange="syncFromColFilter('time')" style="margin-bottom:4px;width:100%;accent-color:var(--gap-accent)"></div>
                     <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-to" onchange="syncFromColFilter('time')" style="width:100%;accent-color:var(--gap-accent)"></div>
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('service')">Service <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('service')" data-col="service"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-service">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-service">
                     <label>Service Type</label>
                     <select id="col-filter-service" class="atlas-select" onchange="syncFromColFilter('service')">
                       <option value="all">All Services</option>
@@ -1365,19 +1406,19 @@ th:hover .gap-col-filter {
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:120px" onclick="handleGapSort('from')">From <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('from')" data-col="from"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-from">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-from">
                     <label>From Number</label>
                     <input type="text" id="col-filter-from" placeholder="Search..." oninput="syncFromColFilter('from')">
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:120px" onclick="handleGapSort('to')">To <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('to')" data-col="to"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-to">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-to">
                     <label>To Number</label>
                     <input type="text" id="col-filter-to" placeholder="Search..." oninput="syncFromColFilter('to')">
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('status')">Status <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('status')" data-col="status"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-status">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-status">
                     <label>Status Code</label>
                     <select id="col-filter-status" class="atlas-select" onchange="syncFromColFilter('status')">
                       <option value="all">All Statuses</option>
@@ -1385,7 +1426,7 @@ th:hover .gap-col-filter {
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:120px" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('customer')" data-col="customer"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-customer">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-customer">
                     <label>Customer</label>
                     <select id="col-filter-customer" class="atlas-select" onchange="syncFromColFilter('customer')">
                       <option value="all">All Customers</option>
@@ -1393,13 +1434,13 @@ th:hover .gap-col-filter {
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:120px" onclick="handleGapSort('sourceIP')">Source IP <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('sourceIP')" data-col="sourceIP"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-sourceIP">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-sourceIP">
                     <label>Source IP</label>
                     <input type="text" id="col-filter-ip" placeholder="Search IP..." oninput="syncFromColFilter('sourceIP')">
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:90px" onclick="handleGapSort('processingTime')">Proc. Time <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('processingTime')" data-col="processingTime"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-processingTime">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-processingTime">
                     <label>Processing Time (ms)</label>
                     <div class="gap-dd-row">
                       <input type="number" id="col-filter-proc-min" placeholder="Min" oninput="syncFromColFilter('processingTime')">
@@ -1409,7 +1450,7 @@ th:hover .gap-col-filter {
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('ukCategory')" title="Destination validation categories: Valid, Malformed, Non-UK, or Suspected test data.">
                   UK Valid <i class="fas fa-info-circle text-xs ml-1 text-violet-400"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('ukCategory')" data-col="ukCategory"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-ukCategory">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-ukCategory">
                     <label>UK Validation</label>
                     <select id="col-filter-validation" class="atlas-select" onchange="syncFromColFilter('ukCategory')">
                       <option value="all">All Numbers</option>
@@ -1419,7 +1460,7 @@ th:hover .gap-col-filter {
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:140px" onclick="handleGapSort('pairStatus')">Pair <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('pairStatus')" data-col="pairStatus"><i class="fas fa-filter text-xs"></i></span>
-                  <div class="gap-col-dropdown hidden" id="col-dd-pairStatus">
+                  <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-pairStatus">
                     <label>Pair Status</label>
                     <select id="col-filter-pair" class="atlas-select" onchange="syncFromColFilter('pairStatus')">
                       <option value="all">All Pair Statuses</option>
@@ -4481,12 +4522,12 @@ let gapPairSummary = {};
 let gapPairFilter = null;
 let gapTimeFrom = null;
 let gapTimeTo = null;
-let gapBucketIntervals = { invalid: 'auto', volume: 'auto', proc: 'auto', ttv: 'auto', requests: 'auto' };
+let gapBucketIntervals = { invalid: 'auto', volume: 'auto', proc: 'auto', ttv: 'auto', requests: 'auto', pairproc: 'auto', e2e: 'auto' };
 let gapBucketFilterSource = null;
 let gapAdditionalColumns = [];
 let gapPairingKeys = [];
-let gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [], requests: [] };
-let gapSeriesFilters = { requests: 'both', volume: 'both', invalid: 'both', proc: 'both', ttv: 'both' };
+let gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [], requests: [], pairproc: [], e2e: [] };
+let gapSeriesFilters = { requests: 'both', volume: 'both', invalid: 'both', proc: 'both', ttv: 'both', pairproc: 'both', e2e: 'both' };
 let gapSettingsSnapshot = null;
 
 function handleChartBucketIntervalChange(chartType, val) {
@@ -4512,7 +4553,7 @@ function handleSeriesFilterChange(chartType, val) {
 function updateAutoBucketLabels(autoInterval) {
   const labels = { '1min': '1 Min', '5min': '5 Min', '1hour': '1 Hour', '1day': '1 Day' };
   const label = labels[autoInterval] || autoInterval;
-  ['requests', 'invalid', 'volume', 'proc', 'ttv'].forEach(ct => {
+  ['requests', 'invalid', 'volume', 'proc', 'ttv', 'pairproc', 'e2e'].forEach(ct => {
     const sel = document.getElementById('gap-bucket-interval-' + ct);
     if (sel) {
       const opt = sel.querySelector('option[value="auto"]');
@@ -4749,12 +4790,12 @@ function renderPairingKeysUI() {
       return '<option value="' + h + '"' + (key === h ? ' selected' : '') + (disabled ? ' disabled' : '') + '>' + h + (disabled ? ' (in use)' : '') + '</option>';
     }).join('');
     const removeBtn = gapPairingKeys.length > 1
-      ? '<button class="text-slate-500 hover:text-red-400 transition ml-1 shrink-0" onclick="removeGapPairingKey(' + i + ')" title="Remove component"><i class="fas fa-times text-xs"></i></button>'
+      ? '<button class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-600/80 hover:bg-red-400 text-slate-300 hover:text-white flex items-center justify-center text-[9px] leading-none z-10" onclick="removeGapPairingKey(' + i + ')" title="Remove component"><i class="fas fa-times"></i></button>'
       : '';
-    return '<div class="flex items-center shrink-0">' +
+    return '<div class="relative flex flex-col items-center shrink-0">' +
+      removeBtn +
       '<select class="atlas-select gap-pair-key" data-idx="' + i + '" onchange="handlePairingKeyChange(' + i + ', this.value)">' +
       '<option value="">-- Select Column --</option>' + options + '</select>' +
-      removeBtn +
       '</div>';
   });
   const separator = '<span class="text-slate-500 text-sm font-semibold px-1 shrink-0">+</span>';
@@ -5590,11 +5631,12 @@ function renderGapTable() {
       const groupKey = gapGroupKey(row);
       const gi = rowGroupIdx[row._gapIdx] || 0;
       const isAlt = gi % 2 === 1;
-      const isFirst = rowIsFirstInGroup[row._gapIdx] && gi > 0;
+      const isGroupStart = rowIsFirstInGroup[row._gapIdx];
+      const needsSeam = isGroupStart && gi > 0;
       const isPairGroup = row.pairStatus === 'paired';
       let trClasses = 'border-b border-slate-800 hover:bg-slate-800/50';
       if (isAlt) trClasses += ' gap-group-alt';
-      if (isFirst) trClasses += ' gap-group-seam';
+      if (needsSeam) trClasses += ' gap-group-seam';
       // Partner page note for paired pills
       let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
       if (row.pairStatus === 'paired') {
@@ -5610,7 +5652,7 @@ function renderGapTable() {
         if (row.pairEndToEnd != null) pillTitle += ' \u00b7 end-to-end ' + row.pairEndToEnd + 'ms';
       }
       let summaryRow = '';
-      if (isFirst && isPairGroup && row.pairId) {
+      if (isGroupStart && isPairGroup && row.pairId) {
         const signRow = groupMap[groupKey].find(r => r.isSigning);
         if (signRow) {
           const handoff = signRow.timeToVerify || 0;
@@ -5741,7 +5783,7 @@ function renderGapCharts() {
     window.gapChartInstances = gapChartInstances;
     gapChartData = { labels: [], signingValid: [], signingInvalid: [], verifyValid: [], verifyInvalid: [], processing: [], invalidTotal: [], ttvMedian: [], ttvP95: [], signingRequests: [], verifyRequests: [] };
     window.gapChartData = gapChartData;
-    gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [], requests: [] };
+    gapChartBucketOrders = { invalid: [], volume: [], proc: [], ttv: [], requests: [], pairproc: [], e2e: [] };
     return;
   }
   const minTime = Math.min(...validData.map(r => r.timestamp));
@@ -5809,6 +5851,43 @@ function renderGapCharts() {
       const idx = Math.ceil(arr.length * 0.95) - 1;
       return arr[Math.max(0, idx)];
     });
+    // Pair Processing and End-to-End data
+    const pairProcByBucket = {};
+    const e2eByBucket = {};
+    labels.forEach(k => { pairProcByBucket[k] = []; e2eByBucket[k] = []; });
+    pairedRows.forEach(r => {
+      const bk = getGapBucketKey(r.timestamp, interval);
+      if (pairProcByBucket[bk] && r.pairProc != null) pairProcByBucket[bk].push(r.pairProc);
+      if (e2eByBucket[bk] && r.pairEndToEnd != null) e2eByBucket[bk].push(r.pairEndToEnd);
+    });
+    const pairProcMedian = labels.map(k => {
+      const arr = pairProcByBucket[k];
+      if (!arr || arr.length === 0) return null;
+      arr.sort((a, b) => a - b);
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    });
+    const pairProcP95 = labels.map(k => {
+      const arr = pairProcByBucket[k];
+      if (!arr || arr.length === 0) return null;
+      arr.sort((a, b) => a - b);
+      const idx = Math.ceil(arr.length * 0.95) - 1;
+      return arr[Math.max(0, idx)];
+    });
+    const e2eMedian = labels.map(k => {
+      const arr = e2eByBucket[k];
+      if (!arr || arr.length === 0) return null;
+      arr.sort((a, b) => a - b);
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    });
+    const e2eP95 = labels.map(k => {
+      const arr = e2eByBucket[k];
+      if (!arr || arr.length === 0) return null;
+      arr.sort((a, b) => a - b);
+      const idx = Math.ceil(arr.length * 0.95) - 1;
+      return arr[Math.max(0, idx)];
+    });
     const signingAvg = labels.map(k => {
       const arr = timeBuckets[k].signingProcessing;
       return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
@@ -5817,11 +5896,11 @@ function renderGapCharts() {
       const arr = timeBuckets[k].verifyProcessing;
       return arr.length > 0 ? arr.reduce((a,b) => a+b, 0) / arr.length : 0;
     });
-    chartData[ct] = { labels, displayLabels, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal, ttvMedian, ttvP95, signingRequests, verifyRequests, signingAvg, verifyAvg };
+    chartData[ct] = { labels, displayLabels, signingValid, signingInvalid, verifyValid, verifyInvalid, processing, invalidTotal, ttvMedian, ttvP95, pairProcMedian, pairProcP95, e2eMedian, e2eP95, signingRequests, verifyRequests, signingAvg, verifyAvg };
   });
   gapBucketOrder = chartData.invalid.labels;
   const d = chartData.invalid;
-  gapChartData = { labels: d.labels, signingValid: d.signingValid, signingInvalid: d.signingInvalid, verifyValid: d.verifyValid, verifyInvalid: d.verifyInvalid, processing: d.processing, invalidTotal: d.invalidTotal, ttvMedian: d.ttvMedian, ttvP95: d.ttvP95, signingRequests: d.signingRequests, verifyRequests: d.verifyRequests };
+  gapChartData = { labels: d.labels, signingValid: d.signingValid, signingInvalid: d.signingInvalid, verifyValid: d.verifyValid, verifyInvalid: d.verifyInvalid, processing: d.processing, invalidTotal: d.invalidTotal, ttvMedian: d.ttvMedian, ttvP95: d.ttvP95, pairProcMedian: d.pairProcMedian, pairProcP95: d.pairProcP95, e2eMedian: d.e2eMedian, e2eP95: d.e2eP95, signingRequests: d.signingRequests, verifyRequests: d.verifyRequests };
   window.gapChartData = gapChartData;
 
   Object.values(gapChartInstances).forEach(chart => { if (chart) chart.destroy(); });
@@ -5832,12 +5911,15 @@ function renderGapCharts() {
   const bucketCount = chartData.invalid.labels.length;
   const intervalLabel = { '1min': '1-minute', '5min': '5-minute', '1hour': '1-hour', '1day': '1-day' }[autoInterval] || autoInterval;
 
-  ['invalid', 'requests', 'volume', 'proc', 'ttv'].forEach(ct => {
-    const canvasId = { invalid: 'gap-chart-invalid', requests: 'gap-chart-requests', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv' }[ct];
+  ['invalid', 'requests', 'volume', 'proc', 'ttv', 'pairproc', 'e2e'].forEach(ct => {
+    const canvasId = { invalid: 'gap-chart-invalid', requests: 'gap-chart-requests', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv', pairproc: 'gap-chart-pairproc', e2e: 'gap-chart-e2e' }[ct];
+    const dataRef = chartData[ct] || chartData.ttv;
     if (gapFilteredData.length === 0) {
       showChartMessage(canvasId, 'No records match the current filter.');
-    } else if (chartData[ct].labels.length < 2) {
+    } else if (!dataRef || dataRef.labels.length < 2) {
       showChartMessage(canvasId, 'All ' + validData.length + ' records fall within one ' + intervalLabel + ' bucket. Choose a finer bucket size to see a trend.');
+    } else if ((ct === 'ttv' || ct === 'pairproc' || ct === 'e2e') && (!dataRef.ttvMedian || dataRef.ttvMedian.every(v => v === null))) {
+      showChartMessage(canvasId, 'No paired calls in the current view.');
     } else {
       hideChartMessage(canvasId);
     }
@@ -5907,7 +5989,7 @@ function renderGapCharts() {
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
           x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
-          y: { ticks: { color: th.tick }, grid: { color: th.grid } }
+          y: { ticks: { color: th.tick, precision: 0 }, grid: { color: th.grid } }
         }
       }
     });
@@ -5939,7 +6021,7 @@ function renderGapCharts() {
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
           x: { stacked: true, ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
-          y: { stacked: true, ticks: { color: th.tick }, grid: { color: th.grid } }
+          y: { stacked: true, ticks: { color: th.tick, precision: 0 }, grid: { color: th.grid } }
         }
       }
     });
@@ -6000,6 +6082,60 @@ function renderGapCharts() {
       }
     });
   }
+
+  // Pair Processing Over Time
+  const pairProcCtx = document.getElementById('gap-chart-pairproc');
+  if (pairProcCtx) {
+    const pairProcDatasets = [];
+    const sf = gapSeriesFilters.pairproc;
+    if (sf === 'both' || sf === 'median') {
+      pairProcDatasets.push({ label: 'Median Pair Proc (ms)', data: chartData.ttv.pairProcMedian, borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+    }
+    if (sf === 'both' || sf === 'p95') {
+      pairProcDatasets.push({ label: 'P95 Pair Proc (ms)', data: chartData.ttv.pairProcP95, borderColor: '#fb923c', backgroundColor: 'rgba(251, 146, 60, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
+    }
+    gapChartInstances.pairproc = new Chart(pairProcCtx, {
+      type: 'line',
+      data: { labels: chartData.ttv.displayLabels, datasets: pairProcDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: makeChartClickHandler('pairproc'),
+        plugins: { legend: { display: true, labels: { color: th.legend } } },
+        scales: {
+          x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th.tick } }
+        }
+      }
+    });
+  }
+
+  // End-to-End Over Time
+  const e2eCtx = document.getElementById('gap-chart-e2e');
+  if (e2eCtx) {
+    const e2eDatasets = [];
+    const sf = gapSeriesFilters.e2e;
+    if (sf === 'both' || sf === 'median') {
+      e2eDatasets.push({ label: 'Median E2E (ms)', data: chartData.ttv.e2eMedian, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+    }
+    if (sf === 'both' || sf === 'p95') {
+      e2eDatasets.push({ label: 'P95 E2E (ms)', data: chartData.ttv.e2eP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
+    }
+    gapChartInstances.e2e = new Chart(e2eCtx, {
+      type: 'line',
+      data: { labels: chartData.ttv.displayLabels, datasets: e2eDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: makeChartClickHandler('e2e'),
+        plugins: { legend: { display: true, labels: { color: th.legend } } },
+        scales: {
+          x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th.tick } }
+        }
+      }
+    });
+  }
 }
 
 function renderSingleChart(chartType) {
@@ -6036,7 +6172,7 @@ function renderSingleChart(chartType) {
   gapChartBucketOrders[chartType] = labels;
   const displayLabels = labels.map(k => formatBucketLabel(k, interval));
   if (gapChartInstances[chartType]) { gapChartInstances[chartType].destroy(); gapChartInstances[chartType] = null; }
-  const canvasId = { invalid: 'gap-chart-invalid', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv', requests: 'gap-chart-requests' }[chartType];
+  const canvasId = { invalid: 'gap-chart-invalid', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv', requests: 'gap-chart-requests', pairproc: 'gap-chart-pairproc', e2e: 'gap-chart-e2e' }[chartType];
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
 
@@ -6044,6 +6180,14 @@ function renderSingleChart(chartType) {
   if (labels.length < 2) {
     showChartMessage(canvasId, 'All ' + validData.length + ' records fall within one ' + intervalLabel + ' bucket. Choose a finer bucket size to see a trend.');
     return;
+  }
+  // Check for empty timing charts (no pairs)
+  if ((chartType === 'ttv' || chartType === 'pairproc' || chartType === 'e2e')) {
+    const pairedRows = gapData.filter(r => r.pairStatus === 'paired');
+    if (pairedRows.length === 0) {
+      showChartMessage(canvasId, 'No paired calls in the current view.');
+      return;
+    }
   }
   hideChartMessage(canvasId);
 
@@ -6084,7 +6228,7 @@ function renderSingleChart(chartType) {
     gapChartInstances.requests = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: requestsDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('requests'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('requests'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick, precision: 0 }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'volume') {
     const volumeDatasets = [];
@@ -6104,7 +6248,7 @@ function renderSingleChart(chartType) {
     gapChartInstances.volume = new Chart(ctx, {
       type: 'bar',
       data: { labels: displayLabels, datasets: volumeDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { stacked: true, ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { stacked: true, ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { stacked: true, ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { stacked: true, ticks: { color: th2.tick, precision: 0 }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'proc') {
     const procDatasets = [];
@@ -6147,6 +6291,46 @@ function renderSingleChart(chartType) {
       type: 'line',
       data: { labels: displayLabels, datasets: ttvDatasets },
       options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('ttv'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th2.tick } } } }
+    });
+  } else if (chartType === 'pairproc') {
+    const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.pairProc != null);
+    const pairProcByBucket = {};
+    labels.forEach(k => { pairProcByBucket[k] = []; });
+    pairedRows.forEach(r => { const bk = getGapBucketKey(r.timestamp, interval); if (pairProcByBucket[bk]) pairProcByBucket[bk].push(r.pairProc); });
+    const pairProcMedian = labels.map(k => { const arr = pairProcByBucket[k]; if (!arr || arr.length === 0) return null; arr.sort((a, b) => a - b); const mid = Math.floor(arr.length / 2); return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2; });
+    const pairProcP95 = labels.map(k => { const arr = pairProcByBucket[k]; if (!arr || arr.length === 0) return null; arr.sort((a, b) => a - b); const idx = Math.ceil(arr.length * 0.95) - 1; return arr[Math.max(0, idx)]; });
+    const pairProcDatasets = [];
+    const sf = gapSeriesFilters.pairproc;
+    if (sf === 'both' || sf === 'median') {
+      pairProcDatasets.push({ label: 'Median Pair Proc (ms)', data: pairProcMedian, borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+    }
+    if (sf === 'both' || sf === 'p95') {
+      pairProcDatasets.push({ label: 'P95 Pair Proc (ms)', data: pairProcP95, borderColor: '#fb923c', backgroundColor: 'rgba(251, 146, 60, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
+    }
+    gapChartInstances.pairproc = new Chart(ctx, {
+      type: 'line',
+      data: { labels: displayLabels, datasets: pairProcDatasets },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('pairproc'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th2.tick } } } }
+    });
+  } else if (chartType === 'e2e') {
+    const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.pairEndToEnd != null);
+    const e2eByBucket = {};
+    labels.forEach(k => { e2eByBucket[k] = []; });
+    pairedRows.forEach(r => { const bk = getGapBucketKey(r.timestamp, interval); if (e2eByBucket[bk]) e2eByBucket[bk].push(r.pairEndToEnd); });
+    const e2eMedian = labels.map(k => { const arr = e2eByBucket[k]; if (!arr || arr.length === 0) return null; arr.sort((a, b) => a - b); const mid = Math.floor(arr.length / 2); return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2; });
+    const e2eP95 = labels.map(k => { const arr = e2eByBucket[k]; if (!arr || arr.length === 0) return null; arr.sort((a, b) => a - b); const idx = Math.ceil(arr.length * 0.95) - 1; return arr[Math.max(0, idx)]; });
+    const e2eDatasets = [];
+    const sf = gapSeriesFilters.e2e;
+    if (sf === 'both' || sf === 'median') {
+      e2eDatasets.push({ label: 'Median E2E (ms)', data: e2eMedian, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+    }
+    if (sf === 'both' || sf === 'p95') {
+      e2eDatasets.push({ label: 'P95 E2E (ms)', data: e2eP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
+    }
+    gapChartInstances.e2e = new Chart(ctx, {
+      type: 'line',
+      data: { labels: displayLabels, datasets: e2eDatasets },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('e2e'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th2.tick } } } }
     });
   }
 }

@@ -7,7 +7,42 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.5: CI fix, missing tests, screenshot harness, UI defects)
+**Last updated:** 2026-08-13 (Phase 4.6: filter bug, summary row, badge revert, timing charts, build-first)
+
+---
+
+### Phase 4.6 — Filter bug, summary row, badge revert, timing charts, build-first
+
+**Task A — Column filter dropdowns trigger sort (bug fix):**
+- **`onclick="event.stopPropagation()"`** — added to all 10 `.gap-col-dropdown` elements. Previously, clicking inside the dropdown (select, label, padding) bubbled up to the `<th>` and fired `handleGapSort()`. Now the dropdown stops propagation entirely.
+
+**Task A2 — Group-by-pair summary row missing on first group (bug fix):**
+- **Separated `isFirst` into `isGroupStart` and `needsSeam`** — the old `isFirst` flag combined two unrelated conditions (`rowIsFirstInGroup && gi > 0`). The `gi > 0` was correct for the seam (no divider above the first group on a page) but wrong for the summary row, which belongs to every paired group. Now `needsSeam = isGroupStart && gi > 0` and the summary row condition uses `isGroupStart` alone.
+
+**Task B — Revert pairing-key remove button to floating badge:**
+- **Restored `absolute -top-1.5 -right-1.5 z-10`** — Phase 4.5 moved the button in-flow, but the `×` then read as a multiplication sign beside the `+` separator. The floating badge was deliberate.
+- **Muted styling** — badge is now `bg-slate-600/80 text-slate-300 hover:bg-red-400 hover:text-white` (less alarming than the original bright red circle).
+- **Modal header stacking** — header `z-index` raised from `z-10` to `z-20` so it stays above the `z-10` badges when scrolled.
+
+**Task C — Two new timing charts:**
+- **Pair Processing Over Time** — median + P95 of `pairProc` (signing + verification processing time). Orange palette (`#f97316` / `#fb923c`). Own bucket and series dropdowns.
+- **End-to-End Over Time** — median + P95 of `pairEndToEnd` (signing + handoff + verification). Pink palette (`#ec4899` / `#f472b6`). Full-width card beneath the other charts.
+- **Layout** — TTV and Pair Processing side by side (`lg:grid-cols-2`), End-to-End full width below (`lg:col-span-2`). TTV no longer `lg:col-span-2`.
+- **Seven charts total** — was five, now seven.
+
+**Task D1 — Timing charts empty state:**
+- **`showChartMessage()` guard** — timing charts (TTV, Pair Processing, End-to-End) now check for empty data (no pairs) in addition to bucket count. Message: "No paired calls in the current view."
+
+**Task D2 — Populated fixture rebuilt:**
+- **`fixtures/gap-screenshots.csv`** — 63 rows spanning 09:00–11:35 UTC. Multiple records per bucket, mix of valid and invalid destinations, genuine signing/verification pairs with varied handoff (2–7s) and processing times (35–140ms).
+
+**Task D3 — Count axes use integer ticks:**
+- **`precision: 0`** — added to y-axis ticks for Requests Over Time and Signing vs Verification Volume charts in both `renderGapCharts()` and `renderSingleChart()`.
+
+**Task F — Build-first scripts:**
+- **`package.json`** — `test:e2e`, `test:gap`, `test:optimizer`, `test:headed` all now run `npm run build` before `playwright test`. `test` runs `test:unit` then `test:e2e` (which includes the build).
+
+**Test counts:** 71 unit + 190 e2e = 261 total, all green.
 
 ---
 

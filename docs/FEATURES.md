@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-13 (Phase 4.5: CI fix, tests, screenshot harness, UI defects).
+**Last verified against the app:** 2026-08-13 (Phase 4.6: filter bug, summary row, timing charts, build-first).
 
 ---
 
@@ -285,17 +285,22 @@ customer, source IP, processing-time range, and pair status, with one-click Rese
 
 ### Charts
 
-Five charts, all clickable to filter the table to the time bucket you click:
+Seven charts, all clickable to filter the table to the time bucket you click:
 
 1. **Requests Over Time** — signing and verification request counts as two lines, with the area
-   between them shaded so divergence is immediately visible
+   between them shaded so divergence is immediately visible. Count axes use whole numbers.
 2. **Invalid Numbers Over Time** — discrete lollipop bars at only the buckets where invalid events
    exist (empty buckets are not shown); rare events read correctly as events rather than a flat line
 3. **Signing vs Verification Volume** — stacked bar with four colours: blue for signing valid,
    light blue for signing invalid, green for verification valid, light green for verification invalid.
-   Hue carries service, treatment carries validity
+   Hue carries service, treatment carries validity. Count axes use whole numbers.
 4. **Processing Time Distribution** — split into signing-avg and verification-avg
-5. **Time to Verify** — full-width chart showing median and 95th percentile
+5. **Time to Verify** — median and 95th percentile handoff time
+6. **Pair Processing** — median and 95th percentile of signing + verification processing time
+7. **End-to-End** — median and 95th percentile of signing + handoff + verification time
+
+Charts 5–7 are timing charts computed from paired rows only. When no pairs exist, they show
+"No paired calls in the current view." instead of an empty axis.
 
 Each chart has a **Series dropdown** that lets you show/hide individual series (e.g., "Signing only"
 or "Verification only"). Default is "Both" for all charts.
