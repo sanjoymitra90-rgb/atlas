@@ -16,7 +16,7 @@ to stay true, only to stay complete.
 **Task F — Trust repairs:**
 - **Fake test removed** — Deleted `src/auditor/pairing.test.js` which contained no application imports and trivial assertions that always passed.
 - **Phase 2 changelog corrected** — Fixed 5 factual errors: financials.js function names, CSV header escaping function, country code cap location, physics test description, Gap column removal attribution.
-- **Screenshot baseline fixed** — `screenshots-before/` untracked and added to `.gitignore`. Capture script repaired to produce distinct screens for dashboard, charts, and table.
+- **Screenshot capture script repaired** — `screenshots-before/` untracked and added to `.gitignore`. Capture script rewritten to produce 11 distinct screens; executed and verified with MD5 hashes.
 
 **Task G — Import and onboarding correctness:**
 - **G1: Doubled drop count fixed** — Removed duplicate counting in `handleImport()` lat/lng validation filter.
@@ -47,7 +47,7 @@ to stay true, only to stay complete.
 
 **Phase 2B — XSS fixes, validation, import hardening:**
 - **XSS: row.time** — Timestamp cell now escaped via `escapeHtml()` before innerHTML injection.
-- **XSS: customer names** — `s.name` escaped in all tooltip and popup templates.
+- **XSS: scenario name** — `s.name` escaped via `escapeHtml()` in `renderScenarioList()` to prevent stored XSS through saved scenario names.
 - **CSV header escaping** — Export header rows passed through `csvCell()` to guard formula injection in downstream applications.
 - **Import validation** — Out-of-range footprint indices filtered with toast; falsy-zero defaults changed to `??` operator.
 - **Blob URL revocation** — Export blob URLs revoked after download to prevent memory leaks.
@@ -65,7 +65,7 @@ to stay true, only to stay complete.
 - **`src/onboarding/financials.js`** — `computeOnboardingFinancials()` extracted as a pure function with 6 unit tests.
 
 **Phase 2E1 — CDN-to-npm (Leaflet, Chart.js, html2pdf, Gantt):**
-- **Leaflet 1.9.4**, **Chart.js 4.4.1**, **html2pdf.js 0.10.1**, **DHTMLX Gantt 8.0** moved from CDN `<script>` tags to npm imports via `src/deps.js`.
+- **Leaflet 1.9.4**, **Chart.js 4.5.1**, **html2pdf.js 0.14.0**, **DHTMLX Gantt 10.0.1** moved from CDN `<script>` tags to npm imports via `src/deps.js`.
 - **MAP_BOUNDS lazy init** — `getMapBounds()` computed on first call, not at module load time.
 - **Single-file output** — `vite-plugin-singlefile` inlines all JS into `dist/index.html`.
 
@@ -86,7 +86,7 @@ to stay true, only to stay complete.
 - **`custMap` guard** — `toggleClickPlace()` and `updateCustMap()` now check `if (custMap)` before accessing map container, preventing crashes when the Leaflet map hasn't initialized yet.
 - **Escape handler** — Global `keydown` listener now handles Escape for click-to-place mode directly, removing the dependency on `initCustMap()` registration timing.
 
-**Final counts:** 76 unit tests + 180 e2e tests = 256 total, all green.
+**Final counts:** 77 unit tests + 180 e2e tests = 257 total, all green.
 
 ---
 

@@ -34,9 +34,10 @@ assertion is noted where one is practical.
 5. **Charts and table read the same array.** `renderGapCharts()`, `renderSingleChart()`,
    `renderGapTable()` and `updateGapMetrics()` all derive from `gapFilteredData`. Documented
    exception: the Call Pairing panel is global (§4.4). *Resolved R8.*
-6. **`computeCoverage()` and `computeGreenPlan()` are DOM-free but not pure.** They read the
-   module-level `regions` binding and call `estimateRegionCost()`, which reads `cellCosts`,
-   `baselineMode` and `specificBaselineIdx`. No DOM access; do not regress it.
+6. **`computeCoverage()` and `computeGreenPlan()` are DOM-free but not pure.** `computeCoverage()`
+   mutates its input — it writes `idx` onto the caller's customer objects — and calls module-scope
+   `findNearestRegionIdx()`. No DOM access; do not regress it. Task D (extraction to `src/`) is
+   deferred.
 7. **Pairing keys use normalised phone numbers**, matching the rest of the app.
    *Resolved R10.*
 8. **A row with `timeValid === false` never enters a time-bucketed chart**, always appears in
@@ -351,10 +352,10 @@ Rules are centralised here and **must not change without sign-off**:
 Precision loss in scientific notation is detected and the original value is returned (fails
 validation). `from` numbers are normalised but never validated.
 
-`validateUKNumber()` returns `{valid, category, reason}` with categories:
+`validateUKNumber()` returns `{valid, category, reason, countryCode}` with categories:
 - `valid` — passes all checks (green pill)
 - `malformed` — fails E.164 structure (red pill)
-- `non-uk` — valid number, non-UK country code (amber pill); reason is "Non-UK destination"
+- `non-uk` — valid number, non-UK country code (amber pill); reason is "Non-UK destination"; `countryCode` contains the matched prefix (e.g. "+33")
 - `suspected-test` — passes structure but sequential/identical digits (blue pill)
 
 ### 7.4 Pairing — `pairGapCalls()`
