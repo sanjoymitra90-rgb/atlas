@@ -13,8 +13,8 @@ document permitted to describe project *state*; `docs/SPEC.md` describes the sys
 `docs/FEATURES.md` describes behaviour in user language, `docs/CHANGELOG.md` is history. If two
 documents state the same fact, one of them will eventually be wrong.
 
-**Last updated:** 2026-08-12 (night) — Phases 2 and 2.5 complete, verified and deployed.
-Phase 3 planned and specced; not started.
+**Last updated:** 2026-08-13 — Phase 3 complete and verified. Screenshot harness found broken;
+fixing it is a precondition of Phase 4.
 
 ---
 
@@ -32,23 +32,50 @@ five factual errors. All were closed. The close-out then needed two further pass
 security tests had been written against a UI that does not exist, and the country-code fix had
 relocated its own bug into the tooltip. Both were caught and fixed. Final commit `7a6d325`.
 
+**Phase 3: complete and verified.** Single commit `631e7d4`. All three tasks landed.
+
+Verified by executing `validateUKNumber()` against the full input table rather than reading the
+report — all eight `{category, bucket}` rows correct. Also confirmed: `gapReasonBucket()` has zero
+references anywhere in `index.html`, `src/` or `e2e/`; `truncated` is gone; `bucketLabels` sits
+directly beneath the bucket definitions with a comment explaining why it must stay there; the panel
+now sits between the charts and the table; the Call Pairing grid is
+`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`, so eight blocks form two clean rows.
+
+`e2e/gap/gap-chips.spec.cjs` gives the reason chips their first-ever coverage, against the real
+selectors. `fixtures/gap-invalid-reasons.csv` exercises all seven buckets.
+
+The unit count fell 77 → 71 and the report did not mention it. It is fine: ten `gapReasonBucket`
+tests were removed because the function no longer exists, and four bucket tests were added.
+
+**Panel heading question — resolved.** Keep "Destination Issues — breakdown". After the
+outcome-blocks reversal that panel definitively will not contain the pairing problems, so
+"Attention" would misrepresent it.
+
 **Where things stand:**
 
 - CI is green. The live site serves the current build.
-- 77 unit tests, plus the Playwright suite. Every one of the six Phase 2 security fixes now has a
-  test that has been proven able to fail.
-- The screenshot baseline exists and is valid — eleven distinct captures, gitignored. This matters
-  more in Phase 3 than it did before, because Phase 3 changes rendering.
-- `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` are accurate as of this commit, with
-  one known exception noted in §4.
+- 71 unit tests plus the Playwright suite; 258 total reported by the dev.
+- `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` accurate as of this commit, with one
+  known exception noted in §4.
 
-**Phase 3: planned, specced, not started.** Spec is `2026-08-12-phase-3-spec.md`. Three tasks —
-the reason vocabulary, moving the breakdown panel above the table, and closing the hole in the Call
-Pairing grid. The first is the substance; the other two are small. Nothing blocks it.
+**The screenshot harness is broken and the previous entry here was wrong.** It claimed "eleven
+distinct captures, valid". In fact there are **nine** files, **two are byte-identical** (same MD5),
+and every one was captured against the **unbuilt `index.html`** — a page with no Tailwind and a
+"Failed to load: Chart.js, Leaflet…" banner. Both capture scripts still target the source file:
 
-**One question outstanding for Sanjoy:** whether the relocated panel should keep its heading
-"Destination Issues — breakdown" or be renamed "Attention". The spec keeps the existing heading and
-tells the agent to ask rather than assume. Reasoning in §3.
+- `screenshots/capture-screenshots.cjs`
+- `e2e/screenshot.js`
+
+This is the same defect diagnosed during the Phase 2 review. F3 fixed the *distinctness* problem,
+not the *target* problem, and the two were conflated when this file was written.
+
+The Phase 3 report also claimed the capture tooling "was deleted in Phase 2". It was not — F3
+untracked `screenshots-before/`; the script itself is present at `screenshots/capture-screenshots.cjs`.
+Skipping screenshots for a panel move was defensible; asserting a blocker without checking was not.
+
+**Fixing this is a precondition of Phase 4, not a task inside it.** Phase 4 is the charts phase —
+legend colours, axis density, encodings — and it is the phase where a visual baseline earns its
+keep. Prompt written 2026-08-13; see `2026-08-13-screenshot-harness-fix-prompt.md`.
 
 ---
 
@@ -292,6 +319,13 @@ The pattern is fixing the named line rather than reading the whole function, and
 without re-checking whether the original defect moved with it. **When closing an item, read the
 function end to end, and ask where else the thing you just fixed now lives.**
 
+**A claimed blocker is a claim like any other — check it.** The Phase 3 report skipped screenshots
+on the grounds that the capture tooling "was deleted in Phase 2". It had not been; it was untracked
+and moved, and sat in the working folder the whole time. One `find` would have settled it. The
+underlying habit is the same one behind the tautological tests: when something is hard to reach,
+producing a plausible reason is cheaper than looking. **Treat "I couldn't because X" the same way
+you treat "it works" — verify X.**
+
 **What is new: CI is now a mechanism, not a habit.** The workflow caught two rounds of broken tests
 in a single day and refused to deploy both times. Before this, every one of these failures was
 found by a human reading code — which is why they survived for phases at a time. The green tick is
@@ -370,6 +404,11 @@ Say so up front rather than appearing to ignore the local folder.
 
 ## 9. Update log for this file
 
+- **2026-08-13** — Phase 3 recorded complete and verified by execution. Corrected the screenshot
+  baseline claim: nine captures not eleven, two identical, all against the unbuilt source. Recorded
+  that the Phase 3 report asserted a non-existent blocker. Resolved the panel-heading question in
+  favour of keeping the existing heading. Added the "a claimed blocker is a claim like any other"
+  note to §6.
 - **2026-08-12 (night, later)** — Phase 3 planned and specced. Recorded the reversal of the
   outcome-blocks decision and the reason for it, the seven-bucket choice, the `bucket`-as-returned-
   value change, and the open panel-heading question. Added the "logic must not depend on editable

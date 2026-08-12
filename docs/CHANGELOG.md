@@ -7,11 +7,49 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-12 (Phase 3: reason vocabulary, panel reorder, pairing grid)
+**Last updated:** 2026-08-13 (Phase 4: charts — colour collision, UTC, axis crowding, empty states, TTV width, encoding)
 
 ---
 
-### Phase 3 — Reason vocabulary, panel reorder, Call Pairing grid
+### Phase 4 — Charts: colour collision, UTC, axis crowding, empty states, TTV width, encoding
+
+**Task A — Legend colour collision (bug fix):**
+- **Volume chart colours fixed** — Signing (Invalid) and Verification (Invalid) previously shared identical amber (`rgba(245, 158, 11, 0.7)`). Fixed with hue-based system: hue carries service, treatment carries validity.
+  - Signing (Valid): `rgba(59, 130, 246, 0.7)` / `#3b82f6` (blue)
+  - Signing (Invalid): `rgba(147, 197, 253, 0.75)` / `#93c5fd` (light blue)
+  - Verification (Valid): `rgba(16, 185, 129, 0.7)` / `#10b981` (green)
+  - Verification (Invalid): `rgba(110, 231, 183, 0.75)` / `#6ee7b7` (light green)
+- **Fixed in both** `renderGapCharts()` and `renderSingleChart()`.
+- **Test:** Playwright asserts four distinct `backgroundColor` values in volume chart datasets.
+
+**Task B — Table/chart time disagreement (bug fix):**
+- **Offset-less timestamps now parse as UTC** — `new Date(trimmed)` parses as local time when no timezone is present, causing the table and chart axis to disagree by the viewer's offset. Fixed by detecting whether the parsed string carried timezone info (`timeHadOffset` flag) and appending UTC assumption toast when at least one row lacks offset.
+- **Toast updated** — post-analysis toast appends `· timestamps without a timezone read as UTC` when applicable.
+- **Time column header** — now reads `Time (UTC)` to make the assumption explicit.
+- **`timeHadOffset` field** — added to each row during `processGapData()`.
+
+**Task C — Axis label crowding:**
+- **`maxTicksLimit: 15`** — added to all chart x-axis tick options in both `renderGapCharts()` and `renderSingleChart()`. Chart.js thins labels evenly.
+- **Auto bucket label** — dropdown option `Auto` now shows `Auto (5 Min)` (or the actual interval) after data is loaded, via `updateAutoBucketLabels()`.
+
+**Task D — Single-bucket and empty states:**
+- **Single-bucket message** — when all records fall within one bucket, shows: "All N records fall within one X-minute bucket. Choose a finer bucket size to see a trend." Canvas hidden.
+- **Empty-filter message** — when filters reduce a chart to zero rows, shows: "No records match the current filter." Canvas hidden.
+- **`showChartMessage()` / `hideChartMessage()`** — utility functions manage message overlay and canvas visibility.
+
+**Task E — Time to Verify full width:**
+- **`lg:col-span-2`** — added to the TTV chart card, giving it the full row width.
+
+**Task F1 — Requests Over Time encoding (signed off by Sanjoy):**
+- **Area fill between lines** — when "Both" series is selected, the signing line fills toward the verification line (`fill: { target: 1, above: 'rgba(16, 185, 129, 0.15)', below: 'rgba(59, 130, 246, 0.15)' }`). Where they coincide the shading vanishes; where they diverge it is immediately visible.
+
+**Task F2 — Invalid Numbers Over Time encoding (signed off by Sanjoy):**
+- **Lollipop/bar encoding** — switched from line chart to bar chart with thin bars (`barPercentage: 0.3`). Empty buckets filtered out, so only events appear. Rare events read correctly as discrete marks.
+- **`gapInvalidOnly.csv` fixture** — created for testing single-bucket/empty states.
+
+**Test counts:** 71 unit tests + 187 e2e tests = 258 total, all green (except pre-existing flaky "Esc exits placement mode").
+
+---
 
 **Task A — the reason vocabulary:**
 - **`bucket` field on `validateUKNumber()`** — Each return point now carries an explicit `bucket` identifier (`empty`, `non-uk`, `not-plus-44`, `wrong-length`, `bad-prefix`, `identical-digits`, `sequential-run`, `valid`). Category and bucket are distinct: `category` is coarse (4 values, drives the table pill), `bucket` is fine (7 values, drives the breakdown chips). No code decides a category by matching prose.

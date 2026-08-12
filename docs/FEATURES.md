@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-12 (Phase 3: reason vocabulary, panel reorder, pairing grid).
+**Last verified against the app:** 2026-08-13 (Phase 4: charts — colour, UTC, crowding, empty states, TTV, encoding).
 
 ---
 
@@ -287,22 +287,27 @@ customer, source IP, processing-time range, and pair status, with one-click Rese
 
 Five charts, all clickable to filter the table to the time bucket you click:
 
-1. **Requests Over Time** — signing and verification request counts as two lines
-2. **Invalid Numbers Over Time** — split into signing-invalid and verification-invalid
-3. **Signing vs Verification Volume** — stacked so valid and invalid volume are readable per
-   service in one bar
+1. **Requests Over Time** — signing and verification request counts as two lines, with the area
+   between them shaded so divergence is immediately visible
+2. **Invalid Numbers Over Time** — discrete lollipop bars at only the buckets where invalid events
+   exist (empty buckets are not shown); rare events read correctly as events rather than a flat line
+3. **Signing vs Verification Volume** — stacked bar with four colours: blue for signing valid,
+   light blue for signing invalid, green for verification valid, light green for verification invalid.
+   Hue carries service, treatment carries validity
 4. **Processing Time Distribution** — split into signing-avg and verification-avg
-5. **Time to Verify** — median and 95th percentile
+5. **Time to Verify** — full-width chart showing median and 95th percentile
 
 Each chart has a **Series dropdown** that lets you show/hide individual series (e.g., "Signing only"
 or "Verification only"). Default is "Both" for all charts.
 
 Bucket size is chosen automatically from the span of the data — minutes for an hour of data, days
-for a month — and each chart has its own override dropdown. All dropdowns use the `.atlas-select`
+for a month — and each chart has its own override dropdown. The auto option shows the actual
+interval (e.g., "Auto (5 Min)"). All dropdowns use the `.atlas-select`
 class for consistent dark-theme styling: dark background, light text, custom light chevron,
 and `color-scheme: dark` for native dark popups. Changing the Processing Time bucket
-dropdown correctly re-renders that chart. Axis labels are human-readable
-(`Jul 31, 19:00`) in UTC.
+dropdown correctly re-renders that chart. Axis labels are capped at 15 per chart and are
+human-readable (`Jul 31, 19:00`) in UTC. When all records fall within one bucket, or when
+filters reduce a chart to zero rows, a message is shown instead of an empty axis.
 
 > Charts now update when filters change.
 
@@ -325,7 +330,9 @@ The TTV chart shows median + P95 only (no mean line); mean lives in the panel.
 
 ### Data table
 
-Ten columns, sortable, paginated at 25, 50 or 100 rows. Rows with unreadable timestamps carry an
+Ten columns, sortable, paginated at 25, 50 or 100 rows. The Time column header reads "Time (UTC)"
+to make the timezone assumption explicit — timestamps without an offset are parsed as UTC.
+Rows with unreadable timestamps carry an
 amber warning icon and always sort to the bottom. Paired rows show their pair ID on the pill.
 
 Hovering a paired row highlights its partner and dims everything else; if the partner is on

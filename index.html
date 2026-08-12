@@ -1291,7 +1291,7 @@ th:hover .gap-col-filter {
           </div>
           <div style="position:relative;height:200px;"><canvas id="gap-chart-processing"></canvas></div>
         </div>
-        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5">
+        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 lg:col-span-2">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-white"><i class="fas fa-stopwatch text-cyan-400 mr-2"></i>Time to Verify Over Time</h3>
             <div class="flex items-center gap-2">
@@ -1342,7 +1342,7 @@ th:hover .gap-col-filter {
           <table class="w-full text-sm" data-testid="gap-table">
             <thead class="bg-slate-800/50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:140px" onclick="handleGapSort('time')">Time <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('time')" data-col="time"><i class="fas fa-filter text-xs"></i></span>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:140px" onclick="handleGapSort('time')">Time (UTC) <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('time')" data-col="time"><i class="fas fa-filter text-xs"></i></span>
                   <div class="gap-col-dropdown hidden" id="col-dd-time">
                     <label>Time Range</label>
                     <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-from" onchange="syncFromColFilter('time')" style="margin-bottom:4px;width:100%"></div>
@@ -4504,6 +4504,18 @@ function handleSeriesFilterChange(chartType, val) {
   }
 }
 
+function updateAutoBucketLabels(autoInterval) {
+  const labels = { '1min': '1 Min', '5min': '5 Min', '1hour': '1 Hour', '1day': '1 Day' };
+  const label = labels[autoInterval] || autoInterval;
+  ['requests', 'invalid', 'volume', 'proc', 'ttv'].forEach(ct => {
+    const sel = document.getElementById('gap-bucket-interval-' + ct);
+    if (sel) {
+      const opt = sel.querySelector('option[value="auto"]');
+      if (opt) opt.textContent = 'Auto (' + label + ')';
+    }
+  });
+}
+
 function readGapFile(file) {
   if (!file) return;
   if (file.size > 50 * 1024 * 1024) {
@@ -4826,6 +4838,7 @@ function processGapData() {
     const rawTime = row[gapColumnMapping.time] || '';
     let timestamp = null;
     let timeValid = false;
+    let timeHadOffset = false;
     if (rawTime) {
       const trimmed = rawTime.trim();
       if (/^\d{10}$/.test(trimmed)) {
@@ -4840,8 +4853,9 @@ function processGapData() {
           timestamp = Date.UTC(+dd[3], +dd[2] - 1, +dd[1], +dd[4] || 0, +dd[5] || 0, +dd[6] || 0);
           timeValid = true;
         } else {
+          const hasOffset = /[Zz]|[+-]\d{2}:?\d{2}$/.test(trimmed);
           const d = new Date(trimmed);
-          if (!isNaN(d.getTime())) { timestamp = d.getTime(); timeValid = true; }
+          if (!isNaN(d.getTime())) { timestamp = d.getTime(); timeValid = true; timeHadOffset = hasOffset; }
         }
       }
     }
@@ -4864,6 +4878,7 @@ function processGapData() {
       isVerify: svc.includes('verif'),
       timestamp: timestamp,
       timeValid: timeValid,
+      timeHadOffset: timeHadOffset,
       raw: row
     };
   });
@@ -4901,6 +4916,8 @@ function processGapData() {
   if (_i > 0) msg += ", " + _i + " invalid";
   if (_e > 0) msg += " · " + _e + " skipped";
   if (_ut > 0) msg += " · " + _ut + " unparseable timestamp(s)";
+  const _noTz = gapData.filter(d => d.timeValid && !d.timeHadOffset).length;
+  if (_noTz > 0) msg += " · timestamps without a timezone read as UTC";
   showToast(msg);
 }
 
@@ -5685,6 +5702,32 @@ function gapChartTheme() {
   };
 }
 
+function showChartMessage(canvasId, message) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const wrapper = canvas.parentElement;
+  if (!wrapper) return;
+  let msgEl = wrapper.querySelector('.chart-empty-msg');
+  if (!msgEl) {
+    msgEl = document.createElement('div');
+    msgEl.className = 'chart-empty-msg absolute inset-0 flex items-center justify-center text-slate-400 text-sm';
+    wrapper.appendChild(msgEl);
+  }
+  msgEl.textContent = message;
+  msgEl.style.display = 'flex';
+  canvas.style.display = 'none';
+}
+
+function hideChartMessage(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const wrapper = canvas.parentElement;
+  if (!wrapper) return;
+  const msgEl = wrapper.querySelector('.chart-empty-msg');
+  if (msgEl) msgEl.style.display = 'none';
+  canvas.style.display = '';
+}
+
 function renderGapCharts() {
   const validData = gapFilteredData.filter(row => row.timeValid && row.timestamp);
   if (!validData.length) {
@@ -5699,6 +5742,7 @@ function renderGapCharts() {
   const minTime = Math.min(...validData.map(r => r.timestamp));
   const maxTime = Math.max(...validData.map(r => r.timestamp));
   const autoInterval = getAutoBucketInterval(minTime, maxTime);
+  updateAutoBucketLabels(autoInterval);
   const chartTypes = ['invalid', 'volume', 'proc', 'ttv', 'requests'];
   const chartData = {};
   chartTypes.forEach(ct => {
@@ -5779,32 +5823,60 @@ function renderGapCharts() {
   gapChartInstances = {};
   window.gapChartInstances = gapChartInstances;
 
-  const invalidCtx = document.getElementById('gap-chart-invalid');
   const th = gapChartTheme();
+  const bucketCount = chartData.invalid.labels.length;
+  const intervalLabel = { '1min': '1-minute', '5min': '5-minute', '1hour': '1-hour', '1day': '1-day' }[autoInterval] || autoInterval;
+
+  ['invalid', 'requests', 'volume', 'proc', 'ttv'].forEach(ct => {
+    const canvasId = { invalid: 'gap-chart-invalid', requests: 'gap-chart-requests', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv' }[ct];
+    if (gapFilteredData.length === 0) {
+      showChartMessage(canvasId, 'No records match the current filter.');
+    } else if (chartData[ct].labels.length < 2) {
+      showChartMessage(canvasId, 'All ' + validData.length + ' records fall within one ' + intervalLabel + ' bucket. Choose a finer bucket size to see a trend.');
+    } else {
+      hideChartMessage(canvasId);
+    }
+  });
+
+  if (bucketCount < 2 && gapFilteredData.length > 0) return;
+  if (gapFilteredData.length === 0) return;
+
+  const invalidCtx = document.getElementById('gap-chart-invalid');
   if (invalidCtx) {
     const invalidDatasets = [];
     const sf = gapSeriesFilters.invalid;
+    // Filter to only buckets with events for lollipop effect
+    const invalidLabels = chartData.invalid.labels;
+    const invalidIndices = invalidLabels.map((_, i) => i).filter(i => {
+      const sv = chartData.invalid.signingInvalid[i] || 0;
+      const vv = chartData.invalid.verifyInvalid[i] || 0;
+      return sv > 0 || vv > 0;
+    });
+    const filteredLabels = invalidIndices.map(i => chartData.invalid.displayLabels[i]);
+    const filteredSigning = invalidIndices.map(i => chartData.invalid.signingInvalid[i]);
+    const filteredVerify = invalidIndices.map(i => chartData.invalid.verifyInvalid[i]);
+
     if (sf === 'both' || sf === 'signing') {
-      invalidDatasets.push({ label: 'Signing Invalid', data: chartData.invalid.signingInvalid, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 });
+      invalidDatasets.push({ label: 'Signing Invalid', data: filteredSigning, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.7)', borderWidth: 1, barPercentage: 0.3, categoryPercentage: 0.8 });
     }
     if (sf === 'both' || sf === 'verify') {
-      invalidDatasets.push({ label: 'Verification Invalid', data: chartData.invalid.verifyInvalid, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.4 });
+      invalidDatasets.push({ label: 'Verification Invalid', data: filteredVerify, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.7)', borderWidth: 1, barPercentage: 0.3, categoryPercentage: 0.8 });
     }
     if (sf === 'both') {
       invalidDatasets[0].label = 'Signing Invalid';
       invalidDatasets[1].label = 'Verification Invalid';
     }
     gapChartInstances.invalid = new Chart(invalidCtx, {
-      type: 'line',
-      data: { labels: chartData.invalid.displayLabels, datasets: invalidDatasets },
+      type: 'bar',
+      data: { labels: filteredLabels, datasets: invalidDatasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         onClick: makeChartClickHandler('invalid'),
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
-          y: { ticks: { color: th.tick }, grid: { color: th.grid } }
+          x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid }, beginAtZero: true }
         }
       }
     });
@@ -5815,10 +5887,10 @@ function renderGapCharts() {
     const requestsDatasets = [];
     const sf = gapSeriesFilters.requests;
     if (sf === 'both' || sf === 'signing') {
-      requestsDatasets.push({ label: 'Signing Requests', data: chartData.requests.signingRequests, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 });
+      requestsDatasets.push({ label: 'Signing Requests', data: chartData.requests.signingRequests, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: sf === 'both' ? { target: 1, above: 'rgba(16, 185, 129, 0.15)', below: 'rgba(59, 130, 246, 0.15)' } : true, tension: 0.4 });
     }
     if (sf === 'both' || sf === 'verify') {
-      requestsDatasets.push({ label: 'Verification Requests', data: chartData.requests.verifyRequests, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 });
+      requestsDatasets.push({ label: 'Verification Requests', data: chartData.requests.verifyRequests, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: sf === 'both' ? '-1' : true, tension: 0.4 });
     }
     gapChartInstances.requests = new Chart(requestsCtx, {
       type: 'line',
@@ -5829,7 +5901,7 @@ function renderGapCharts() {
         onClick: makeChartClickHandler('requests'),
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
+          x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
           y: { ticks: { color: th.tick }, grid: { color: th.grid } }
         }
       }
@@ -5843,13 +5915,13 @@ function renderGapCharts() {
     if (sf === 'both' || sf === 'signing') {
       volumeDatasets.push(
         { label: 'Signing (Valid)', data: chartData.volume.signingValid, backgroundColor: 'rgba(59, 130, 246, 0.7)', borderColor: '#3b82f6', borderWidth: 1, stack: 'signing' },
-        { label: 'Signing (Invalid)', data: chartData.volume.signingInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'signing' }
+        { label: 'Signing (Invalid)', data: chartData.volume.signingInvalid, backgroundColor: 'rgba(147, 197, 253, 0.75)', borderColor: '#93c5fd', borderWidth: 1, stack: 'signing' }
       );
     }
     if (sf === 'both' || sf === 'verify') {
       volumeDatasets.push(
         { label: 'Verification (Valid)', data: chartData.volume.verifyValid, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: '#10b981', borderWidth: 1, stack: 'verify' },
-        { label: 'Verification (Invalid)', data: chartData.volume.verifyInvalid, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'verify' }
+        { label: 'Verification (Invalid)', data: chartData.volume.verifyInvalid, backgroundColor: 'rgba(110, 231, 183, 0.75)', borderColor: '#6ee7b7', borderWidth: 1, stack: 'verify' }
       );
     }
     gapChartInstances.volume = new Chart(volumeCtx, {
@@ -5861,7 +5933,7 @@ function renderGapCharts() {
         onClick: makeChartClickHandler('volume'),
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { stacked: true, ticks: { color: th.tick }, grid: { color: th.grid } },
+          x: { stacked: true, ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
           y: { stacked: true, ticks: { color: th.tick }, grid: { color: th.grid } }
         }
       }
@@ -5891,8 +5963,8 @@ function renderGapCharts() {
         onClick: makeChartClickHandler('proc'),
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
-          y: { ticks: { color: th.tick }, grid: { color: th.grid } }
+          x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
+          y: { ticks: { color: th.tick }, grid: { color: th.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th.tick } }
         }
       }
     });
@@ -5917,7 +5989,7 @@ function renderGapCharts() {
         onClick: makeChartClickHandler('ttv'),
         plugins: { legend: { display: true, labels: { color: th.legend } } },
         scales: {
-          x: { ticks: { color: th.tick }, grid: { color: th.grid } },
+          x: { ticks: { color: th.tick, maxTicksLimit: 15 }, grid: { color: th.grid } },
           y: { ticks: { color: th.tick }, grid: { color: th.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th.tick } }
         }
       }
@@ -5962,34 +6034,52 @@ function renderSingleChart(chartType) {
   const canvasId = { invalid: 'gap-chart-invalid', volume: 'gap-chart-volume', proc: 'gap-chart-processing', ttv: 'gap-chart-ttv', requests: 'gap-chart-requests' }[chartType];
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
+
+  const intervalLabel = { '1min': '1-minute', '5min': '5-minute', '1hour': '1-hour', '1day': '1-day' }[interval] || interval;
+  if (labels.length < 2) {
+    showChartMessage(canvasId, 'All ' + validData.length + ' records fall within one ' + intervalLabel + ' bucket. Choose a finer bucket size to see a trend.');
+    return;
+  }
+  hideChartMessage(canvasId);
+
   const th2 = gapChartTheme();
   if (chartType === 'invalid') {
     const invalidDatasets = [];
     const sf = gapSeriesFilters.invalid;
+    // Filter to only buckets with events for lollipop effect
+    const invalidIndices = labels.map((_, i) => i).filter(i => {
+      const sv = timeBuckets[labels[i]].signingInvalid || 0;
+      const vv = timeBuckets[labels[i]].verifyInvalid || 0;
+      return sv > 0 || vv > 0;
+    });
+    const filteredLabels = invalidIndices.map(i => displayLabels[i]);
+    const filteredSigning = invalidIndices.map(i => timeBuckets[labels[i]].signingInvalid);
+    const filteredVerify = invalidIndices.map(i => timeBuckets[labels[i]].verifyInvalid);
+
     if (sf === 'both' || sf === 'signing') {
-      invalidDatasets.push({ label: 'Signing Invalid', data: labels.map(k => timeBuckets[k].signingInvalid), borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4 });
+      invalidDatasets.push({ label: 'Signing Invalid', data: filteredSigning, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.7)', borderWidth: 1, barPercentage: 0.3, categoryPercentage: 0.8 });
     }
     if (sf === 'both' || sf === 'verify') {
-      invalidDatasets.push({ label: 'Verification Invalid', data: labels.map(k => timeBuckets[k].verifyInvalid), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.4 });
+      invalidDatasets.push({ label: 'Verification Invalid', data: filteredVerify, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.7)', borderWidth: 1, barPercentage: 0.3, categoryPercentage: 0.8 });
     }
     gapChartInstances.invalid = new Chart(ctx, {
-      type: 'line',
-      data: { labels: displayLabels, datasets: invalidDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('invalid'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
+      type: 'bar',
+      data: { labels: filteredLabels, datasets: invalidDatasets },
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('invalid'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid }, beginAtZero: true } } }
     });
   } else if (chartType === 'requests') {
     const requestsDatasets = [];
     const sf = gapSeriesFilters.requests;
     if (sf === 'both' || sf === 'signing') {
-      requestsDatasets.push({ label: 'Signing Requests', data: labels.map(k => timeBuckets[k].signingRequests), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 });
+      requestsDatasets.push({ label: 'Signing Requests', data: labels.map(k => timeBuckets[k].signingRequests), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: sf === 'both' ? { target: 1, above: 'rgba(16, 185, 129, 0.15)', below: 'rgba(59, 130, 246, 0.15)' } : true, tension: 0.4 });
     }
     if (sf === 'both' || sf === 'verify') {
-      requestsDatasets.push({ label: 'Verification Requests', data: labels.map(k => timeBuckets[k].verifyRequests), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 });
+      requestsDatasets.push({ label: 'Verification Requests', data: labels.map(k => timeBuckets[k].verifyRequests), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: sf === 'both' ? '-1' : true, tension: 0.4 });
     }
     gapChartInstances.requests = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: requestsDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('requests'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('requests'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'volume') {
     const volumeDatasets = [];
@@ -5997,19 +6087,19 @@ function renderSingleChart(chartType) {
     if (sf === 'both' || sf === 'signing') {
       volumeDatasets.push(
         { label: 'Signing (Valid)', data: labels.map(k => timeBuckets[k].signingValid), backgroundColor: 'rgba(59, 130, 246, 0.7)', borderColor: '#3b82f6', borderWidth: 1, stack: 'signing' },
-        { label: 'Signing (Invalid)', data: labels.map(k => timeBuckets[k].signingInvalid), backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'signing' }
+        { label: 'Signing (Invalid)', data: labels.map(k => timeBuckets[k].signingInvalid), backgroundColor: 'rgba(147, 197, 253, 0.75)', borderColor: '#93c5fd', borderWidth: 1, stack: 'signing' }
       );
     }
     if (sf === 'both' || sf === 'verify') {
       volumeDatasets.push(
         { label: 'Verification (Valid)', data: labels.map(k => timeBuckets[k].verifyValid), backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: '#10b981', borderWidth: 1, stack: 'verify' },
-        { label: 'Verification (Invalid)', data: labels.map(k => timeBuckets[k].verifyInvalid), backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 1, stack: 'verify' }
+        { label: 'Verification (Invalid)', data: labels.map(k => timeBuckets[k].verifyInvalid), backgroundColor: 'rgba(110, 231, 183, 0.75)', borderColor: '#6ee7b7', borderWidth: 1, stack: 'verify' }
       );
     }
     gapChartInstances.volume = new Chart(ctx, {
       type: 'bar',
       data: { labels: displayLabels, datasets: volumeDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { stacked: true, ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { stacked: true, ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('volume'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { stacked: true, ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { stacked: true, ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'proc') {
     const procDatasets = [];
@@ -6031,7 +6121,7 @@ function renderSingleChart(chartType) {
     gapChartInstances.proc = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: procDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('proc'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('proc'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid } } } }
     });
   } else if (chartType === 'ttv') {
     const pairedRows = gapData.filter(r => r.pairStatus === 'paired' && r.timeToVerify != null);
@@ -6051,7 +6141,7 @@ function renderSingleChart(chartType) {
     gapChartInstances.ttv = new Chart(ctx, {
       type: 'line',
       data: { labels: displayLabels, datasets: ttvDatasets },
-      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('ttv'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th2.tick } } } }
+      options: { responsive: true, maintainAspectRatio: false, onClick: makeChartClickHandler('ttv'), plugins: { legend: { display: true, labels: { color: th2.legend } } }, scales: { x: { ticks: { color: th2.tick, maxTicksLimit: 15 }, grid: { color: th2.grid } }, y: { ticks: { color: th2.tick }, grid: { color: th2.grid }, beginAtZero: true, title: { display: true, text: 'ms', color: th2.tick } } } }
     });
   }
 }

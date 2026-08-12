@@ -8,7 +8,7 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-12 (Phase 3 — 6,318 lines).
+**Last verified against `index.html`:** 2026-08-13 (Phase 4 — 6,399 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -407,11 +407,11 @@ median, P95, and what a large P95-vs-median gap indicates.
 Five Chart.js instances, all UTC, all destroyed and rebuilt per render, all clickable for
 drill-through, each with its own bucket dropdown and series dropdown:
 
-1. Requests Over Time — green (signing) and blue (verification) lines
-2. Invalid Numbers Over Time — amber (signing-invalid) and red (verification-invalid) lines
-3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks (valid over invalid per service)
+1. Requests Over Time — green (signing) and blue (verification) lines, with area fill between them when both series are shown (shade vanishes where they coincide, visible where they diverge)
+2. Invalid Numbers Over Time — lollipop/bar encoding: thin bars at only the buckets where events exist (empty buckets filtered out). Signing invalid: light blue, verification invalid: light red
+3. Signing vs Verification Volume — stacked bar, 4 datasets, 2 stacks (valid over invalid per service). Hue carries service (blue/green), treatment carries validity (solid/light)
 4. Processing Time Distribution — violet (signing-avg) and cyan (verification-avg) lines, per-bucket average
-5. Time to Verify — dual line, median cyan and P95 pink dashed, from paired rows
+5. Time to Verify — full-width card (`lg:col-span-2`), dual line, median cyan and P95 pink dashed, from paired rows
 
 **Series filters:** `gapSeriesFilters = { requests:'both', volume:'both', invalid:'both', proc:'both', ttv:'both' }`.
 Each change re-renders only that chart. Hidden series are removed from the dataset (legend updates).
@@ -423,7 +423,9 @@ Pairing panel alongside median and P95.
 **Smart auto-bucketing** via `getAutoBucketInterval(min, max)`: ≤1 h → 1 min, ≤6 h → 5 min,
 ≤3 d → 1 hour, >3 d → 1 day. `gapBucketIntervals` holds per-chart overrides;
 `renderSingleChart(type)` re-renders one chart. `gapChartBucketOrders` stores per-chart bucket key
-order for drill-through, resolved through `gapBucketFilterSource`.
+order for drill-through, resolved through `gapBucketFilterSource`. Axis labels are capped at 15
+via `maxTicksLimit`. Auto bucket label shows the actual interval (e.g., "Auto (5 Min)") after data
+is loaded. Single-bucket and empty-filter states show a message instead of an empty axis.
 
 ### 7.6 Table and export
 
