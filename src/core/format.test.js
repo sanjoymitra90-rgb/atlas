@@ -36,6 +36,12 @@ describe('csvCell', () => {
     expect(csvCell('@cmd')).toBe('"\'@cmd"');
   });
 
+  it('does not guard numeric phone numbers starting with + or -', () => {
+    expect(csvCell('+447700900123')).toBe('"\\+447700900123"'.replace('\\', ''));
+    expect(csvCell('+447700900123')).toBe('"+447700900123"');
+    expect(csvCell('-5')).toBe('"-5"');
+  });
+
   it('handles null/undefined', () => {
     expect(csvCell(null)).toBe('""');
     expect(csvCell(undefined)).toBe('""');

@@ -8,9 +8,10 @@ describe('validateUKNumber', () => {
   it('categorises a non-UK country code separately from malformed', () => {
     expect(validateUKNumber('+33123456789').category).toBe('non-uk');
   });
-  it('caps country code display at 2 digits', () => {
-    expect(validateUKNumber('+33123456789').reason).toContain('+33');
-    expect(validateUKNumber('+1234567890').reason).toContain('+12');
+  it('caps country code display at full prefix', () => {
+    expect(validateUKNumber('+33123456789').reason).toBe('Non-UK destination');
+    expect(validateUKNumber('+8801712345678').reason).toBe('Non-UK destination');
+    expect(validateUKNumber('+12125551234').reason).toBe('Non-UK destination');
   });
   it('returns malformed for empty number', () => {
     expect(validateUKNumber('').category).toBe('malformed');
@@ -77,7 +78,7 @@ describe('gapReasonBucket', () => {
     expect(gapReasonBucket('Empty number')).toBe('empty');
   });
   it('returns non-uk for non-UK reasons', () => {
-    expect(gapReasonBucket('Non-UK destination (+33)')).toBe('non-uk');
+    expect(gapReasonBucket('Non-UK destination')).toBe('non-uk');
   });
   it('returns malformed for +44 reasons', () => {
     expect(gapReasonBucket('Does not start with +44')).toBe('malformed');

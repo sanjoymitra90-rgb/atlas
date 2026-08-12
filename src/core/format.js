@@ -4,7 +4,7 @@ export function escapeHtml(str) {
 
 export function csvCell(v) {
   const s = String(v ?? '');
-  const guarded = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+  const guarded = /^[=+\-@\t\r]/.test(s) && !/^[+-]\d/.test(s) ? "'" + s : s;
   return '"' + guarded.replace(/"/g, '""') + '"';
 }
 
