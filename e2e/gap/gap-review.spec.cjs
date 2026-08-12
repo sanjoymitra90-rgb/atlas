@@ -83,12 +83,21 @@ test.describe('Review pass — gap analyzer tests', () => {
   test('B3 — CSV export header with comma in custom column name is properly quoted', async ({ page }) => {
     await helpers.openGapAnalyzer(page);
     await helpers.uploadAndAnalyze(page, 'gap-core.csv');
-    // Add a custom column with comma in name via window bridge
-    await page.evaluate(() => {
-      window.gapAdditionalColumns = [{ header: 'a,b', mapping: '' }];
-      window.confirmGapColumnMapping();
-    });
-    await page.waitForTimeout(500);
+    // Open settings modal and add a custom column via UI
+    await page.click('[data-testid="gap-settings-btn"]');
+    await page.waitForSelector('#gap-column-modal', { state: 'visible' });
+    // Click "+ Add Column" button
+    await page.click('button:has-text("Add Column")');
+    await page.waitForTimeout(300);
+    // Fill in the display name with a comma
+    const nameInput = page.locator('.gap-add-col-name').last();
+    await nameInput.fill('a,b');
+    // Select a header from the dropdown
+    const headerSelect = page.locator('.gap-add-col-header').last();
+    await headerSelect.selectOption({ index: 1 }); // select first available option
+    // Click Analyze to apply
+    await page.click('[data-testid="gap-analyze-btn"]');
+    await page.waitForTimeout(1000);
     // Trigger CSV export via window bridge
     const download = page.waitForEvent('download');
     await page.evaluate(() => {
@@ -97,9 +106,9 @@ test.describe('Review pass — gap analyzer tests', () => {
     });
     const dl = await download;
     const content = require('fs').readFileSync(await dl.path(), 'utf8');
-    // Parse header row and check exact column count
+    // Find the data header row (starts with "Time,Service")
     const lines = content.split('\n');
-    const headerLine = lines.find(l => l.includes('Time') || l.includes('Service'));
+    const headerLine = lines.find(l => l.startsWith('"Time"') || l.startsWith('Time,Service'));
     expect(headerLine).toBeDefined();
     // Count commas outside quotes to determine column count
     let inQuotes = false;
@@ -108,8 +117,10 @@ test.describe('Review pass — gap analyzer tests', () => {
       if (ch === '"') inQuotes = !inQuotes;
       if (ch === ',' && !inQuotes) commaCount++;
     }
-    // 9 core columns + 1 custom "a,b" column = 10 commas (11 fields)
-    expect(commaCount).toBe(10);
+    // 12 core columns + 1 custom "a,b" column = 12 commas (13 fields)
+    expect(commaCount).toBe(12);
+    // Also verify the custom column header is present and properly quoted
+    expect(headerLine).toContain('"a,b"');
   });
 
   // B5: Blob URL revocation — assert revokeObjectURL is called

@@ -7,9 +7,24 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-12 (Phase 2.5: trust repairs, import/onboarding fixes, export correctness, test debt)
+**Last updated:** 2026-08-12 (Phase 2.5 close-out: test fixes, H3 tooltip, doc corrections)
 
 ---
+
+### Phase 2.5 close-out — test fixes, H3 tooltip, doc corrections
+
+**Task J — Fix broken tests:**
+- **J0: Removed isVisible guards** — All `if (await ...isVisible().catch(() => false))` guards removed from `gap-review.spec.cjs`. Missing elements now fail tests immediately.
+- **J1: Window bridge pattern** — B3, B5, B6 now use `window.gapExportAllData = true; window.exportGapData()` instead of clicking non-existent UI buttons.
+- **J2: B3 fixed** — Custom column with comma added via UI (`+ Add Column` button), asserts exact column count (12 commas = 13 fields) and verifies `"a,b"` appears quoted in header.
+- **J3: B5 fixed** — Uses gap CSV export (not JSON) via window bridge. Stub-and-count approach retained.
+- **J4: B6 fixed** — Uses window bridge pattern.
+- **J5: B2 moved to optimizer** — Test moved from `gap-review.spec.cjs` to `opt-review.spec.cjs`. Seeds `atlas-opt-scenarios` with XSS payload, opens `scenarios-modal` via `openScenariosModal()`.
+
+**Task K — Finish what Phase 2.5 started:**
+- **K1: Screenshot capture script run** — Executed `capture-screenshots.cjs`, produced 11 PNG files, all with distinct MD5 hashes. Stale files from previous run deleted.
+- **K2: H3 tooltip** — Added `countryCode` field to `validateUKNumber()` return. `ukPillHtml()` now shows full country code in tooltip: "Non-UK destination (+331)".
+- **K3: Doc corrections** — CHANGELOG: fixed XSS name ("scenario" not "customer"), corrected library versions (^4.5.1, ^0.14.0, ^10.0.1), updated unit test count to 77, corrected screenshot claim. SPEC.md: invariant 6 rewritten to describe actual impurities (input mutation, module-scope `findNearestRegionIdx`). Added `countryCode` to `validateUKNumber()` return type docs.
 
 ### Phase 2.5 — Trust repairs, import/onboarding fixes, export correctness, test debt
 
