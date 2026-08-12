@@ -56,7 +56,7 @@ to stay true, only to stay complete.
 **Phase 2C — Cleanup:**
 - **Toast naming** — Consistent toast message format across all modules.
 - **Dead code removal** — Removed orphaned variables and unreachable branches.
-- **Country code cap** — `validateUKNumber()` display capped at 2 digits for non-UK country codes.
+- **Country code cap** — `validateUKNumber()` non-UK country code display initially capped at 2 digits (later simplified to "Non-UK destination" label in Phase 2.5 H3).
 - **Physics test** — Existing Playwright test `R5` tightened to assert `result.error` is undefined for the light-in-fibre RTT invariant.
 
 **Phase 2D — Pure extraction (pairKey, financials):**
