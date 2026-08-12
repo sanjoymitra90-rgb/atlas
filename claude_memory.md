@@ -13,8 +13,8 @@ document permitted to describe project *state*; `docs/SPEC.md` describes the sys
 `docs/FEATURES.md` describes behaviour in user language, `docs/CHANGELOG.md` is history. If two
 documents state the same fact, one of them will eventually be wrong.
 
-**Last updated:** 2026-08-12 (night) — Phases 2 and 2.5 complete, verified, and deployed.
-Phase 3 is next and nothing blocks it.
+**Last updated:** 2026-08-12 (night) — Phases 2 and 2.5 complete, verified and deployed.
+Phase 3 planned and specced; not started.
 
 ---
 
@@ -42,7 +42,13 @@ relocated its own bug into the tooltip. Both were caught and fixed. Final commit
 - `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` are accurate as of this commit, with
   one known exception noted in §4.
 
-**Phase 3 is clear to start.** Nothing is blocking it.
+**Phase 3: planned, specced, not started.** Spec is `2026-08-12-phase-3-spec.md`. Three tasks —
+the reason vocabulary, moving the breakdown panel above the table, and closing the hole in the Call
+Pairing grid. The first is the substance; the other two are small. Nothing blocks it.
+
+**One question outstanding for Sanjoy:** whether the relocated panel should keep its heading
+"Destination Issues — breakdown" or be renamed "Attention". The spec keeps the existing heading and
+tells the agent to ask rather than assume. Reasoning in §3.
 
 ---
 
@@ -92,9 +98,10 @@ read by him, not by a developer.
 **From the 2026-08-12 planning session:**
 
 - **Sequencing:** trust-work before visible product work. Tests and correctness first.
-- **Exceptions view:** an Attention panel above the table that **absorbs** the Destination Issues
-  breakdown rather than sitting beside it. The Call Pairing panel then sheds its four outcome
-  blocks and becomes purely a timing panel, which also fixes its dead-space layout problem.
+- **Exceptions view:** the Destination Issues breakdown is **absorbed** into a panel above the
+  table rather than a new panel sitting beside it. Sanjoy's improvement on the original proposal,
+  and it still stands. *The second half of this decision — that the Call Pairing panel would shed
+  its four outcome blocks — was reversed on 2026-08-12; see below.*
 - **Architecture:** split the monolith. Vite with `vite-plugin-singlefile`, so output stays one HTML
   file. Plain ES modules without a build step were ruled out — browsers block them over `file://`.
 - **Light theme:** parked indefinitely. Hide the toggle in Phase 5 so a half-styled theme is not
@@ -126,19 +133,46 @@ read by him, not by a developer.
 - **`csvCell()` guards `+` and `-` only when not followed by a digit**, so exported phone numbers
   no longer carry a stray apostrophe. `=`, `@`, tab and CR are guarded unconditionally.
 
+**From the 2026-08-12 Phase 3 planning session:**
+
+- **REVERSED — the four pairing outcome blocks stay in the Call Pairing panel.** The earlier plan
+  moved them into the Attention panel. The reason for reversing: **the Call Pairing panel is global
+  and the Destination Issues chips are filter-responsive.** Putting both in one panel means
+  clicking a chip changes half the numbers and freezes the other half — same panel, two rules, no
+  visual cue explaining why. The alternative, making pairing outcomes filter-responsive, means
+  recomputing pairing on every filter change, and that is the O(n²) code we are deliberately not
+  running more often. So Call Pairing keeps all eight blocks; only the grid is rebalanced to close
+  the layout hole. **This is a good general test for any future panel merge: do the two things
+  refresh on the same trigger?**
+- **Seven reason chips, not four.** Empty / Non-UK / Not +44 / Wrong length / Bad prefix /
+  Identical digits / Sequential run. Sanjoy chose the finer granularity so an Ops person can see
+  the actual fault without clicking. Note the seventh — Non-UK was missing from the options I first
+  offered him; the old vocabulary predated that category.
+- **Category identity becomes an explicit returned value.** `validateUKNumber()` will return a
+  `bucket` field set at each rejection point, and `gapReasonBucket()` — which infers the category by
+  substring-matching the user-facing reason prose — is deleted. See §6 for why this matters more
+  than the label fix it accompanies.
+- **The `truncated` category is deleted.** Dead through several phases; nothing produces it.
+- **Panel heading:** open. The spec keeps "Destination Issues — breakdown" and tells the agent to
+  ask before renaming to "Attention", on the grounds that a panel called "Attention" which does not
+  contain the pairing problems misrepresents itself. Sanjoy's call.
+
 ---
 
 ## 4. Remaining work
 
-**Phase 3 — Attention panel.** Absorb the Destination Issues breakdown; strip the four outcome
-blocks from the Call Pairing panel so it becomes purely a timing panel; restore human-readable
-reason chip labels and their granularity. The chips currently render raw internal slugs
-(`malformed ×7`) because `reasonLabels` still maps the pre-R25 vocabulary. The `validateUKNumber`
-reason strings are now settled, so the labels only need doing once.
+**Phase 3 — specced, not started.** `2026-08-12-phase-3-spec.md`. Three tasks:
 
-**Fold into Phase 3:** the `truncated` validation category is dead code — `gapReasonBucket()` and
-`ukPillHtml()` both handle it and nothing produces it. Phase 3 is in both functions. Decide there
-whether to produce it or delete the handling; do not carry it a third time.
+- **A — the reason vocabulary.** Seven buckets with human labels, `bucket` returned explicitly by
+  `validateUKNumber()`, `gapReasonBucket()` deleted, `truncated` removed, and the first Playwright
+  coverage the chips have ever had.
+- **B — move the breakdown panel** to sit directly above the table it filters, instead of above the
+  charts. Relocation only; contents and behaviour unchanged.
+- **C — rebalance the Call Pairing grid** to four columns so eight blocks make two clean rows.
+  Nothing else in that panel changes.
+
+**Sequencing note:** Task A must land before Phase 5. Phase 5 is a copy sweep, and until A lands,
+rewording a validation message silently breaks the chips. See §6.
 
 **Phase 4 — Charts.** Legend colour collision (two "invalid" series share one colour, making the
 stacked bar unreadable); width-aware bucketing (5½ hours of data produces ~65 rotated axis labels);
@@ -222,6 +256,17 @@ Three rules worth defending:
 - **`SPEC.md` opens with invariants**, each carrying its reason. Rationale next to the rule gets
   updated with the rule; rationale in an appendix does not.
 
+**A code-level variant of the same failure, found while planning Phase 3.** `gapReasonBucket()`
+decides whether a number is "malformed" by testing whether its **user-facing error sentence**
+contains the substring `length`. Category identity — logic — is derived from copy. The label map
+and the bucket vocabulary had already drifted apart on exactly this seam, which is why the chips
+render raw slugs today. And **Phase 5 is a copy sweep**: rewording "Invalid length" would have
+broken the chips again with nothing failing.
+
+The general rule: **logic must never depend on the wording of something a human is expected to
+edit.** When a function already knows why it made a decision, have it say so — do not make a second
+function re-derive it from prose. Phase 3 Task A closes this one; look for others.
+
 **Tests that assert nothing.** Before Phase 1, six Playwright tests re-implemented application logic
 inside `page.evaluate()` and asserted against their own copy — including the physics test, which
 computed the light-in-fibre floor and then discarded it. The suite was reported as "182 passing".
@@ -281,9 +326,15 @@ The best findings came from checking claims against reality, not from reading co
   capture script. Sizes alone were suggestive; hashes were conclusive.
 - **Check a test's selectors against the DOM.** Every one of the four broken close-out tests
   referenced an element that does not exist. One grep each would have caught all four.
+- **When something has drifted repeatedly, check whether anything tests it.** The reason chips have
+  drifted through several phases. One grep showed why: nothing in `e2e/` references
+  `.gap-reason-chips` or `#gap-invalid-reason-panel` at all. Repeated silent drift is usually a
+  coverage hole, not carelessness — find the hole before rewriting the code.
 - **Read the commit log before judging a phase.** Phase 2's messages are honest — including
   "prepare computeCoverage for extraction", which is what stopped the audit mistaking a
   half-finished task for a misrepresented one.
+- **When he asks what something is, show it.** The screenshot set exists and answers "what are the
+  reason chips" and "what dead space" faster than a paragraph does. Use it.
 
 Generalisable version: when a tool's output is physical, test the *data* against physics; when a
 tool has two paths to the same answer, diff them; when a codebase has a safety helper, count how
@@ -319,6 +370,10 @@ Say so up front rather than appearing to ignore the local folder.
 
 ## 9. Update log for this file
 
+- **2026-08-12 (night, later)** — Phase 3 planned and specced. Recorded the reversal of the
+  outcome-blocks decision and the reason for it, the seven-bucket choice, the `bucket`-as-returned-
+  value change, and the open panel-heading question. Added the "logic must not depend on editable
+  copy" variant to §6 and two method notes to §7. Rewrote the Phase 3 entry in §4 to match the spec.
 - **2026-08-12 (night)** — Phases 2 and 2.5 recorded complete and deployed. Collapsed the Phase 2
   audit findings, which have all been actioned. Added §5, the document division settled this
   session, and the reasoning behind keeping this file away from the implementing agent. Added the
