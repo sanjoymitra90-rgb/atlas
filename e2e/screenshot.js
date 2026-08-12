@@ -1,8 +1,13 @@
 const { chromium } = require('playwright');
 const path = require('path');
-const { pathToFileURL } = require('url');
+const fs = require('fs');
+const { APP_URL } = require('./app-url.cjs');
 
-const APP_URL = pathToFileURL(path.resolve(__dirname, '..', 'index.html')).href;
+const distPath = path.resolve(__dirname, '..', 'dist', 'index.html');
+if (!fs.existsSync(distPath)) {
+  console.error('dist/index.html not found; run npm run build first');
+  process.exit(1);
+}
 
 (async () => {
   const browser = await chromium.launch();
