@@ -32,6 +32,12 @@ to stay true, only to stay complete.
 - **H3: Non-UK country code display fixed** — Label simplified to "Non-UK destination"; full country code preserved in tooltip.
 - **H4: Export arithmetic deduplicated** — `exportOnboardingCSV()` now calls `computeOnboardingFinancials()` instead of duplicating formulas inline.
 
+**Task I — Test debt (security tests):**
+- **B2: XSS in scenario name** — Test saves a scenario with `<img src=x onerror=alert(1)>` and verifies it renders as text, not as a live element.
+- **B3: CSV header escaping** — Test adds a custom column with comma in display name and verifies the exported CSV header is properly quoted.
+- **B5: Blob URL revocation** — Test stubs `createObjectURL`/`revokeObjectURL` and verifies revocation happens for every blob created.
+- **B6: Gap column removed** — Test exports CSV and verifies the summary header row does not contain a `Gap` column.
+
 ### Phase 2 — Repo hygiene, security hardening, pure extraction, build pipeline
 
 **Phase 2A — Secrets hygiene & CI/CD:**
