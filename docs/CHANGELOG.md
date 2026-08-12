@@ -7,9 +7,15 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-12 (Phase 2: repo hygiene, security, pure extraction, build-time Tailwind, CSP)
+**Last updated:** 2026-08-12 (Phase 2.5: trust repairs, import/onboarding fixes, export correctness, test debt)
 
 ---
+
+### Phase 2.5 — Trust repairs, import/onboarding fixes, export correctness, test debt
+
+**Task F — Trust repairs:**
+- **Fake test removed** — Deleted `src/auditor/pairing.test.js` which contained no application imports and trivial assertions that always passed.
+- **Phase 2 changelog corrected** — Fixed 5 factual errors: financials.js function names, CSV header escaping function, country code cap location, physics test description, Gap column removal attribution.
 
 ### Phase 2 — Repo hygiene, security hardening, pure extraction, build pipeline
 
@@ -21,21 +27,21 @@ to stay true, only to stay complete.
 **Phase 2B — XSS fixes, validation, import hardening:**
 - **XSS: row.time** — Timestamp cell now escaped via `escapeHtml()` before innerHTML injection.
 - **XSS: customer names** — `s.name` escaped in all tooltip and popup templates.
-- **CSV header escaping** — Header values passed through `escapeHtml()` in filter dropdowns and mapping preview.
+- **CSV header escaping** — Export header rows passed through `csvCell()` to guard formula injection in downstream applications.
 - **Import validation** — Out-of-range footprint indices filtered with toast; falsy-zero defaults changed to `??` operator.
 - **Blob URL revocation** — Export blob URLs revoked after download to prevent memory leaks.
-- **Retired Gap column** — Removed Gap Count and Gap Percentage tiles; grid simplified to 4+2 layout.
+- **Retired Gap column** — Removed the `Gap` column from the CSV export summary.
 
 **Phase 2C — Cleanup:**
 - **Toast naming** — Consistent toast message format across all modules.
 - **Dead code removal** — Removed orphaned variables and unreachable branches.
-- **Country code cap** — `normalizePhoneNumber()` caps digit count to prevent excessive-length numbers.
-- **Physics test** — Unit test added for light-in-fibre RTT invariant assertion.
+- **Country code cap** — `validateUKNumber()` display capped at 2 digits for non-UK country codes.
+- **Physics test** — Existing Playwright test `R5` tightened to assert `result.error` is undefined for the light-in-fibre RTT invariant.
 
 **Phase 2D — Pure extraction (pairKey, financials):**
 - **`pairKey(row)` extracted** — Pairing key construction moved to a pure function; all call sites use the same key construction.
 - **`computeCoverage()` prepared** — Input interface expanded to accept `regions` and `getRegionCost` as parameters, removing module-level coupling.
-- **`src/onboarding/financials.js`** — `snappingHours()`, `computeFinancials()`, `computeCustomerPrice()` extracted as pure functions with 6 unit tests.
+- **`src/onboarding/financials.js`** — `computeOnboardingFinancials()` extracted as a pure function with 6 unit tests.
 
 **Phase 2E1 — CDN-to-npm (Leaflet, Chart.js, html2pdf, Gantt):**
 - **Leaflet 1.9.4**, **Chart.js 4.4.1**, **html2pdf.js 0.10.1**, **DHTMLX Gantt 8.0** moved from CDN `<script>` tags to npm imports via `src/deps.js`.
