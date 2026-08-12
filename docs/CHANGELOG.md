@@ -26,6 +26,12 @@ to stay true, only to stay complete.
 - **G5: NaN margin coerced** — `computeOnboardingFinancials()` now coerces non-finite margin and contingency to 0 before clamping.
 - **G6: Margin > 99 clamped** — `computeOnboardingFinancials()` now clamps any margin above 99 to 99 (was only clamping at >= 100).
 
+**Task H — Export correctness:**
+- **H1: Phone apostrophe fixed** — `csvCell()` now guards `+` and `-` only when not followed by a digit. Phone numbers like `+447700900123` export clean; `+cmd` stays guarded.
+- **H2: CSV summary lines quoted** — `breakdownLine` and `pairLine` in `exportGapData()` now wrapped through `csvCell()` to prevent comma spill in Excel.
+- **H3: Non-UK country code display fixed** — Label simplified to "Non-UK destination"; full country code preserved in tooltip.
+- **H4: Export arithmetic deduplicated** — `exportOnboardingCSV()` now calls `computeOnboardingFinancials()` instead of duplicating formulas inline.
+
 ### Phase 2 — Repo hygiene, security hardening, pure extraction, build pipeline
 
 **Phase 2A — Secrets hygiene & CI/CD:**
