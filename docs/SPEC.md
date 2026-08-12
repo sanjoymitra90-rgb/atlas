@@ -98,8 +98,10 @@ CDN, no build step. **No other libraries may be assumed.**
 | html2pdf.js | 0.10.1 | Proposal PDF | no |
 
 The CSV parser is hand-rolled (`parseGapCSV`) — there is no PapaParse. CSP sets
-`connect-src 'none'` to enforce the privacy claim at browser level; `img-src` covers
-Leaflet tile loading. DHTMLX does not XHR at runtime.
+`connect-src 'none'` which blocks `fetch` and `XMLHttpRequest`; however `img-src https:` still
+permits exfiltration via image beacons, so the privacy claim is asserted rather than enforced at
+browser level. `style-src https:` allows Font Awesome and Google Fonts CDN stylesheets.
+`img-src` covers Leaflet tile loading. DHTMLX does not XHR at runtime.
 
 The app requires network access for these CDNs; it is **not** offline-capable despite being
 a single file.
