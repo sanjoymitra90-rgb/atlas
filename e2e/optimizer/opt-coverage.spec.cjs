@@ -66,7 +66,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers: [{ name: 'E1', lat: 0, lng: 0, idx: 0 }],
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -97,7 +97,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers: [{ name: 'E1', lat: 0, lng: 0, idx: 0 }],
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 0, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -144,7 +144,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -183,7 +183,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -219,7 +219,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       window.estimateRegionCost = origEstimate;
@@ -249,7 +249,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -287,7 +287,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [0], // cell 0 exists
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -326,7 +326,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -373,7 +373,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 0, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       window.estimateRegionCost = origEstimate;
@@ -420,7 +420,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -455,7 +455,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         slaMode: 'per-customer', globalSLA: 150,
         perCustomerSLA: { 0: 100, 1: 200 },
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       return {
@@ -630,7 +630,7 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers,
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [0], // cell 0 exists
-        getLatency: fakeLatency
+        getLatency: fakeLatency, regions: [{code:'r0',name:'R0',lat:0,lng:0},{code:'r1',name:'R1',lat:0,lng:0}], getRegionCost: (ci => ci === 0 ? 100 : 200)
       });
 
       const uncoveredCount = r.uncovered.length;
@@ -669,7 +669,8 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers: [],
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: () => ({ base: 0, distance: 0, infra: 0, proc: 0, total: 0, nearestRegionIdx: 0, distanceKm: 0, tier: 1, isDirect: false })
+        getLatency: () => ({ base: 0, distance: 0, infra: 0, proc: 0, total: 0, nearestRegionIdx: 0, distanceKm: 0, tier: 1, isDirect: false }),
+        regions: window._regions, getRegionCost: window.estimateRegionCost
       });
 
       // One endpoint, no existing cells, all regions give headroom < floor → marginal, zero recs
@@ -683,7 +684,8 @@ test.describe('Optimizer: Coverage-First Objective', () => {
         customers: [{ name: 'E1', lat: 0, lng: 0, idx: 0 }],
         slaMode: 'global', globalSLA: 150, perCustomerSLA: {},
         safetyFloor: 20, selectedFootprint: [],
-        getLatency: fakeLatencyHigh
+        getLatency: fakeLatencyHigh,
+        regions: window._regions, getRegionCost: window.estimateRegionCost
       });
 
       return {

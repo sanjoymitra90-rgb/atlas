@@ -1,6 +1,9 @@
+// CDN dependencies migrated to npm (must load before other modules)
+import './deps.js';
+
 // Temporary window bridge for Phase 1-2.
 // Inline onclick handlers and existing Playwright specs depend on globals.
-// This scaffolding is removed in Phase 2 when inline handlers become delegated listeners.
+// This scaffolding is removed when inline handlers become delegated listeners.
 
 import * as format from './core/format.js';
 import * as validate from './auditor/validate.js';
