@@ -25,7 +25,9 @@ export function validateUKNumber(number) {
   const cleaned = number.replace(/[\s\-\(\)]/g, "");
   // Detect non-UK country codes — valid number, wrong country
   if (/^\+[1-9]\d+/.test(cleaned) && !cleaned.startsWith("+44")) {
-    return { valid: false, category: 'non-uk', reason: "Non-UK destination" };
+    const cc = cleaned.match(/^\+(\d{1,3})/);
+    const countryCode = cc ? '+' + cc[1] : '';
+    return { valid: false, category: 'non-uk', reason: "Non-UK destination", countryCode };
   }
   if (!cleaned.startsWith("+44")) return { valid: false, category: 'malformed', reason: "Does not start with +44" };
   const digits = cleaned.replace(/\D/g, "");

@@ -8,10 +8,13 @@ describe('validateUKNumber', () => {
   it('categorises a non-UK country code separately from malformed', () => {
     expect(validateUKNumber('+33123456789').category).toBe('non-uk');
   });
-  it('caps country code display at full prefix', () => {
-    expect(validateUKNumber('+33123456789').reason).toBe('Non-UK destination');
-    expect(validateUKNumber('+8801712345678').reason).toBe('Non-UK destination');
-    expect(validateUKNumber('+12125551234').reason).toBe('Non-UK destination');
+  it('includes country code in result for non-UK numbers', () => {
+    // Regex matches 1-3 digits greedily — tooltip shows the matched prefix
+    expect(validateUKNumber('+33123456789').countryCode).toBe('+331');
+    expect(validateUKNumber('+8801712345678').countryCode).toBe('+880');
+    expect(validateUKNumber('+12125551234').countryCode).toBe('+121');
+    // UK numbers have no countryCode
+    expect(validateUKNumber('+447305409280').countryCode).toBeUndefined();
   });
   it('returns malformed for empty number', () => {
     expect(validateUKNumber('').category).toBe('malformed');

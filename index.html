@@ -4858,6 +4858,7 @@ function processGapData() {
       ukValid: ukValid.valid,
       ukValidationReason: ukValid.reason,
       ukCategory: ukValid.category || 'valid',
+      ukCountryCode: ukValid.countryCode || '',
       isSigning: svc.includes('sign'),
       isVerify: svc.includes('verif'),
       timestamp: timestamp,
@@ -4906,7 +4907,8 @@ function ukPillHtml(row) {
   const cat = row.ukCategory || (row.ukValid ? 'valid' : 'malformed');
   const labels = { valid: 'Valid', malformed: 'Malformed', 'non-uk': 'Non-UK', 'suspected-test': 'Suspected', truncated: 'Truncated' };
   const styles = { valid: 'bg-emerald-900/50 text-emerald-400', malformed: 'bg-red-900/50 text-red-400', 'non-uk': 'bg-amber-900/50 text-amber-400', 'suspected-test': 'bg-blue-900/50 text-blue-400', truncated: 'bg-slate-800 text-slate-400' };
-  return '<span class="px-2 py-1 rounded-full text-xs ' + (styles[cat] || styles.malformed) + '" title="' + escapeHtml(row.ukValidationReason || '') + '">' + (labels[cat] || 'Invalid') + '</span>';
+  const tooltip = row.ukCountryCode ? row.ukValidationReason + ' (' + row.ukCountryCode + ')' : (row.ukValidationReason || '');
+  return '<span class="px-2 py-1 rounded-full text-xs ' + (styles[cat] || styles.malformed) + '" title="' + escapeHtml(tooltip) + '">' + (labels[cat] || 'Invalid') + '</span>';
 }
 
 function gapGroupKey(row) {
