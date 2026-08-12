@@ -2373,6 +2373,7 @@ function scrollToSection(id) {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    if (clickPlaceMode) { toggleClickPlace(); return; }
     const gapModal = document.getElementById('gap-column-modal');
     if (gapModal && !gapModal.classList.contains('hidden')) {
       closeGapColumnModal();
@@ -2413,7 +2414,6 @@ let specificBaselineIdx = null;
 let safetyFloor = 20;
 let fpMap, custMap, dashMap;
 let fpMapMarkers = [], custMapMarkers = [], availableCityMarkers = [], dashMapMarkers = [];
-let custMapEscHandler = null;
 
 // Test compatibility bridge: expose module-scope variables on window
 Object.defineProperty(window, '_customers', { get: () => customers, set: (v) => { customers = v; } });
@@ -3019,7 +3019,7 @@ function toggleClickPlace() {
     btn.classList.add('accent-glow');
     text.textContent = 'Cancel Placement';
     doneBtn.classList.remove('hidden');
-    custMap.getContainer().style.cursor = 'crosshair';
+    if (custMap) custMap.getContainer().style.cursor = 'crosshair';
   } else {
     if (customers.length > (window._prePlaceCount || 0)) {
       customers.length = window._prePlaceCount || 0;
@@ -3029,7 +3029,7 @@ function toggleClickPlace() {
     btn.classList.remove('accent-glow');
     text.textContent = 'Click to Place on Map';
     doneBtn.classList.add('hidden');
-    custMap.getContainer().style.cursor = '';
+    if (custMap) custMap.getContainer().style.cursor = '';
   }
   updateCustMap();
 }
@@ -3059,19 +3059,10 @@ function initCustMap() {
     custMap.remove();
     custMap = null;
   }
-  if (custMapEscHandler) {
-    document.removeEventListener('keydown', custMapEscHandler);
-    custMapEscHandler = null;
-  }
   custMap = L.map('cust-map', createMapOptions()).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(custMap);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap ©CARTO', maxZoom: 19, noWrap: true, bounds: getMapBounds() }).addTo(custMap);
 
-  custMapEscHandler = function(e) {
-    if (e.key === 'Escape' && clickPlaceMode) toggleClickPlace();
-  };
-  document.addEventListener('keydown', custMapEscHandler);
-  
   custMap.on('click', function(e) {
     if (!clickPlaceMode) return;
     const lat = e.latlng.lat, lng = e.latlng.lng;
@@ -3096,6 +3087,7 @@ function initCustMap() {
 }
 
 function updateCustMap() {
+  if (!custMap) return;
   custMapMarkers.forEach(m => custMap.removeLayer(m));
   custMapMarkers = [];
   
