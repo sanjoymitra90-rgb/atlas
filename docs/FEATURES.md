@@ -231,7 +231,8 @@ filter the table when clicked.
 
 > Destination numbers are now categorised three ways: **Malformed** (fails E.164 structure),
 > **Non-UK** (valid number, wrong country), and **Suspected** (test data patterns). Each gets
-> its own pill color. The tile reads "Destination Issues."
+> its own pill color. The tile reads "Destination Issues." Hovering a Non-UK chip shows the
+> destination's country code in the tooltip.
 >
 > A number truncated by a spreadsheet during export fails validation rather than being reported
 > as Valid. Precision loss in scientific notation is detected at the normalisation stage.

@@ -8,11 +8,17 @@ describe('validateUKNumber', () => {
   it('categorises a non-UK country code separately from malformed', () => {
     expect(validateUKNumber('+33123456789').category).toBe('non-uk');
   });
-  it('includes country code in result for non-UK numbers', () => {
-    // Regex matches 1-3 digits greedily — tooltip shows the matched prefix
-    expect(validateUKNumber('+33123456789').countryCode).toBe('+331');
+  it('extracts correct country codes for one-, two- and three-digit codes', () => {
+    // One-digit: US +1
+    expect(validateUKNumber('+12125551234').countryCode).toBe('+1');
+    expect(validateUKNumber('+14155552671').countryCode).toBe('+1');
+    // Two-digit: France +33, Germany +49, Australia +61
+    expect(validateUKNumber('+33123456789').countryCode).toBe('+33');
+    expect(validateUKNumber('+4915112345678').countryCode).toBe('+49');
+    expect(validateUKNumber('+61412345678').countryCode).toBe('+61');
+    // Three-digit: Bangladesh +880, Portugal +351
     expect(validateUKNumber('+8801712345678').countryCode).toBe('+880');
-    expect(validateUKNumber('+12125551234').countryCode).toBe('+121');
+    expect(validateUKNumber('+351912345678').countryCode).toBe('+351');
     // UK numbers have no countryCode
     expect(validateUKNumber('+447305409280').countryCode).toBeUndefined();
   });

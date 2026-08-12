@@ -7,9 +7,15 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-12 (Phase 2.5 close-out: test fixes, H3 tooltip, doc corrections)
+**Last updated:** 2026-08-12 (country code prefix fix)
 
 ---
+
+### Country code prefix fix
+
+- **`validateUKNumber()` countryCode extraction fixed** — Greedy `\d{1,3}` regex replaced with prefix-free E.164 algorithm: try 1-digit codes (`1`, `7`), then 2-digit codes (47 entries verified against ITU-T E.164), then fall back to 3 digits. Correct codes: US `+1`, France `+33`, Germany `+49`, Australia `+61`, Bangladesh `+880`, Portugal `+351`.
+- **Tests corrected** — Two wrong expectations fixed (France `+331`→`+33`, US `+121`→`+1`). Added cases for one-digit (2 US numbers), two-digit (France, Germany, Australia), and three-digit (Bangladesh, Portugal) codes. UK `+44` case unchanged.
+- **Tests proven to fail** — Reverted to greedy extraction, confirmed test failure (`+121` instead of `+1`), restored fix. Stated in commit message per constraint 2.
 
 ### Phase 2.5 close-out — test fixes, H3 tooltip, doc corrections
 
@@ -23,7 +29,7 @@ to stay true, only to stay complete.
 
 **Task K — Finish what Phase 2.5 started:**
 - **K1: Screenshot capture script run** — Executed `capture-screenshots.cjs`, produced 11 PNG files, all with distinct MD5 hashes. Stale files from previous run deleted.
-- **K2: H3 tooltip** — Added `countryCode` field to `validateUKNumber()` return. `ukPillHtml()` now shows full country code in tooltip: "Non-UK destination (+331)".
+- **K2: H3 tooltip** — Added `countryCode` field to `validateUKNumber()` return. `ukPillHtml()` now shows country code in tooltip: "Non-UK destination (+33)".
 - **K3: Doc corrections** — CHANGELOG: fixed XSS name ("scenario" not "customer"), corrected library versions (^4.5.1, ^0.14.0, ^10.0.1), updated unit test count to 77, corrected screenshot claim. SPEC.md: invariant 6 rewritten to describe actual impurities (input mutation, module-scope `findNearestRegionIdx`). Added `countryCode` to `validateUKNumber()` return type docs.
 
 ### Phase 2.5 — Trust repairs, import/onboarding fixes, export correctness, test debt

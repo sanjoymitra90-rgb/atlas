@@ -1,3 +1,24 @@
+// E.164 country calling codes — prefix-free: no valid code is a prefix of another.
+// One-digit codes
+const CC_ONE = new Set(['1', '7']);
+// Two-digit codes (verified against ITU-T E.164)
+const CC_TWO = new Set([
+  '20','27','30','31','32','33','34','36','39',
+  '40','41','43','44','45','46','47','48','49',
+  '51','52','53','54','55','56','57','58',
+  '60','61','62','63','64','65','66',
+  '81','82','84','86',
+  '90','91','92','93','94','95','98'
+]);
+
+function extractCountryCode(digitsAfterPlus) {
+  const d1 = digitsAfterPlus.slice(0, 1);
+  if (CC_ONE.has(d1)) return d1;
+  const d2 = digitsAfterPlus.slice(0, 2);
+  if (CC_TWO.has(d2)) return d2;
+  return digitsAfterPlus.slice(0, 3);
+}
+
 export function normalizePhoneNumber(value) {
   if (!value) return value;
   if (/[Ee]\+/.test(value)) {
@@ -25,8 +46,8 @@ export function validateUKNumber(number) {
   const cleaned = number.replace(/[\s\-\(\)]/g, "");
   // Detect non-UK country codes — valid number, wrong country
   if (/^\+[1-9]\d+/.test(cleaned) && !cleaned.startsWith("+44")) {
-    const cc = cleaned.match(/^\+(\d{1,3})/);
-    const countryCode = cc ? '+' + cc[1] : '';
+    const digitsAfterPlus = cleaned.slice(1); // strip the '+'
+    const countryCode = '+' + extractCountryCode(digitsAfterPlus);
     return { valid: false, category: 'non-uk', reason: "Non-UK destination", countryCode };
   }
   if (!cleaned.startsWith("+44")) return { valid: false, category: 'malformed', reason: "Does not start with +44" };
