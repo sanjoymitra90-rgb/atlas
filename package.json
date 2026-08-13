@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "test:unit": "vitest run",
+    "test:unit:dhaka": "cross-env TZ=Asia/Dhaka vitest run",
     "test:e2e": "npm run build && playwright test",
     "test": "npm run test:unit && npm run test:e2e",
     "test:gap": "npm run build && npx playwright test --project=gap",
@@ -27,6 +28,7 @@
   "homepage": "https://github.com/sanjoymitra90-rgb/qwen-test-atlas#readme",
   "devDependencies": {
     "@playwright/test": "^1.62.1",
+    "cross-env": "^10.1.0",
     "tailwindcss": "^3.4.19",
     "vite": "^7.0.6",
     "vite-plugin-singlefile": "^2.1.1",
