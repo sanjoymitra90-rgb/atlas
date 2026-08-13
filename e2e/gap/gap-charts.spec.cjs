@@ -295,16 +295,37 @@ test.describe('Phase 4 required tests', () => {
     expect(msgVisible).toBe(true);
   });
 
-  // A5: Table hour must match chart axis hour for a known row
-  test('A5 — table hour matches chart axis hour for a known row', async ({ page }) => {
-    await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'gap-screenshots.csv');
-    // Get the first time cell's hour
-    const tableHour = await page.evaluate(() => {
+  // Extracts the set of hours present in chart labels, tolerating both
+  // 24-hour ("2026-08-01 12:00" / "Aug 1, 12:00") and 12-hour ("12:05 PM") formats.
+  async function chartLabelHours(page, chartKey) {
+    return page.evaluate((key) => {
+      const chart = window.gapChartInstances && window.gapChartInstances[key];
+      if (!chart) return [];
+      const hours = new Set();
+      for (const label of chart.data.labels) {
+        const s = String(label);
+        const ampm = s.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (ampm) {
+          let h = parseInt(ampm[1], 10);
+          const meridiem = ampm[3].toUpperCase();
+          if (meridiem === 'PM' && h !== 12) h += 12;
+          if (meridiem === 'AM' && h === 12) h = 0;
+          hours.add(h);
+          continue;
+        }
+        const h24 = s.match(/(?:^|[T,\s])(\d{2}):\d{2}/);
+        if (h24) hours.add(parseInt(h24[1], 10));
+      }
+      return Array.from(hours);
+    }, chartKey);
+  }
+
+  // Extracts the hour from the first Time cell of the current table page.
+  async function firstRowTableHour(page) {
+    return page.evaluate(() => {
       const cells = document.querySelectorAll('#gap-table-body td');
       if (cells.length === 0) return null;
       const timeText = cells[0].textContent;
-      // Extract hour from UTC-formatted string (YYYY-MM-DD HH:MM:SS)
       const utcMatch = timeText.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):/);
       if (utcMatch) return parseInt(utcMatch[2], 10);
       const ts = parseInt(timeText, 10);
@@ -314,43 +335,39 @@ test.describe('Phase 4 required tests', () => {
       }
       return null;
     });
+  }
+
+  // A5: Table hour must match chart axis hour for a known row
+  test('A5 — table hour matches chart axis hour for a known row', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-screenshots.csv');
+    const tableHour = await firstRowTableHour(page);
     expect(tableHour).not.toBeNull();
-    // Verify chart axis contains this hour
-    const chartLabels = await page.evaluate(() => {
-      const chart = window.gapChartInstances && window.gapChartInstances.volume;
-      return chart ? chart.data.labels : [];
-    });
-    expect(chartLabels.length).toBeGreaterThan(0);
-    const hourStr = String(tableHour).padStart(2, '0');
-    const hasHour = chartLabels.some(l => String(l).includes(hourStr));
-    expect(hasHour).toBe(true);
+    const chartHours = await chartLabelHours(page, 'volume');
+    expect(chartHours.length).toBeGreaterThan(0);
+    expect(chartHours).toContain(tableHour);
   });
 
-  // D2: Offset-bearing row shows UTC time in table
+  // D2: Offset-bearing row shows UTC time in table AND matches the chart axis hour
   test('D2 — offset-bearing row (2026-08-01T12:00:00+05:30) shows 06:30 UTC', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
-    // Find the I9 Corp row — customer column index 5
+    // The full-data chart axis must include hour 06 (the converted UTC hour of the
+    // +05:30 row). If parsing used the offset's local hour (12) the bucket would be 12.
+    const fullChartHours = await chartLabelHours(page, 'volume');
+    expect(fullChartHours).toContain(6);
+    // Filter to I9 Corp to find the offset-bearing row (it may be on page 3)
+    await page.selectOption('#gap-filter-customer', 'I9 Corp');
+    await page.waitForTimeout(500);
     const found = await page.evaluate(() => {
-      const rows = document.querySelectorAll('#gap-table-body tr');
-      for (const row of rows) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length > 5 && cells[5].textContent.includes('I9 Corp')) {
-          return cells[0].textContent;
-        }
-      }
-      return null;
+      const cells = document.querySelectorAll('#gap-table-body td');
+      if (cells.length === 0) return null;
+      return cells[0].textContent;
     });
     expect(found).not.toBeNull();
-    // Should show 06:30 UTC (the converted time from +05:30)
+    // Should show 06:30 UTC (the converted time from +05:30), not 12:00
     expect(found).toContain('06:30');
-    // Verify chart axis contains hour 06
-    const chartLabels = await page.evaluate(() => {
-      const chart = window.gapChartInstances && window.gapChartInstances.volume;
-      return chart ? chart.data.labels : [];
-    });
-    const hasHour6 = chartLabels.some(l => String(l).includes('06'));
-    expect(hasHour6).toBe(true);
+    expect(found).not.toContain('12:00');
   });
 
 });
