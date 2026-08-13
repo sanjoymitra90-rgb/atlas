@@ -36,6 +36,15 @@ describe('parseGapCSV', () => {
     expect(result.rows).toEqual([['1', '2']]);
   });
 
+  it('C3: strips BOM even when the first header field is quoted', () => {
+    // A plain BOM header survives via field trim(), which masks a missing BOM
+    // strip. A quoted first header does not: without the leading-BOM removal the
+    // quote is never recognised as a field start and the header splits wrongly.
+    const result = parseGapCSV('\uFEFF"Time,Service"\n1,2');
+    expect(result.headers[0]).toBe('Time,Service');
+    expect(result.rows[0]).toEqual(['1', '2']);
+  });
+
   it('handles double-quote escapes', () => {
     const result = parseGapCSV('A\n"hello ""world"""');
     expect(result.rows).toEqual([['hello "world"']]);

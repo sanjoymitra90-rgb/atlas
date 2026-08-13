@@ -50,4 +50,31 @@ describe('computeOnboardingFinancials', () => {
     const result = computeOnboardingFinancials({ totalHours: 100, rate: 80, marginPct: 99.5, contingencyPct: 0 });
     expect(result.margin).toBe(99);
   });
+
+  it('C1: non-zero contingency is charged — internalCost includes contingency hours', () => {
+    const result = computeOnboardingFinancials({ totalHours: 100, rate: 80, marginPct: 0, contingencyPct: 10 });
+    expect(result.contingencyHours).toBe(10);
+    expect(result.billableHours).toBe(110);
+    expect(result.internalCost).toBe(8800);
+  });
+
+  it('C1: non-zero contingency flows through to customerPrice', () => {
+    const result = computeOnboardingFinancials({ totalHours: 100, rate: 80, marginPct: 20, contingencyPct: 10 });
+    expect(result.internalCost).toBe(8800);
+    expect(result.customerPrice).toBe(11000);
+  });
+
+  it('C1: contingency and margin compound — price is internalCost including contingency divided by margin multiplier', () => {
+    const result = computeOnboardingFinancials({ totalHours: 50, rate: 100, marginPct: 25, contingencyPct: 15 });
+    expect(result.contingencyHours).toBe(8);
+    expect(result.billableHours).toBe(58);
+    expect(result.internalCost).toBe(5800);
+    expect(result.customerPrice).toBeCloseTo(5800 / 0.75, 6);
+  });
+
+  it('C1: contingency at 0 leaves price derived from totalHours alone', () => {
+    const result = computeOnboardingFinancials({ totalHours: 100, rate: 80, marginPct: 20, contingencyPct: 0 });
+    expect(result.internalCost).toBe(8000);
+    expect(result.customerPrice).toBe(10000);
+  });
 });
