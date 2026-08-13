@@ -13,8 +13,8 @@ document permitted to describe project *state*; `docs/SPEC.md` describes the sys
 `docs/FEATURES.md` describes behaviour in user language, `docs/CHANGELOG.md` is history. If two
 documents state the same fact, one of them will eventually be wrong.
 
-**Last updated:** 2026-08-13 — Phase 4.6 shipped a structural regression that puts an empty data
-table on the app's first screen. CI red. Fix diagnosed and specced.
+**Last updated:** 2026-08-13 (night) — Phases 4.6 through 4.8 complete, CI green, deployed. The
+timezone defect found in 4.8 is the most consequential bug the project has had.
 
 ---
 
@@ -58,62 +58,68 @@ screenshot problem:
 - The TTV test was corrected to assert the canvas is attached and that *either* the canvas or the
   empty-state message is present.
 
-**Phase 4.6: shipped with a regression. CI red.** Commit `0c1e8bd`, pushed to `main`.
+**Phase 4.6: complete.** Commit `0c1e8bd`, plus CI fix `0325683`.
 
-Eight tasks reported complete: the column-filter `stopPropagation` fix, the group-by-pair summary
-row, the pairing-key badge revert, two new timing charts, the "No paired calls" empty state, a
-rebuilt populated fixture, integer count axes, and build-first e2e scripts.
+Shipped a structural regression: moving the End-to-End chart out of the two-column grid left an
+extra `</div>`, closing `#gap-dashboard` early. The Destination Issues panel and the whole data
+table fell outside it — and because the table's wrapper has no `hidden` class of its own, the empty
+"Call Data" table rendered on the upload screen before any file was loaded. One line removed fixed
+it. A regression test now asserts no table is visible pre-upload.
 
-The report stated **"71 unit + 190 e2e = 261 total, all green."** CI was red: **188 passed, 2
-failed.** Fourth occasion a green-suite claim has not survived checking, and this time it concealed
-a user-visible regression.
+**A correction worth keeping.** During that review I reported the rebuilt `gap-screenshots.csv` as
+still producing zero pairs, and said Task D2 had failed. **That was wrong.** My clone was checked
+out at the pre-fix commit and I measured the old file while calling it the new one — then
+"confirmed" it against `git show <old-ref>:...`, which was the same file. Two identical
+measurements presented as a before/after. The fixture was correct all along: same-second
+timestamps, 30 of 32 signings pairing. See §7.
 
-**Failure 1 — a real bug, and worse than the test name suggests.**
+**Phase 4.7: complete.** Nine commits. Closed the items Phase 4.6 dropped silently — Task E did not
+appear in its hand-back at all, and Task F appeared as one line covering the first of four parts.
 
-When the End-to-End chart was moved outside the two-column grid to make it full-width, a closing
-`</div>` was added for the grid and **the original was not removed.** Two consecutive closers now
-sit between the End-to-End card and the `<!-- Invalid UK Numbers Breakdown -->` comment.
+- Timestamp parsing extracted to `src/auditor/time.js` as `parseGapTimestamp()`, with unit tests.
+  Asked for three times before it landed.
+- `timeHadOffset` corrected for epoch inputs — they are unambiguous, so the "no timezone" warning
+  should not fire for them.
+- A staleness guard in `e2e/global-setup.cjs`: aborts if `dist/index.html` is missing, or older than
+  anything under `src/` or `index.html`. Proven to fire.
+- The screenshot harness pointed at the populated fixture, so the timing charts can actually appear
+  in a capture. Root screenshots gitignored.
 
-`#gap-dashboard` therefore closes early, and everything after it falls outside: the Destination
-Issues panel and the **entire data table**, including its header, pagination and column filters.
+**Phase 4.8: complete.** Commits through `75f2556`, CI run #21 green and deployed.
 
-The consequence that matters: **the data table's wrapper has no `hidden` class of its own.** It
-never needed one, because it lived inside `#gap-dashboard`, which starts hidden and is revealed when
-a CSV loads. So right now, **before any file is uploaded, the empty "Call Data" table renders
-underneath the upload prompt** — a regression on the first screen anyone sees.
+**This phase fixed the most consequential bug the project has had.** An ISO timestamp with no
+offset was parsed by `new Date()`, which the language specification interprets as *the reader's
+local time*. The source data is UTC. So on a UTC+6 machine:
 
-Established by parsing DOM containment at twelve consecutive commits: intact through `7a6d325`,
-`631e7d4`, `e5fef6f` and `f74a13f`; broken only at `0c1e8bd`. Deleting the single stray line
-restores containment and leaves the End-to-End chart correctly outside the grid.
+```
+source row:      2026-01-15T10:30:00      (10:30 UTC)
+parsed as:       04:30 UTC
+table showed:    10:30                    (raw string — correct)
+charts plotted:  04:30                    (six hours from reality)
+```
 
-`gap-flexibility.spec.cjs` → "5. Add custom column renders in table header and cells" caught it
-**only because its locator is scoped `#gap-dashboard td:has-text("REQ-001")`.** The assertion
-immediately above it, on the `th`, is unscoped and passed. The fixture is not the problem —
-`gap-phase6.csv` still contains `REQ-001` and must not be changed.
+The charts placed real events at the wrong hour while the table beside them told the truth. **It was
+invisible in CI, which runs UTC** — everything agrees there. It only appeared on a human's machine,
+which is why no test had ever caught it and why it survived every phase up to this one.
 
-**Failure 2 — a stale test; the application is right.**
+Fixed by parsing offset-less input as UTC. Also landed: the Time cell renders UTC through a shared
+`formatGapTimeCell()` used by both table branches, the original is kept in a tooltip where the value
+was converted, and the export carries `Time (UTC)` alongside `Time (original)`.
 
-`gap-theme.spec.cjs` → "charts re-render without errors on theme toggle" uploads `gap-core.csv` and
-asserts `#gap-chart-ttv` is visible. **`gap-core.csv` produces zero pairs** — its only same-from,
-same-to signing→verification sequence is forty seconds apart against a 1000ms window, and every
-other number appears once. Phase 4.6's "No paired calls in the current view." empty state therefore
-hides the canvas, exactly as specified.
+**The CI fix that followed** is worth remembering for how it failed. A new unit test hardcoded
+`1735668000000` — the Asia/Dhaka reading of a non-ISO date — so it passed on the developer's laptop
+and could not pass in CI or anywhere else. A phase about eliminating timezone dependence shipped a
+test that depended on the author's timezone. One line, and the fix was to assert the property rather
+than the number.
 
-The fix is to move that test onto a fixture with confirmed pairs and assert all seven charts, not
-to assert the empty state — because **the two new timing charts currently have no theme coverage at
-all**, and a no-pairs fixture cannot give them any.
-
-**Both diagnosed and specced.** The Phase 4.6 CI fix prompt was written on 2026-08-13 and delivered
-in chat. **It was not saved into the repo** — the device bridge was offline (see §8). Save it before
-handing it over.
 
 **Where things stand:**
 
-- CI **red**. The live site serves the last good build, not Phase 4.6.
-- 71 unit tests; 17 e2e spec files. The e2e total is whatever CI last reported — do not quote a
-  number from a hand-back without checking.
-- `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` accurate as of `0c1e8bd`, with one
-  known exception noted in §4.
+- **CI green, deployed.** Run #21. The live site serves Phase 4.8.
+- 85 unit tests plus the Playwright suite. Do not quote a total from a hand-back without checking
+  the Actions run — the two have disagreed repeatedly.
+- The three `docs/` files are accurate as of `75f2556`, with one known exception noted in §4.
+- **Two display questions are open and waiting on Sanjoy** — see §4.
 
 ---
 
@@ -220,20 +226,33 @@ read by him, not by a developer.
   label fix it accompanied.
 - **The `truncated` category is deleted.** Dead through several phases; nothing produced it.
 
+**From the 2026-08-13 timestamp decision — a product rule, not an implementation choice:**
+
+- **Every time the application displays or plots is UTC. No viewer-local rendering anywhere.**
+  Sanjoy's reasoning, in his words: the tool is used to reconstruct incidents days later, often by
+  more than one person, and *"it has to be at a unified time, meaning UTC"*. A timestamp that means
+  something different depending on who opened the file is worse than no timestamp, because it looks
+  authoritative while being wrong.
+- **A timestamp arriving in another timezone is converted — in the table and in the charts.** The
+  source data is UTC today, but the design must hold if a foreign-timezone file ever arrives.
+- **Offset-less input is assumed UTC**, because that is what their exports are.
+- The original source string is preserved in the cell tooltip where a conversion happened, so the
+  conversion is auditable rather than something a user must trust.
+
 ---
 
 ## 4. Remaining work
 
-**Immediate — Phase 4.6 CI fix.** Two items, specced in the prompt written 2026-08-13:
+**Two open questions, both waiting on Sanjoy. Neither blocks anything.**
 
-- Delete the stray `</div>` so `#gap-dashboard` contains the breakdown panel and the table again,
-  and add a regression test asserting **no table is visible before a CSV is uploaded**. That is the
-  user-facing symptom and it survives future restructuring better than a DOM-containment assertion.
-- Move the theme test onto a fixture with confirmed pairs and assert all seven charts, giving the
-  two new timing charts their first theme coverage.
-
-Verify the End-to-End chart is still full-width afterwards — there are two closers, and removing
-the wrong one nests it back inside the grid and silently undoes Phase 4.6's own work.
+- **Display format.** The Time column now shows `2026-01-15 10:30:00` where the source said
+  `2026-01-15T10:30:00Z`. Same instant, same clock time, normalised format, original in the
+  tooltip. Consistent across every source format — but no longer literally what the file said, and
+  the change was made without being flagged. The Phase 4.8 spec had said displayed text must be
+  unchanged for `Z`-suffixed rows, so it is a deviation. Keep or revert.
+- **The tooltip fires on unchanged rows**, because the "did it change?" check compares strings and
+  `T`/`Z` differ textually even when the clock time does not. The right fix depends on the answer
+  above, so it was reported and left alone.
 
 **Phase 5 — Layout, density, copy.** Toast and help FAB overlap functional UI; filter panel always
 expanded; tile redesign; table density; hide the theme toggle; the `Customer` → "Service Provider"
@@ -369,10 +388,39 @@ signal was in the *difference* between two adjacent assertions: the scoped one f
 one passed. **When a failure makes no sense for the feature named, ask what else the assertion
 touches.**
 
-**What is new and good: CI is a mechanism, not a habit.** The workflow has now caught three rounds
-of broken tests and refused to deploy every time — including this one, which is the only reason a
-broken first screen did not go live. **Never merge with it red, and never claim a suite is green
-without looking.** Four hand-backs have now claimed green against a red run.
+**NEW — "all tests pass" can mean "on my machine".** Phase 4.8's CI fix shipped a unit test that
+hardcoded `1735668000000`, the Asia/Dhaka reading of a non-ISO date. It passed on the developer's
+laptop and could not pass in CI or in any other timezone. The phase whose entire purpose was
+eliminating timezone dependence shipped a test that depended on the author's timezone.
+
+The wider lesson is not about timezones. **A green suite is evidence about the environment it ran
+in.** Anything the environment supplies — timezone, locale, filesystem case-sensitivity, clock,
+installed binaries — is a hidden input, and a test that hardcodes a value derived from one of them
+is measuring the machine rather than the code. `TZ=UTC npm run test:unit` would have caught this in
+seconds and is now in the ship checklist.
+
+**What is new and good: CI is a mechanism, not a habit.** The workflow has now caught four rounds of
+broken tests and refused to deploy every time — including the Phase 4.6 regression, which is the only
+reason a broken first screen did not go live. **Never merge with it red, and never claim a suite is
+green without looking.** Five hand-backs have now claimed green against a red or unrun CI.
+
+**Also new and good: a test that verifies its own instrument.** The Phase 4.8 CI fix added a
+timezone-independence test that runs the parser in child processes under two forced timezones and
+asserts identical results. Then it does something this project had never done — it asserts that a
+value *known* to be timezone-dependent **differs** between the two zones:
+
+```js
+expect(dhakaNonIso.timestamp).not.toBe(utcNonIso.timestamp);
+```
+
+If the harness ever stops actually varying the timezone, that line goes red. Without it, the test
+would pass vacuously forever the moment the mechanism broke — which is exactly how this project has
+been bitten again and again. **When a test depends on a harness doing something, assert that the
+harness did it.** This pattern was invented by the implementing agent, not specced. Reuse it.
+
+*One caveat on that line: it pins today's non-ISO local-time behaviour as expected. If anyone later
+makes the non-ISO path UTC too — a genuine improvement — it goes red with a misleading message. It
+deserves a comment saying it asserts current known behaviour.*
 
 ---
 
@@ -385,6 +433,17 @@ The best findings came from checking claims against reality, not from reading co
   country-code bug were all found by executing the module against a table of inputs. The modules
   under `src/` are plain ES modules with no DOM dependency and run under bare `node` — no test
   runner, no install step. Write a scratch file, import them, print a table.
+- **Vary the environment, not just the input.** The Phase 4.8 timezone bug was invisible to every
+  test in the project because every test ran under UTC, where the wrong answer and the right answer
+  coincide. Running the same function under `TZ=UTC` and `TZ=Asia/Dhaka` and diffing the results
+  exposed it immediately, and proved the fix afterwards. Ask what the environment is silently
+  supplying — timezone, locale, clock, filesystem — and vary it.
+- **Read from the ref, never from the working tree.** Reviewing Phase 4.6 I reported a working
+  fixture as broken because my clone was still checked out at an earlier commit — I measured the old
+  file and called it the new one, then "confirmed" it against `git show <old-ref>:...`, which was
+  the same file. **Two identical measurements presented as a before/after should have been the
+  tell**: a 60-line change producing byte-identical behaviour is not a finding, it is a signal that
+  you are reading the wrong file. Always `git show <ref>:path`.
 - **Parse the structure; bisect across commits.** The Phase 4.6 regression was located in one pass
   by parsing `index.html` at twelve consecutive commits and printing, for each, whether
   `#gap-table-body` was a descendant of `#gap-dashboard`. It went `True` … `True` … `False`, and the
@@ -465,6 +524,13 @@ Reading and diagnosis continue to work from the pushed commit; only file deliver
 
 ## 9. Update log for this file
 
+- **2026-08-13 (night)** — Phases 4.6, 4.7 and 4.8 recorded complete; CI green and deployed.
+  Collapsed the Phase 4.6 entry now that its regression is fixed, and recorded my own error in that
+  review — reading a stale working tree and reporting a working fixture as broken. Added the UTC
+  product rule to §3. Added two failure modes to §6 — "all tests pass" meaning "on my machine", and
+  the environment as a hidden test input — plus the self-verifying-harness pattern, which is the
+  first genuinely new safeguard the project has gained. Added two method notes to §7. Replaced the
+  §4 immediate-work entry with the two open display questions.
 - **2026-08-13 (later)** — Phase 4.5 recorded complete: the screenshot harness now targets
   `dist/index.html` through a shared path module and fails loudly when the build is missing, both
   capture scripts consolidated into `e2e/screenshot.js`, `_p3.mjs` removed. Phase 4.6 recorded as
