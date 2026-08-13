@@ -7,9 +7,14 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.8: one time frame, always UTC)
+**Last updated:** 2026-08-13 (Phase 4.8 CI fix: timezone-independent tests)
 
 ---
+
+### Phase 4.8 CI fix
+
+- **Timezone-dependent assertion fixed** — The "non-ISO formats still parse via new Date()" unit test hardcoded `1735668000000`, the Asia/Dhaka reading of `Jan 1 2025 (test)`. Under UTC (GitHub Actions) that branch parses to `1735689600000`, so CI failed while the local suite passed. The test now asserts `timeValid` and derives the expected value with `new Date('Jan 1 2025 (test)').getTime()`, which moves with the environment exactly as the function does. `TZ` is not pinned in any config.
+- **Timezone-independence test added** — `time.test.js` now spawns the module in a child process under `TZ=UTC` and `TZ=Asia/Dhaka` and asserts identical results for offset-less ISO, `Z`-suffixed, explicit-offset, `D/M/YYYY`, and epoch inputs. A non-ISO input (documented to reach `new Date()`) is asserted to *differ* between the two zones, proving the harness genuinely varies the timezone rather than passing vacuously.
 
 ### Phase 4.8 — One time frame, always UTC
 
