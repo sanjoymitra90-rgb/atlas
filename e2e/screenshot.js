@@ -15,7 +15,7 @@ if (!fs.existsSync(distPath)) {
   await page.goto(APP_URL);
   await page.getByTestId('gap-launch').click();
   await page.getByTestId('gap-upload-prompt').waitFor({ state: 'visible' });
-  const csvPath = path.resolve(__dirname, '..', 'fixtures', 'gap-core.csv');
+  const csvPath = path.resolve(__dirname, '..', 'fixtures', 'gap-screenshots.csv');
   await page.getByTestId('gap-upload-input').setInputFiles(csvPath);
   await page.getByTestId('gap-analyze-btn').click();
   await page.waitForFunction(() => {

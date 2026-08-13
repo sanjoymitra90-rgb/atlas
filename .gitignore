@@ -5,6 +5,7 @@ dist/
 screenshots/
 screenshots-before/
 screenshots-after/
+screenshot-*.png
 index.html.tmp
 _v.mjs
 _p3.mjs
