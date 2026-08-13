@@ -7,9 +7,30 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.7: timestamp extraction, staleness guard, screenshot fix)
+**Last updated:** 2026-08-13 (Phase 4.8: one time frame, always UTC)
 
 ---
+
+### Phase 4.8 — One time frame, always UTC
+
+**Task A — Parse offset-less input as UTC:**
+- **A1: ISO-shaped strings without offset parsed via Date.UTC** — `2026-01-15T10:30:00` now parses as 10:30 UTC instead of local time. Non-ISO formats (e.g. `Jan 1 2025`) continue through `new Date()` unchanged. Exactly one input changed; verified under `TZ=UTC` and `TZ=Asia/Dhaka` with identical results.
+
+**Task B — Time cell renders UTC:**
+- **B1: Both branches of renderGapTable() updated** — Grouped and flat paths now use `formatGapTimeCell()` helper which renders UTC-formatted timestamps. When the rendered value differs from the source, an escaped `source:` tooltip shows the original.
+
+**Task C — Export carries both:**
+- **C: Export has Time (UTC) and Time (original) columns** — UTC-formatted value in the first column, raw source string in the second. Downstream scripts continue to work unchanged.
+
+**Task D — Tests:**
+- **D1: Fixture rows added** — `gap-screenshots.csv` now includes an offset-bearing pair (`+05:30`), an offset-less pair, and an epoch pair. `pairedPairs` unchanged.
+- **D2: Cross-check test** — A5 test extended to verify offset-bearing row (I9 Corp, 12:00:00+05:30 → 06:30 UTC) appears correctly in both table and chart.
+- **D3: Timezone-independence** — All 13 unit tests pass under `TZ=Asia/Dhaka` (same results as UTC). The "offset-less parses as UTC" test catches timezone-dependent bugs.
+
+**Task E — Toast and docs:**
+- **Toast suppressed** — The "timestamps without a timezone read as UTC" message removed. UTC is now the default behavior, not a warning; the "Time (UTC)" column header makes the assumption explicit.
+- **SPEC.md §7.2 rewritten** — Documents UTC-first parsing, source tooltip, and Time (UTC) + Time (original) export columns.
+- **FEATURES.md updated** — States all times are UTC, offset conversion is automatic, hovering shows original.
 
 ### Phase 4.7 — Timestamp extraction, staleness guard, screenshot harness fix
 

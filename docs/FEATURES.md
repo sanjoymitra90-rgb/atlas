@@ -336,9 +336,10 @@ The TTV chart shows median + P95 only (no mean line); mean lives in the panel.
 ### Data table
 
 Ten columns, sortable, paginated at 25, 50 or 100 rows. The Time column header reads "Time (UTC)"
-to make the timezone assumption explicit — timestamps without an offset are parsed as UTC.
-Epoch timestamps (Unix seconds or milliseconds) are recognized as unambiguous and do not
-trigger the timezone warning. Rows with unreadable timestamps carry an
+to make the timezone assumption explicit — all times shown are UTC. A timestamp arriving with a
+different timezone offset is converted to UTC automatically; hovering the cell shows the original
+source value. Epoch timestamps are formatted as readable UTC dates. Rows with unreadable timestamps
+carry an
 amber warning icon and always sort to the bottom. Paired rows show their pair ID on the pill.
 
 Hovering a paired row highlights its partner and dims everything else; if the partner is on

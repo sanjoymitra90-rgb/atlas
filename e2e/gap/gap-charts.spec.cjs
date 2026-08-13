@@ -299,17 +299,14 @@ test.describe('Phase 4 required tests', () => {
   test('A5 — table hour matches chart axis hour for a known row', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
-    // Table sorts by timestamp descending — first visible row is the latest hour (11)
+    // Get the first time cell's hour
     const tableHour = await page.evaluate(() => {
       const cells = document.querySelectorAll('#gap-table-body td');
       if (cells.length === 0) return null;
       const timeText = cells[0].textContent;
-      // Extract hour from ISO string or D/M/YYYY format
-      const isoMatch = timeText.match(/T(\d{2}):/);
-      if (isoMatch) return parseInt(isoMatch[1], 10);
-      const dmMatch = timeText.match(/\d+\/\d+\/\d+\s+(\d{1,2}):/);
-      if (dmMatch) return parseInt(dmMatch[1], 10);
-      // Epoch — compute hour from timestamp
+      // Extract hour from UTC-formatted string (YYYY-MM-DD HH:MM:SS)
+      const utcMatch = timeText.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):/);
+      if (utcMatch) return parseInt(utcMatch[2], 10);
       const ts = parseInt(timeText, 10);
       if (!isNaN(ts)) {
         const ms = ts > 1e11 ? ts : ts * 1000;
@@ -318,7 +315,7 @@ test.describe('Phase 4 required tests', () => {
       return null;
     });
     expect(tableHour).not.toBeNull();
-    // Get the chart labels and check that the same hour appears
+    // Verify chart axis contains this hour
     const chartLabels = await page.evaluate(() => {
       const chart = window.gapChartInstances && window.gapChartInstances.volume;
       return chart ? chart.data.labels : [];
@@ -329,25 +326,25 @@ test.describe('Phase 4 required tests', () => {
     expect(hasHour).toBe(true);
   });
 
-  // D2: Offset-bearing row table hour matches chart axis hour
-  test('D2 — offset-bearing row (06:30 UTC from +05:30) appears correctly', async ({ page }) => {
+  // D2: Offset-bearing row shows UTC time in table
+  test('D2 — offset-bearing row (2026-08-01T12:00:00+05:30) shows 06:30 UTC', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
-    // Find the row with I9 Corp (offset-bearing: 2026-08-01T12:00:00+05:30 => 06:30 UTC)
-    const tableHour = await page.evaluate(() => {
+    // Find the I9 Corp row — customer column index 5
+    const found = await page.evaluate(() => {
       const rows = document.querySelectorAll('#gap-table-body tr');
       for (const row of rows) {
         const cells = row.querySelectorAll('td');
         if (cells.length > 5 && cells[5].textContent.includes('I9 Corp')) {
-          const timeText = cells[0].textContent;
-          const m = timeText.match(/(\d{2}):(\d{2}):(\d{2})/);
-          if (m) return parseInt(m[1], 10);
+          return cells[0].textContent;
         }
       }
       return null;
     });
-    expect(tableHour).toBe(6); // UTC hour is 06:30
-    // Verify the chart axis contains hour 06
+    expect(found).not.toBeNull();
+    // Should show 06:30 UTC (the converted time from +05:30)
+    expect(found).toContain('06:30');
+    // Verify chart axis contains hour 06
     const chartLabels = await page.evaluate(() => {
       const chart = window.gapChartInstances && window.gapChartInstances.volume;
       return chart ? chart.data.labels : [];

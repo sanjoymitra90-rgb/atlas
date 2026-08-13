@@ -332,7 +332,13 @@ schedules.
 
 ### 7.2 Timestamps
 
-Timestamp parsing is in `src/auditor/time.js` as `parseGapTimestamp(raw)` → `{ timestamp, timeValid, timeHadOffset }`. Pure 10-digit string → epoch seconds ×1000. Pure 13-digit → epoch ms. `D/M/YYYY H:MM(:SS)` → `Date.UTC(...)`. Otherwise `new Date()`, which is **locale-ambiguous for `DD/MM/YYYY`** — R19. Rows keep `timestamp` and `timeValid`; invalid ones count in tiles, appear in the table with an amber icon, sort to the bottom, and are excluded from charts (invariant 8). `timeHadOffset` is `true` for epoch inputs (unambiguous) and for ISO strings with `Z` or `±HH:MM`; `false` for `Date.UTC` and offset-less ISO strings.
+Timestamp parsing is in `src/auditor/time.js` as `parseGapTimestamp(raw)` → `{ timestamp, timeValid, timeHadOffset }`.
+
+**All times are UTC.** The Time column renders the parsed timestamp formatted as UTC, under a header reading "Time (UTC)". Offset-less ISO strings (`2026-01-15T10:30:00`) are parsed as UTC via `Date.UTC()`, not as local time. `Z`-suffixed and offset-bearing ISO strings are handled by `new Date()` which resolves them to UTC correctly. Epochs (10-digit seconds, 13-digit milliseconds) are absolute. `D/M/YYYY H:MM(:SS)` uses `Date.UTC()` (assumed UTC). Non-ISO formats (e.g. `Jan 1 2025 (...)`) pass through `new Date()` unchanged.
+
+When the rendered UTC value differs from the raw source string, the cell carries an escaped `source:` tooltip showing the original. The export includes both "Time (UTC)" and "Time (original)" columns.
+
+`timeHadOffset` is `true` for epoch inputs (unambiguous) and for ISO strings with `Z` or `±HH:MM`; `false` for `Date.UTC` and offset-less ISO strings. Invalid rows count in tiles, appear in the table with an amber icon, sort to the bottom, and are excluded from charts (invariant 8).
 
 ### 7.3 UK validation — `validateUKNumber()`
 

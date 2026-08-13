@@ -4942,8 +4942,6 @@ function processGapData() {
   if (_i > 0) msg += ", " + _i + " invalid";
   if (_e > 0) msg += " · " + _e + " skipped";
   if (_ut > 0) msg += " · " + _ut + " unparseable timestamp(s)";
-  const _noTz = gapData.filter(d => d.timeValid && !d.timeHadOffset).length;
-  if (_noTz > 0) msg += " · timestamps without a timezone read as UTC";
   showToast(msg);
 }
 

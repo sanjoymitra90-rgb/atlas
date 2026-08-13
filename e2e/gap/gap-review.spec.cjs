@@ -61,8 +61,8 @@ test.describe('Review pass — gap analyzer tests', () => {
     expect(deps.chart).toBe(true);
   });
 
-  // B1: Unescaped timestamp cell — live XSS
-  test('B1 — timestamp cell is escaped even when timeValid is true', async ({ page }) => {
+  // B1: Unescaped timestamp cell — live XSS (now in tooltip, not text)
+  test('B1 — timestamp cell XSS payload is escaped in tooltip, not rendered', async ({ page }) => {
     await helpers.openGapAnalyzer(page);
     await helpers.uploadAndAnalyze(page, 'gap-xss-time.csv');
     // Check the first data cell in the table
@@ -70,13 +70,19 @@ test.describe('Review pass — gap analyzer tests', () => {
       const cells = document.querySelectorAll('#gap-table-body td');
       if (cells.length === 0) return { error: 'no cells found' };
       const timeCell = cells[0]; // first cell is Time
+      const span = timeCell.querySelector('span');
       return {
         hasElement: timeCell.querySelector('img, script, iframe') !== null,
-        text: timeCell.textContent
+        text: timeCell.textContent,
+        tooltip: span ? span.getAttribute('title') : null,
       };
     });
     expect(result.hasElement).toBe(false);
-    expect(result.text).toContain('<img');
+    // Text should show UTC-formatted time, not the raw XSS payload
+    expect(result.text).not.toContain('<img');
+    // Tooltip should contain the escaped original (source: ...)
+    expect(result.tooltip).toContain('source:');
+    expect(result.tooltip).toContain('<img');
   });
 
   // B3: CSV header escaping — custom column with comma in display name
@@ -108,7 +114,7 @@ test.describe('Review pass — gap analyzer tests', () => {
     const content = require('fs').readFileSync(await dl.path(), 'utf8');
     // Find the data header row (starts with "Time,Service")
     const lines = content.split('\n');
-    const headerLine = lines.find(l => l.startsWith('"Time"') || l.startsWith('Time,Service'));
+    const headerLine = lines.find(l => l.startsWith('"Time (UTC)"') || l.startsWith('Time (UTC),Service'));
     expect(headerLine).toBeDefined();
     // Count commas outside quotes to determine column count
     let inQuotes = false;
@@ -117,8 +123,8 @@ test.describe('Review pass — gap analyzer tests', () => {
       if (ch === '"') inQuotes = !inQuotes;
       if (ch === ',' && !inQuotes) commaCount++;
     }
-    // 12 core columns + 1 custom "a,b" column = 12 commas (13 fields)
-    expect(commaCount).toBe(12);
+    // 13 core columns + 1 custom "a,b" column = 13 commas (14 fields)
+    expect(commaCount).toBe(13);
     // Also verify the custom column header is present and properly quoted
     expect(headerLine).toContain('"a,b"');
   });
