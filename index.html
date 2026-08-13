@@ -5570,6 +5570,9 @@ function renderGapTable() {
         const gA = groupMap[a], gB = groupMap[b];
         const repA = gA.find(r => r.isSigning) || gA[0];
         const repB = gB.find(r => r.isSigning) || gB[0];
+        // Invariant 8: invalid timestamps always sort to bottom regardless of direction
+        if (!repA.timeValid && repB.timeValid) return 1;
+        if (repA.timeValid && !repB.timeValid) return -1;
         // Pair column sorts by status-bucket order
         if (gapSortColumn === 'pairStatus') {
           const oA = pairStatusOrder[repA.pairStatus] ?? 99;
