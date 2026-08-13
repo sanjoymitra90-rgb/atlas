@@ -5507,6 +5507,31 @@ function renderGapPairPanel() {
   document.getElementById('gap-pair-window-label').textContent = 'window ' + gapPairWindow + 'ms \u00b7 configurable in Settings';
 }
 
+function formatGapTimeCell(row) {
+  if (!row.timeValid) {
+    return {
+      html: '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-'),
+      hasTooltip: true
+    };
+  }
+  if (row.timestamp == null) {
+    return { html: escapeHtml(row.time || '-'), hasTooltip: false };
+  }
+  const d = new Date(row.timestamp);
+  const utc = d.getUTCFullYear() + '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getUTCDate()).padStart(2, '0') + ' ' +
+    String(d.getUTCHours()).padStart(2, '0') + ':' +
+    String(d.getUTCMinutes()).padStart(2, '0') + ':' +
+    String(d.getUTCSeconds()).padStart(2, '0');
+  const raw = (row.time || '').trim();
+  const differs = utc !== raw && utc + 'Z' !== raw;
+  if (differs) {
+    return { html: '<span title="source: ' + escapeHtml(raw) + '">' + escapeHtml(utc) + '</span>', hasTooltip: true };
+  }
+  return { html: escapeHtml(utc), hasTooltip: false };
+}
+
 function renderGapTable() {
   const tableBody = document.getElementById("gap-table-body");
   if (!tableBody || gapFilteredData.length === 0) {
@@ -5641,8 +5666,9 @@ function renderGapTable() {
           summaryRow = `<tr class="gap-pair-summary" data-pair-summary="${row.pairId}"><td colspan="${10 + gapAdditionalColumns.length}" class="py-1 px-4 text-xs text-slate-500 bg-slate-900/80">${row.pairId} \u00b7 handoff ${handoff}ms \u00b7 proc ${proc}ms \u00b7 end-to-end ${e2e}ms</td></tr>`;
         }
       }
+      const tc = formatGapTimeCell(row);
       return summaryRow + `<tr class="${trClasses}" data-pair-group="${groupKey}">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? escapeHtml(row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${tc.html}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
@@ -5696,8 +5722,9 @@ function renderGapTable() {
         if (row.pairProc != null) pillTitle += ' \u00b7 proc ' + row.pairProc + 'ms';
         if (row.pairEndToEnd != null) pillTitle += ' \u00b7 end-to-end ' + row.pairEndToEnd + 'ms';
       }
+      const tc = formatGapTimeCell(row);
       return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.timeValid ? escapeHtml(row.time || '-') : '<i class="fas fa-exclamation-triangle text-amber-400 mr-1" title="Unparseable timestamp \u2014 excluded from time charts"></i>' + escapeHtml(row.time || '-')}</td>
+      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${tc.html}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
       <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
       <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
@@ -6383,7 +6410,7 @@ function exportGapData() {
   const outliers = dataToExport.filter(d => d.processingTime > gapSlowThreshold).length;
   const ps = gapPairSummary;
   
-  const headers = ['Time', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid', 'Pair Status', 'Pair ID', 'Time to Verify (ms)'];
+  const headers = ['Time (UTC)', 'Time (original)', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid', 'Pair Status', 'Pair ID', 'Time to Verify (ms)'];
   const customExportHeaders = gapAdditionalColumns.map(col => col.displayName || col.header);
   const allHeaders = [...headers, ...customExportHeaders];
   const invalidData = dataToExport.filter(d => !d.ukValid);
@@ -6401,7 +6428,17 @@ function exportGapData() {
   ];
   
   dataToExport.forEach(row => {
+    const utcTime = row.timestamp != null ? (() => {
+      const d = new Date(row.timestamp);
+      return d.getUTCFullYear() + '-' +
+        String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getUTCDate()).padStart(2, '0') + ' ' +
+        String(d.getUTCHours()).padStart(2, '0') + ':' +
+        String(d.getUTCMinutes()).padStart(2, '0') + ':' +
+        String(d.getUTCSeconds()).padStart(2, '0');
+    })() : '';
     const coreVals = [
+      utcTime,
       row.time || '',
       row.service || '',
       row.from || '',
