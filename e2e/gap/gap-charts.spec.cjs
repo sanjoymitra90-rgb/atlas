@@ -295,4 +295,39 @@ test.describe('Phase 4 required tests', () => {
     expect(msgVisible).toBe(true);
   });
 
+  // A5: Table hour must match chart axis hour for a known row
+  test('A5 — table hour matches chart axis hour for a known row', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-screenshots.csv');
+    // First row is 2026-08-01T09:00:10Z — hour 9
+    // Get the hour from the first table cell
+    const tableHour = await page.evaluate(() => {
+      const cells = document.querySelectorAll('#gap-table-body td');
+      if (cells.length === 0) return null;
+      const timeText = cells[0].textContent;
+      // Extract hour from ISO string or D/M/YYYY format
+      const isoMatch = timeText.match(/T(\d{2}):/);
+      if (isoMatch) return parseInt(isoMatch[1], 10);
+      const dmMatch = timeText.match(/\d+\/\d+\/\d+\s+(\d{1,2}):/);
+      if (dmMatch) return parseInt(dmMatch[1], 10);
+      // Epoch — compute hour from timestamp
+      const ts = parseInt(timeText, 10);
+      if (!isNaN(ts)) {
+        const ms = ts > 1e11 ? ts : ts * 1000;
+        return new Date(ms).getUTCHours();
+      }
+      return null;
+    });
+    expect(tableHour).toBe(9);
+    // Get the chart labels and check that hour 9 appears
+    const chartLabels = await page.evaluate(() => {
+      const chart = window.gapChartInstances && window.gapChartInstances.volume;
+      return chart ? chart.data.labels : [];
+    });
+    expect(chartLabels.length).toBeGreaterThan(0);
+    // At least one label should contain "09" or hour 9
+    const hasHour9 = chartLabels.some(l => String(l).includes('09'));
+    expect(hasHour9).toBe(true);
+  });
+
 });
