@@ -7,7 +7,66 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.8 CI fix: timezone-independent tests)
+**Last updated:** 2026-08-13 (Phase 4.9: grouped-sort invariant, TZ tests, blind tests, doc corrections)
+
+---
+
+### Phase 4.9 — grouped-sort invariant, timezone-provable bucketing, three blind tests, doc corrections
+
+**Task A — invalid timestamps sink in grouped mode (bug fix).** The grouped sort comparator in
+`renderGapTable()` never tested `timeValid`, so ascending time sort put unparseable rows (null
+timestamp → `0`) at the top. The flat branch already honoured invariant 8; the grouped branch now
+gets the same `timeValid` precedence before any column branch. Four-way order table
+(flat/grouped × ascending/descending) verified before and after: three orders already sank invalid
+rows, grouped-ascending was the outlier and now matches. e2e regression test
+`e2e/gap/gap-invalid-sort.spec.cjs` loads `gap-core.csv` (1 unparseable row), enables group mode,
+sorts time ascending, asserts amber rows are last. Proven to fail on the reverted fix and pass
+after. **Conclusion:** invariant 8 applies to `pairStatus` and `ukCategory` columns too — the flat
+comparator already enforced timeValid-first for all columns, grouped now matches by placing the
+check before column branches.
+
+**Task B — timezone-provable bucketing.** Added `src/auditor/buckets.tz.test.js` covering
+`getGapBucketKey()` and `formatBucketLabel()` across all four intervals, using the same
+child-process-under-forced-TZ harness as `time.test.js`. A midnight-crossing instant (18:30Z, which
+is 2024-01-16 in Asia/Dhaka) is the discriminating input. Self-verifying assertion included: a
+local-time read of that instant differs between UTC and Asia/Dhaka, so the harness cannot pass
+vacuously. Proven: `getUTCHours()` → `getHours()` in `formatBucketLabel()` went red under both
+zones ('Jan 15, 18:00' vs 'Jan 15, 0:00'), restored, green. **Environment hardening:** `test:unit:dhaka`
+script (cross-env `TZ=Asia/Dhaka vitest run`) added to `package.json`, and `deploy.yml` runs it
+after the UTC run. `cross-env` added as devDependency. 94 unit tests green under both zones.
+
+**Task C — three blind tests.**
+- **C1 financials:** `internalCost` derives from `billableHours` (which includes contingency hours);
+  no test asserted the money, so switching it to `totalHours * rate` broke nothing. Added 4 tests
+  asserting `internalCost` and `customerPrice` at non-zero contingency, including the margin
+  interaction. Proven: changing to `totalHours * rate` failed 3, restored, green.
+- **C2 geo:** `haversine()` had no test file; changing Earth's radius 6371→1 left the suite green.
+  Added `src/optimizer/geo.test.js` with known great-circle distances (London–Paris ~344 km,
+  London–NYC ~5570 km, London–Sydney ~16994 km, Tokyo–Sydney ~7826 km, SF–NYC ~4129 km), a symmetry
+  check, the zero-distance case, and the antipodal case (~20015 km = π×6371). Proven: radius→1
+  failed 6, restored, green.
+- **C3 BOM:** the existing BOM test passed vacuously — field `trim()` also removes FEFF from a
+  plain header. The discriminating case is a BOM + quoted first header: without the strip line the
+  quote is never recognised and the header splits (`["Time","Service"]` from `"Time,Service"`).
+  Added a test for it. Proven: removing the strip line failed it, restored, green.
+
+**Task D — six wrong document statements corrected** (code unchanged in all six; each verified by
+execution): D1 R8 charts-follow-filter claim removed from §7.1 (contradicted invariant 5); D2 R12
+raw-string-sort marker removed from §7.6; D3 R21 duplicate-header marker removed from §7.1 (leave
+R20); D4 `{headers, rows, errors, meta}` → `{headers, rows, errors}` in §7.1; D5 triangle-inequality
+count 761 → **856** ordered distinct `(i,j,k)` triples (re-derived from `window._matrix`; adjacent
+claims 450 asymmetric pairs / max delta 30 ms confirmed unchanged, definition stated in the
+sentence); D6 dependency table versions corrected to `package.json` (Chart.js `^4.5.1`, DHTMLX
+`^10.0.1`, html2pdf `^0.14.0`), SRI column reworked — only Font Awesome and `@fontsource/inter`
+remain CDN stylesheets, the four npm libs are bundled so SRI is n/a, and §1's "six third-party
+scripts" updated to four bundled libraries + two CDN stylesheets; D7 CHANGELOG country-code count
+47 → 44 (counted `CC_TWO` directly); D8 destination-number-validation-rules.md — `4.47701E+11` is
+the **rejected** case (returned unchanged, 6 sig digits vs 12 required), replaced with the
+recovering `4.47911223344E+11` → `+447911223344` and documented the deliberate refusal beside it;
+all 12 remaining examples re-verified by execution.
+
+**Task E — skipped.** The two open display questions (Time-column display format; tooltip on
+unchanged rows) require a product decision that was not supplied, so per spec §6 no change was made.
 
 ---
 

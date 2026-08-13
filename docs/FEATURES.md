@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-13 (Phase 4.6: filter bug, summary row, timing charts, build-first).
+**Last verified against the app:** 2026-08-13 (Phase 4.9: grouped-sort invariant, TZ-provable bucketing, blind tests, doc corrections).
 
 ---
 

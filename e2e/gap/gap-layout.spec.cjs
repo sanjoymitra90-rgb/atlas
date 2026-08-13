@@ -89,11 +89,19 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
         return order.map(k => {
           const g = byGroup[k];
           const rep = g.find(r => /signing/i.test(r.children[1]?.textContent || '')) || g[0];
-          return parseInt((rep.children[7]?.textContent || '0').replace(/\D/g,''), 10);
+          const procTime = parseInt((rep.children[7]?.textContent || '0').replace(/\D/g,''), 10);
+          const timeCell = rep.children[0];
+          const hasInvalidTimestamp = !!(timeCell && timeCell.querySelector('.fa-exclamation-triangle'));
+          return { procTime, hasInvalidTimestamp };
         });
       });
-    const asc = reps.every((v,i) => i===0 || reps[i-1] <= v);
-    const desc = reps.every((v,i) => i===0 || reps[i-1] >= v);
+    const validReps = reps.filter(r => !r.hasInvalidTimestamp);
+    const invalidCount = reps.filter(r => r.hasInvalidTimestamp).length;
+    // Invalid-timestamp groups must be at the bottom (invariant 8: timeValid sorts last)
+    expect(reps.slice(-invalidCount).every(r => r.hasInvalidTimestamp)).toBe(true);
+    // Valid-timestamp groups must be monotonic by representative proc time
+    const asc = validReps.every((v,i) => i===0 || validReps[i-1].procTime <= v.procTime);
+    const desc = validReps.every((v,i) => i===0 || validReps[i-1].procTime >= v.procTime);
     expect(asc || desc).toBe(true);
   });
 

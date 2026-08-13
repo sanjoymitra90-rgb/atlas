@@ -126,7 +126,7 @@ numbers"* to *"show me the seven that are the wrong length"*.
 These definitions were read out of the running code on **13 August 2026** — the scientific-notation
 examples were re-derived by execution in the Phase 4.9 correction — and each example in this
 document was verified by running it through the tool rather than by reading the rules and
-describing them. This revision corresponds to the Phase 4.9 Task D corrections.
+describing them. This revision corresponds to commit `03fd12d` (Phase 4.9, Task D corrections).
 
 If the tool has been updated since, treat this document as a starting point rather than the
 authority — the code is the authority. Ask for a re-check and it takes a few minutes.

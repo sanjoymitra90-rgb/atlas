@@ -8,7 +8,7 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-13 (Phase 4.6 — 6,598 lines).
+**Last verified against `index.html`:** 2026-08-13 (Phase 4.9 — 6,616 lines).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
