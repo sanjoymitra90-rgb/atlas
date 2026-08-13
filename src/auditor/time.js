@@ -12,9 +12,11 @@ export function parseGapTimestamp(raw) {
     if (/^\d{10}$/.test(trimmed)) {
       timestamp = parseInt(trimmed, 10) * 1000;
       timeValid = true;
+      timeHadOffset = true; // epoch is unambiguous — no timezone assumption
     } else if (/^\d{13}$/.test(trimmed)) {
       timestamp = parseInt(trimmed, 10);
       timeValid = true;
+      timeHadOffset = true; // epoch is unambiguous — no timezone assumption
     } else {
       const dd = /^(\d{1,2})\/(\d{1,2})\/(\d{4})[\sT]?(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
       if (dd) {

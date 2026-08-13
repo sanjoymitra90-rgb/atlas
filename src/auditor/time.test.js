@@ -14,6 +14,11 @@ describe('parseGapTimestamp', () => {
     expect(r.timeValid).toBe(true);
   });
 
+  it('epoch values report timeHadOffset true (unambiguous, no assumption)', () => {
+    expect(parseGapTimestamp('1706140800').timeHadOffset).toBe(true);
+    expect(parseGapTimestamp('1706140800000').timeHadOffset).toBe(true);
+  });
+
   it('parses ISO timestamp with Z offset, reporting timeHadOffset true', () => {
     const r = parseGapTimestamp('2026-01-15T10:30:00Z');
     expect(r.timeValid).toBe(true);
