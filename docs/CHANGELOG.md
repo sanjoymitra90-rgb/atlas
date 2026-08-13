@@ -24,7 +24,8 @@ to stay true, only to stay complete.
 
 **Task D — Tests:**
 - **D1: Fixture rows added** — `gap-screenshots.csv` now includes an offset-bearing pair (`+05:30`), an offset-less pair, and an epoch pair. `pairedPairs` unchanged.
-- **D2: Cross-check test** — A5 test extended to verify offset-bearing row (I9 Corp, 12:00:00+05:30 → 06:30 UTC) appears correctly in both table and chart.
+- **D1 fix: Epoch rows corrected** — Epoch values moved from `1722504000` (2024-08-01) to `1785586200` (2026-08-01T12:10:00Z). The 2024 value spanned a >3-day range, which forced the auto bucket interval to `1day` and hid hour-granularity on chart axes.
+- **D2: Cross-check test** — A5 test extended to verify offset-bearing row (I9 Corp, 12:00:00+05:30 → 06:30 UTC) appears correctly in both table and chart. A5/D2 now parse chart-label hours from `displayLabels` (tolerating 12-hour and 24-hour label formats) instead of substring matching.
 - **D3: Timezone-independence** — All 13 unit tests pass under `TZ=Asia/Dhaka` (same results as UTC). The "offset-less parses as UTC" test catches timezone-dependent bugs.
 
 **Task E — Toast and docs:**
