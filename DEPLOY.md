@@ -48,6 +48,12 @@ If the build tooling ever becomes unworkable and you just need to get the app ba
 
 This returns the project to its pre-Phase-1 setup. Nothing about this migration is one-way.
 
+## 7. Why tests sometimes refuse to run
+
+The tests run against the built version of the app (the `dist/` folder), not the source code. If the source changes but the build has not been refreshed, the tests would check an old version — which defeats their purpose.
+
+Every test command now rebuilds the app automatically before running. If something bypasses that (for example, running a test directly from an IDE), the test runner checks whether the build is up to date. If it is not, the run stops immediately with a message like "dist/index.html is stale (src/auditor/time.js is newer); run npm run build". This is not a failure — it is a safety check. Run `npm run build` and try again.
+
 ## 6. Where the app is hosted
 
 The live app is at: **https://sanjoymitra90-rgb.github.io/qwen-test-atlas/**
