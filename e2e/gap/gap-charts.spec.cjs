@@ -329,4 +329,31 @@ test.describe('Phase 4 required tests', () => {
     expect(hasHour).toBe(true);
   });
 
+  // D2: Offset-bearing row table hour matches chart axis hour
+  test('D2 — offset-bearing row (06:30 UTC from +05:30) appears correctly', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-screenshots.csv');
+    // Find the row with I9 Corp (offset-bearing: 2026-08-01T12:00:00+05:30 => 06:30 UTC)
+    const tableHour = await page.evaluate(() => {
+      const rows = document.querySelectorAll('#gap-table-body tr');
+      for (const row of rows) {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 5 && cells[5].textContent.includes('I9 Corp')) {
+          const timeText = cells[0].textContent;
+          const m = timeText.match(/(\d{2}):(\d{2}):(\d{2})/);
+          if (m) return parseInt(m[1], 10);
+        }
+      }
+      return null;
+    });
+    expect(tableHour).toBe(6); // UTC hour is 06:30
+    // Verify the chart axis contains hour 06
+    const chartLabels = await page.evaluate(() => {
+      const chart = window.gapChartInstances && window.gapChartInstances.volume;
+      return chart ? chart.data.labels : [];
+    });
+    const hasHour6 = chartLabels.some(l => String(l).includes('06'));
+    expect(hasHour6).toBe(true);
+  });
+
 });
