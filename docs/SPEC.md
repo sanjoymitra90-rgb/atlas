@@ -65,7 +65,7 @@ persistence layer beyond `localStorage` for optimiser scenarios. All state is mo
 globals; all rendering is direct DOM manipulation.
 
 Pure logic is extracted into `src/` modules (`format.js`, `validate.js`, `parse.js`, `buckets.js`,
-`geo.js`) imported by `src/main.js` and re-exposed on `window` via a temporary bridge for
+`time.js`, `geo.js`) imported by `src/main.js` and re-exposed on `window` via a temporary bridge for
 inline handlers. Vite builds a single self-contained `dist/index.html` via `vite-plugin-singlefile`.
 
 Data never leaves the browser. This is deliberate — call data is sensitive. Note that six
@@ -332,10 +332,7 @@ schedules.
 
 ### 7.2 Timestamps
 
-Pure 10-digit string → epoch seconds ×1000. Pure 13-digit → epoch ms. Otherwise `new Date()`,
-which is **locale-ambiguous for `DD/MM/YYYY`** — R19. Rows keep `timestamp` and `timeValid`;
-invalid ones count in tiles, appear in the table with an amber icon, sort to the bottom, and are
-excluded from charts (invariant 8).
+Timestamp parsing is in `src/auditor/time.js` as `parseGapTimestamp(raw)` → `{ timestamp, timeValid, timeHadOffset }`. Pure 10-digit string → epoch seconds ×1000. Pure 13-digit → epoch ms. `D/M/YYYY H:MM(:SS)` → `Date.UTC(...)`. Otherwise `new Date()`, which is **locale-ambiguous for `DD/MM/YYYY`** — R19. Rows keep `timestamp` and `timeValid`; invalid ones count in tiles, appear in the table with an amber icon, sort to the bottom, and are excluded from charts (invariant 8). `timeHadOffset` is `true` for epoch inputs (unambiguous) and for ISO strings with `Z` or `±HH:MM`; `false` for `Date.UTC` and offset-less ISO strings.
 
 ### 7.3 UK validation — `validateUKNumber()`
 

@@ -7,9 +7,25 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.6 CI fix: stray div, theme test fixture)
+**Last updated:** 2026-08-13 (Phase 4.7: timestamp extraction, staleness guard, screenshot fix)
 
 ---
+
+### Phase 4.7 — Timestamp extraction, staleness guard, screenshot harness fix
+
+**Task A — Timestamp parsing:**
+- **A2: parseGapTimestamp extracted** — Timestamp parsing moved from inline in `processGapData()` to `src/auditor/time.js` as a pure function. Exposed on `window` via `src/main.js`. Move only, no behaviour change.
+- **A4: timeHadOffset epoch defect fixed** — Epoch inputs (10-digit seconds, 13-digit milliseconds) now report `timeHadOffset: true` instead of `false`. Epochs are unambiguous; no timezone assumption was made, so no warning should be triggered. `Date.UTC` branch still reports `false` (genuine assumption).
+- **A3: Unit tests** — 11 tests in `src/auditor/time.test.js`: epoch seconds, epoch ms, ISO with Z, ISO with +05:30, ISO without offset, D/M/YYYY H:MM, D/M/YYYY H:MM:SS, unparseable, empty, null, epoch timeHadOffset.
+- **A5: Cross-check test** — Playwright assertion that table hour matches chart axis hour for `gap-screenshots.csv` first row (09:00:10Z → hour 9).
+
+**Task B — Staleness guard:**
+- **B1: global-setup.cjs guard** — Fails if `dist/index.html` is missing or older than `index.html` or any `.js`/`.css` file under `src/`. Recursive `readdir` with `mtimeMs` comparison. Actionable error message naming the stale file.
+- **B2: Guard proven to fire** — Touched `index.html`, ran `npx playwright test` directly, confirmed abort before any test ran with message "dist/index.html is stale (index.html is newer); run npm run build".
+
+**Task C — Screenshot harness:**
+- **C1: Fixture changed** — `e2e/screenshot.js` now uploads `fixtures/gap-screenshots.csv` (62 rows, 32 signings, 29 verifies, same-second pairs) instead of `gap-core.csv` (5 signings, 0 pairs).
+- **C2: Root screenshots gitignored** — `screenshot-*.png` pattern added to `.gitignore`.
 
 ### Phase 4.6 CI fix — stray div, theme test fixture
 
