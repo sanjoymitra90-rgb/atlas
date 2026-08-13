@@ -37,6 +37,18 @@ describe('parseGapTimestamp', () => {
     expect(r.timeHadOffset).toBe(false);
   });
 
+  it('offset-less ISO timestamp parses as UTC, matching the Z-suffixed equivalent', () => {
+    const offsetLess = parseGapTimestamp('2026-01-15T10:30:00');
+    const withZ = parseGapTimestamp('2026-01-15T10:30:00Z');
+    expect(offsetLess.timestamp).toBe(withZ.timestamp);
+  });
+
+  it('non-ISO formats still parse via new Date() (not broken by UTC fix)', () => {
+    const r = parseGapTimestamp('Jan 1 2025 (test)');
+    expect(r.timeValid).toBe(true);
+    expect(r.timestamp).toBe(1735668000000);
+  });
+
   it('parses D/M/YYYY H:MM format via Date.UTC', () => {
     const r = parseGapTimestamp('15/01/2026 10:30');
     expect(r.timeValid).toBe(true);
