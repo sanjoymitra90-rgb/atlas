@@ -207,7 +207,7 @@ to stay true, only to stay complete.
 
 ### Country code prefix fix
 
-- **`validateUKNumber()` countryCode extraction fixed** — Greedy `\d{1,3}` regex replaced with prefix-free E.164 algorithm: try 1-digit codes (`1`, `7`), then 2-digit codes (47 entries verified against ITU-T E.164), then fall back to 3 digits. Correct codes: US `+1`, France `+33`, Germany `+49`, Australia `+61`, Bangladesh `+880`, Portugal `+351`.
+- **`validateUKNumber()` countryCode extraction fixed** — Greedy `\d{1,3}` regex replaced with prefix-free E.164 algorithm: try 1-digit codes (`1`, `7`), then 2-digit codes (44 entries verified against ITU-T E.164), then fall back to 3 digits. Correct codes: US `+1`, France `+33`, Germany `+49`, Australia `+61`, Bangladesh `+880`, Portugal `+351`.
 - **Tests corrected** — Two wrong expectations fixed (France `+331`→`+33`, US `+121`→`+1`). Added cases for one-digit (2 US numbers), two-digit (France, Germany, Australia), and three-digit (Bangladesh, Portugal) codes. UK `+44` case unchanged.
 - **Tests proven to fail** — Reverted to greedy extraction, confirmed test failure (`+121` instead of `+1`), restored fix. Stated in commit message per constraint 2.
 

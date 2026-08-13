@@ -29,9 +29,15 @@ The tool tidies the number first, so formatting never causes a false flag:
   treated exactly like `+447911223344`
 - **A missing `+` is added** when the number already starts with `44`. So `447911223344` becomes
   `+447911223344` and passes
-- **Numbers mangled by Excel** into scientific notation (`4.47701E+11`) are recovered where it can
-  be done safely. Where digits have genuinely been lost, the tool leaves the value alone rather
-  than guessing — it would rather flag a number than invent one
+- **Numbers mangled by Excel** into scientific notation are recovered where it can be done safely.
+  The mantissa must carry enough digits to reconstruct the number exactly. Where digits have
+  genuinely been lost, the tool leaves the value alone rather than guessing — it would rather flag
+  a number than invent one
+  - **Recovered:** `4.47911223344E+11` → `+447911223344`, passes all checks. The mantissa carries
+    the full 12 digits
+  - **Left alone:** `4.47701E+11` is returned unchanged and flagged **Not +44**. The mantissa
+    carries only 6 significant digits against the 12 required, so the tool declines to invent the
+    six it cannot know. Sometimes it declines to guess — that is a deliberate refusal, not a bug
 
 ---
 
@@ -117,9 +123,10 @@ numbers"* to *"show me the seven that are the wrong length"*.
 
 ## Keeping this accurate
 
-These definitions were read out of the running code on **13 August 2026**, at version `0325683`,
-and each example in this document was verified by running it through the tool rather than by
-reading the rules and describing them.
+These definitions were read out of the running code on **13 August 2026** — the scientific-notation
+examples were re-derived by execution in the Phase 4.9 correction — and each example in this
+document was verified by running it through the tool rather than by reading the rules and
+describing them. This revision corresponds to the Phase 4.9 Task D corrections.
 
 If the tool has been updated since, treat this document as a starting point rather than the
 authority — the code is the authority. Ask for a re-check and it takes a few minutes.

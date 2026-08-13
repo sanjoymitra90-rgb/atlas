@@ -68,9 +68,10 @@ Pure logic is extracted into `src/` modules (`format.js`, `validate.js`, `parse.
 `time.js`, `geo.js`) imported by `src/main.js` and re-exposed on `window` via a temporary bridge for
 inline handlers. Vite builds a single self-contained `dist/index.html` via `vite-plugin-singlefile`.
 
-Data never leaves the browser. This is deliberate — call data is sensitive. Note that six
-third-party scripts run with full DOM access, so the claim is currently asserted rather than
-enforced.
+Data never leaves the browser. This is deliberate — call data is sensitive. Four third-party
+libraries (Chart.js, Leaflet, html2pdf.js, DHTMLX Gantt) are bundled into the single file and
+run with full DOM access, and two CDN stylesheets (Font Awesome, Inter) load over the network,
+so the claim is currently asserted rather than enforced.
 
 Four views swapped by `showModule(name)`:
 
@@ -90,23 +91,27 @@ Use the accent colours consistently for any new UI. Dark theme only.
 Vite + vite-plugin-singlefile build. Tailwind CSS via build-time PostCSS (not CDN runtime).
 No other libraries may be assumed.
 
-| Dependency | Version | Used by | SRI |
+| Dependency | Version | Used by | Source / SRI |
 |---|---|---|---|
-| Tailwind CSS | v3 (build-time) | all | n/a — PostCSS |
-| Font Awesome | 6.5.1 | all | yes |
-| Leaflet | 1.9.4 | Optimizer | yes |
-| DHTMLX Gantt | 8.0 | Onboarding | no — no SRI available |
-| Chart.js | 4.4.1 | Call Auditor | no — recalled hashes removed (R3) |
-| html2pdf.js | 0.10.1 | Proposal PDF | no |
+| Tailwind CSS | v3 (build-time) | all | PostCSS — n/a |
+| Font Awesome | 6.5.1 | all | CDN stylesheet, SRI yes |
+| @fontsource/inter | 5.0.0 | all | CDN stylesheet, no SRI |
+| Leaflet | ^1.9.4 | Optimizer | npm, bundled — n/a |
+| DHTMLX Gantt | ^10.0.1 | Onboarding | npm, bundled — n/a |
+| Chart.js | ^4.5.1 | Call Auditor | npm, bundled — n/a |
+| html2pdf.js | ^0.14.0 | Proposal PDF | npm, bundled — n/a |
 
-The CSV parser is hand-rolled (`parseGapCSV`) — there is no PapaParse. CSP sets
-`connect-src 'none'` which blocks `fetch` and `XMLHttpRequest`; however `img-src https:` still
-permits exfiltration via image beacons, so the privacy claim is asserted rather than enforced at
-browser level. `style-src https:` allows Font Awesome and Google Fonts CDN stylesheets.
-`img-src` covers Leaflet tile loading. DHTMLX does not XHR at runtime.
+The four npm libraries (Leaflet, DHTMLX Gantt, Chart.js, html2pdf.js) are bundled into
+`dist/index.html` at build time, so subresource integrity is not applicable to them; only the
+two CDN stylesheets (Font Awesome, Inter) declare SRI. The CSV parser is hand-rolled
+(`parseGapCSV`) — there is no PapaParse. CSP sets `connect-src 'none'` which blocks `fetch`
+and `XMLHttpRequest`; however `img-src https:` still permits exfiltration via image beacons,
+so the privacy claim is asserted rather than enforced at browser level. `style-src https:`
+allows Font Awesome and Inter CDN stylesheets. `img-src` covers Leaflet tile loading. DHTMLX
+does not XHR at runtime.
 
-The app requires network access for these CDNs; it is **not** offline-capable despite being
-a single file.
+The app requires network access for the CDN stylesheets and Leaflet tiles; it is **not**
+offline-capable despite being a single file.
 
 ---
 
@@ -178,8 +183,9 @@ inside `renderGapCharts()` to support test access.
 - `regions[]` — 32 AWS regions (code, name, city, continent, lat, lng). **Index position is the
   canonical id** (invariant 2). Contains known label errors — R4.
 - `matrix` — 32×32 ping values. **Not symmetric** (450 of 496 pairs differ, max delta 30 ms) and
-  it violates the triangle inequality in 761 cases. Treat it as noisy measurement data, not
-  ground truth. Any earlier claim that it is mirrored is wrong.
+  it violates the triangle inequality in 856 ordered `(i, j, k)` triples where
+  `matrix[i][j] > matrix[i][k] + matrix[k][j]` (i, j, k all distinct). Treat it as noisy
+  measurement data, not ground truth. Any earlier claim that it is mirrored is wrong.
 - `worldCities[]` — name, lat, lng, `tier` 1–4, driving infra tax and T-badges.
 - `AWS_PRICE_INDEX` anchored at `us-east-1 = 1.00`; `PARIS_DEFAULT_COST = 2674`;
   `PARIS_INDEX = AWS_PRICE_INDEX['eu-west-3']`.
@@ -312,8 +318,8 @@ schedules.
 
 1. `handleGapCSVUpload` or drag-drop → `readGapFile(file)` → `parseGapCSV(text)`.
    Single-pass state machine: BOM strip, quoted commas, quoted newlines, CRLF, `""` escape,
-   empty rows, short-row padding. Returns `{headers, rows, errors, meta}`.
-   *Known: duplicate header names collide (R21); whole file read into memory (R20).*
+   empty rows, short-row padding. Returns `{headers, rows, errors}`; duplicate header names are
+   renamed by `dedupHeaders()` (name → `name (2)`). *Known: whole file read into memory (R20).*
 2. `openGapSettings(headers)` — mapping modal. Falls back to `gapRawHeaders` when called with no
    argument (the button does this). Takes a deep snapshot of `gapColumnMapping`,
    `gapAdditionalColumns`, `gapPairingKeys`, `gapSlowThreshold`, `gapPairWindow`;
@@ -325,7 +331,8 @@ schedules.
    (`svc.includes('verif')`) from the lowercased service value, runs `pairGapCalls()`, computes
    `gapPairSummary`, populates filters, metrics, table and charts, enables the Settings and
    Export buttons, and shows a descriptive toast.
-4. Filters recompute `gapFilteredData`; metrics and table follow. Charts currently do not — R8.
+4. Filters recompute `gapFilteredData`; `applyGapFilters()` then updates metrics, table and
+   charts from it. Charts read `gapFilteredData` directly, so they follow the filter.
 
 `row.raw` holds the original header-keyed CSV values, used by custom columns and pairing keys.
 `row._gapIdx` is the stable index into `gapData`, assigned once.
@@ -434,8 +441,8 @@ is loaded. Single-bucket and empty-filter states show a message instead of an em
 
 ### 7.6 Table and export
 
-Ten columns; **nine are sortable** — UK Valid has no handler. Default sort time descending, which
-currently compares the raw string rather than `row.timestamp` (R12). Pagination 25/50/100.
+Ten columns; **nine are sortable** — UK Valid has no handler. Default sort time descending,
+comparing `row.timestamp` (ms epoch) in both flat and grouped paths. Pagination 25/50/100.
 
 Group-by-pair is a render layer: paired rows share a group, orphans are solo, pagination counts
 groups, and sorting uses a representative row (the signing leg if present). Banding is luminance
