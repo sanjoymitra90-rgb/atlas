@@ -7,7 +7,22 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.6: filter bug, summary row, badge revert, timing charts, build-first)
+**Last updated:** 2026-08-13 (Phase 4.6 CI fix: stray div, theme test fixture)
+
+---
+
+### Phase 4.6 CI fix — stray div, theme test fixture
+
+**Task A — Stray closing tag (bug fix):**
+- **Removed extra `</div>`** — When the End-to-End chart was moved outside the two-column grid in Phase 4.6, a closing `</div>` was added for the grid but the original was not removed. This caused `#gap-dashboard` to close early, making the data table visible before any CSV is uploaded.
+- **Regression test** — Added "data table is not visible before any CSV is uploaded" to `gap-core.spec.cjs`. Asserts both `#gap-table-body` and `#gap-invalid-reason-panel` are not visible on fresh load.
+
+**Task B — Theme test fixture (stale test):**
+- **Switched to `gap-screenshots.csv`** — `gap-core.csv` produces zero paired calls (signing/verification pairs >1000ms apart). The Phase 4.6 empty-state guard correctly hides the TTV canvas. Theme test now uses `gap-screenshots.csv` which has 20+ pairs within the 1000ms window.
+- **All seven charts asserted** — Theme test now checks all seven chart canvases: invalid, volume, processing, requests, TTV, pair processing, end-to-end.
+- **`gap-screenshots.csv` fixture fixed** — Pairs were 2000ms apart (09:00:10Z → 09:00:12Z), outside the 1000ms window. All pairs now share the same timestamp so they pair reliably.
+
+**Test counts:** 71 unit + 191 e2e = 262 total, all green.
 
 ---
 

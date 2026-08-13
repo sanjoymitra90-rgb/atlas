@@ -9,6 +9,14 @@ test.describe('Gap Analyzer', () => {
     await expect(page.getByTestId('gap-privacy-note')).toContainText('never sent');
   });
 
+  test('data table is not visible before any CSV is uploaded', async ({ page }) => {
+    await openGapAnalyzer(page);
+    const table = page.locator('#gap-table-body');
+    await expect(table).not.toBeVisible();
+    const panel = page.locator('#gap-invalid-reason-panel');
+    await expect(panel).not.toBeVisible();
+  });
+
   test('core tiles after uploading gap-core.csv', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');

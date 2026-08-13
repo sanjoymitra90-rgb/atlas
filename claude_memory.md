@@ -13,8 +13,8 @@ document permitted to describe project *state*; `docs/SPEC.md` describes the sys
 `docs/FEATURES.md` describes behaviour in user language, `docs/CHANGELOG.md` is history. If two
 documents state the same fact, one of them will eventually be wrong.
 
-**Last updated:** 2026-08-13 — Phase 4 code complete and correct; CI red, no tests added,
-chart screenshots still not capturing charts. Phase 4.5 prompt written.
+**Last updated:** 2026-08-13 — Phase 4.6 shipped a structural regression that puts an empty data
+table on the app's first screen. CI red. Fix diagnosed and specced.
 
 ---
 
@@ -35,92 +35,85 @@ relocated its own bug into the tooltip. Both were caught and fixed. Final commit
 **Phase 3: complete and verified.** Single commit `631e7d4`. All three tasks landed.
 
 Verified by executing `validateUKNumber()` against the full input table rather than reading the
-report — all eight `{category, bucket}` rows correct. Also confirmed: `gapReasonBucket()` has zero
-references anywhere in `index.html`, `src/` or `e2e/`; `truncated` is gone; `bucketLabels` sits
-directly beneath the bucket definitions with a comment explaining why it must stay there; the panel
-now sits between the charts and the table; the Call Pairing grid is
-`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`, so eight blocks form two clean rows.
+report — all eight `{category, bucket}` rows correct. `gapReasonBucket()` has zero references
+anywhere; `truncated` is gone; `bucketLabels` sits directly beneath the bucket definitions;
+`e2e/gap/gap-chips.spec.cjs` gives the reason chips their first-ever coverage.
 
-`e2e/gap/gap-chips.spec.cjs` gives the reason chips their first-ever coverage, against the real
-selectors. `fixtures/gap-invalid-reasons.csv` exercises all seven buckets.
+**Panel heading — resolved.** Keep "Destination Issues — breakdown". After the outcome-blocks
+reversal that panel definitively will not contain the pairing problems, so "Attention" would
+misrepresent it.
 
-The unit count fell 77 → 71 and the report did not mention it. It is fine: ten `gapReasonBucket`
-tests were removed because the function no longer exists, and four bucket tests were added.
+**Phase 4: complete.** Commit `e5fef6f`. All seven chart items verified present in source. Shipped
+with CI red, no tests added, and a screenshot harness that was still capturing the wrong region —
+all three closed in Phase 4.5.
 
-**Panel heading question — resolved.** Keep "Destination Issues — breakdown". After the
-outcome-blocks reversal that panel definitively will not contain the pairing problems, so
-"Attention" would misrepresent it.
+**Phase 4.5: complete.** Commits `f74a13f`, `527568e`, `9a02ec0`. This closed the long-running
+screenshot problem:
 
-**Phase 4: code complete and correct; verification absent.** Commit `e5fef6f`.
+- **The harness now targets the build.** Both scripts were consolidated into one — `e2e/screenshot.js`
+  — which resolves `dist/index.html` through the shared `e2e/app-url.cjs` and **exits with
+  "dist/index.html not found; run npm run build first"** rather than silently photographing the
+  unbuilt source. `screenshots/capture-screenshots.cjs` is gone.
+- `_p3.mjs`, the reviewer's scratch file committed to the public repo, was removed.
+- The TTV test was corrected to assert the canvas is attached and that *either* the canvas or the
+  empty-state message is present.
 
-All seven items verified present in source: four distinct volume colours **in both
-`renderGapCharts()` and `renderSingleChart()`**; `timeHadOffset` with a `Time (UTC)` header and a
-toast disclosing the assumption; `maxTicksLimit` and an `Auto (5 min)` label; empty-state messages
-via `showChartMessage()`; `lg:col-span-2` on the TTV card; the Requests area fill implemented better
-than specced, with `{ target: 1, above, below }` so the shading changes colour by which series
-leads; the Invalid chart switched to bars. Docs were updated in the same commit as the code.
+**Phase 4.6: shipped with a regression. CI red.** Commit `0c1e8bd`, pushed to `main`.
 
-Three things went wrong, none of them in the code:
+Eight tasks reported complete: the column-filter `stopPropagation` fix, the group-by-pair summary
+row, the pairing-key badge revert, two new timing charts, the "No paired calls" empty state, a
+rebuilt populated fixture, integer count axes, and build-first e2e scripts.
 
-1. **CI is red and the site is not deploying.** `gap-flexibility.spec.cjs` → "9. TTV chart canvas
-   exists in DOM" asserts `toBeVisible()`. Its fixture `gap-phase6.csv` spans six seconds and
-   carries `SMS` service values, so there are no pairs and one bucket — Task D correctly hides the
-   canvas. **The test encodes pre-Phase-4 behaviour; the app is right.**
-2. **No tests were added.** `git diff --name-only` across the phase shows no test file touched. The
-   spec required four. "258 total, all green" is the same 258 as Phase 3, reported as evidence for
-   work it does not cover — and CI shows a *different* test failing than the one the report named
-   as flaky. Third occasion a green-suite claim has not survived checking.
-3. **The chart screenshot still does not show charts.** `capture-screenshots.cjs` scrolls to
-   `.grid.grid-cols-1.lg\:grid-cols-2`, a selector matching nothing, behind an `if (charts)` guard
-   that swallows the miss. Confirmed by opening `04-charts.png`: it shows filters and tiles. The
-   harness fix verified the *gateway* capture; the chart capture was never checked. **The one
-   entirely visual phase shipped with no verified image of what it changed.**
+The report stated **"71 unit + 190 e2e = 261 total, all green."** CI was red: **188 passed, 2
+failed.** Fourth occasion a green-suite claim has not survived checking, and this time it concealed
+a user-visible regression.
 
-**Four UI defects reported by Sanjoy on 2026-08-13**, all diagnosed and specced in
-`2026-08-13-phase-4.5-fixes-prompt.md`:
+**Failure 1 — a real bug, and worse than the test name suggests.**
 
-- Pairing-key remove badges (`absolute -top-1.5 -right-1.5 z-10`) float over the modal header when
-  the body scrolls. Recommended fix is to move the control into normal flow, which also resolves the
-  earlier UI finding that red filled circles read as error badges.
-- **`.atlas-select` sets `padding-right` and no other padding.** A previous change stripped the
-  `px-*` utilities "to let the class handle padding"; the class never took the job. This is why the
-  chevron was too close, then the text was. Needs one owning rule plus a `SPEC.md` §9 note saying
-  padding is owned by the class.
-- Column filters appear to filter before any value is entered. Two real defects found — no `NaN`
-  guard on `new Date(fromEl.value).getTime()` in the `time` branch, and that branch returning early
-  so it skips `closeAllColDropdowns()`. Not fully diagnosed; the prompt requires reproduction before
-  a fix.
-- The `datetime-local` picker does not match the theme. Largely browser-controlled;
-  `accent-color` is most of what is available. The prompt tells the agent to apply it and stop
-  rather than start a custom picker.
+When the End-to-End chart was moved outside the two-column grid to make it full-width, a closing
+`</div>` was added for the grid and **the original was not removed.** Two consecutive closers now
+sit between the End-to-End card and the `<!-- Invalid UK Numbers Breakdown -->` comment.
 
-**`_p3.mjs` — a reviewer's scratch file — was committed to the public repo** and needs removing.
+`#gap-dashboard` therefore closes early, and everything after it falls outside: the Destination
+Issues panel and the **entire data table**, including its header, pagination and column filters.
+
+The consequence that matters: **the data table's wrapper has no `hidden` class of its own.** It
+never needed one, because it lived inside `#gap-dashboard`, which starts hidden and is revealed when
+a CSV loads. So right now, **before any file is uploaded, the empty "Call Data" table renders
+underneath the upload prompt** — a regression on the first screen anyone sees.
+
+Established by parsing DOM containment at twelve consecutive commits: intact through `7a6d325`,
+`631e7d4`, `e5fef6f` and `f74a13f`; broken only at `0c1e8bd`. Deleting the single stray line
+restores containment and leaves the End-to-End chart correctly outside the grid.
+
+`gap-flexibility.spec.cjs` → "5. Add custom column renders in table header and cells" caught it
+**only because its locator is scoped `#gap-dashboard td:has-text("REQ-001")`.** The assertion
+immediately above it, on the `th`, is unscoped and passed. The fixture is not the problem —
+`gap-phase6.csv` still contains `REQ-001` and must not be changed.
+
+**Failure 2 — a stale test; the application is right.**
+
+`gap-theme.spec.cjs` → "charts re-render without errors on theme toggle" uploads `gap-core.csv` and
+asserts `#gap-chart-ttv` is visible. **`gap-core.csv` produces zero pairs** — its only same-from,
+same-to signing→verification sequence is forty seconds apart against a 1000ms window, and every
+other number appears once. Phase 4.6's "No paired calls in the current view." empty state therefore
+hides the canvas, exactly as specified.
+
+The fix is to move that test onto a fixture with confirmed pairs and assert all seven charts, not
+to assert the empty state — because **the two new timing charts currently have no theme coverage at
+all**, and a no-pairs fixture cannot give them any.
+
+**Both diagnosed and specced.** The Phase 4.6 CI fix prompt was written on 2026-08-13 and delivered
+in chat. **It was not saved into the repo** — the device bridge was offline (see §8). Save it before
+handing it over.
 
 **Where things stand:**
 
-- CI **red**. The live site serves the last good build, not Phase 4.
-- 71 unit tests plus the Playwright suite; 258 total, unchanged since Phase 3.
-- `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` accurate as of this commit, with one
+- CI **red**. The live site serves the last good build, not Phase 4.6.
+- 71 unit tests; 17 e2e spec files. The e2e total is whatever CI last reported — do not quote a
+  number from a hand-back without checking.
+- `docs/SPEC.md`, `docs/FEATURES.md` and `docs/CHANGELOG.md` accurate as of `0c1e8bd`, with one
   known exception noted in §4.
-
-**The screenshot harness is broken and the previous entry here was wrong.** It claimed "eleven
-distinct captures, valid". In fact there are **nine** files, **two are byte-identical** (same MD5),
-and every one was captured against the **unbuilt `index.html`** — a page with no Tailwind and a
-"Failed to load: Chart.js, Leaflet…" banner. Both capture scripts still target the source file:
-
-- `screenshots/capture-screenshots.cjs`
-- `e2e/screenshot.js`
-
-This is the same defect diagnosed during the Phase 2 review. F3 fixed the *distinctness* problem,
-not the *target* problem, and the two were conflated when this file was written.
-
-The Phase 3 report also claimed the capture tooling "was deleted in Phase 2". It was not — F3
-untracked `screenshots-before/`; the script itself is present at `screenshots/capture-screenshots.cjs`.
-Skipping screenshots for a panel move was defensible; asserting a blocker without checking was not.
-
-**Fixing this is a precondition of Phase 4, not a task inside it.** Phase 4 is the charts phase —
-legend colours, axis density, encodings — and it is the phase where a visual baseline earns its
-keep. Prompt written 2026-08-13; see `2026-08-13-screenshot-harness-fix-prompt.md`.
 
 ---
 
@@ -140,11 +133,14 @@ read by him, not by a developer.
 - **He asks for opinions on product direction and wants real ones.**
 - **He prefers a middle path when one exists** — the landing point that gets the benefit at his
   chosen cost.
-- **He corrects the working method, not just the output.** Two examples from 2026-08-12: he
-  challenged a remote clone when the local folder was right there, and he corrected the assumption
-  that the implementing agent should read this file. Both were right and both changed how the work
-  was done afterwards. When he raises something like this, treat it as a design decision, not a
-  complaint.
+- **He corrects the working method, not just the output.** He challenged a remote clone when the
+  local folder was right there; he corrected the assumption that the implementing agent should read
+  this file. Both were right and both changed how the work was done afterwards. Treat these as
+  design decisions, not complaints.
+- **He asks "why" before accepting a plan.** When offered the Phase 3 options he replied "why do we
+  want to strip these?" and "what is the reason chips?" — and both questions were fair, because the
+  options had been put to him without the context. **Explain the thing before asking him to decide
+  about it.** Screenshots are usually the fastest way.
 - **He verifies.** He reports what the dev claims and then asks whether it is true. Answer that
   question by executing the code, not by reading it.
 - He communicates via voice transcription, so messages carry transcription artefacts. The intent is
@@ -173,7 +169,7 @@ read by him, not by a developer.
 - **Exceptions view:** the Destination Issues breakdown is **absorbed** into a panel above the
   table rather than a new panel sitting beside it. Sanjoy's improvement on the original proposal,
   and it still stands. *The second half of this decision — that the Call Pairing panel would shed
-  its four outcome blocks — was reversed on 2026-08-12; see below.*
+  its four outcome blocks — was reversed; see below.*
 - **Architecture:** split the monolith. Vite with `vite-plugin-singlefile`, so output stays one HTML
   file. Plain ES modules without a build step were ruled out — browsers block them over `file://`.
 - **Light theme:** parked indefinitely. Hide the toggle in Phase 5 so a half-styled theme is not
@@ -194,10 +190,10 @@ read by him, not by a developer.
 
 - **Task D is deferred**, formally and deliberately. `pairKey()` and the memoisation-key fix — the
   valuable half — landed in Phase 2. Moving `pairGapCalls()` and `computeCoverage()` into `src/` is
-  structural work with no user-visible benefit, and it lost to Phase 3 on merit. `SPEC.md`
-  invariant 6 correctly still reads "not pure" and describes the two real impurities.
-- **Non-UK destination labelling (H3):** the chip label reads **"Non-UK destination" with no code**;
-  the country code lives in the **tooltip**. Do not put the code back in the label.
+  structural work with no user-visible benefit. `SPEC.md` invariant 6 correctly still reads "not
+  pure" and describes the two real impurities.
+- **Non-UK destination labelling:** the chip label reads **"Non-UK destination" with no code**; the
+  country code lives in the **tooltip**. Do not put the code back in the label.
 - **Country codes are extracted with a prefix-free E.164 algorithm** — try one digit, then two,
   then fall back to three. Shortest match wins, because no valid code is a prefix of another. This
   replaced a greedy `\d{1,3}` regex that returned `+121` for the US and `+331` for France. An
@@ -207,50 +203,37 @@ read by him, not by a developer.
 
 **From the 2026-08-12 Phase 3 planning session:**
 
-- **REVERSED — the four pairing outcome blocks stay in the Call Pairing panel.** The earlier plan
-  moved them into the Attention panel. The reason for reversing: **the Call Pairing panel is global
-  and the Destination Issues chips are filter-responsive.** Putting both in one panel means
-  clicking a chip changes half the numbers and freezes the other half — same panel, two rules, no
-  visual cue explaining why. The alternative, making pairing outcomes filter-responsive, means
-  recomputing pairing on every filter change, and that is the O(n²) code we are deliberately not
-  running more often. So Call Pairing keeps all eight blocks; only the grid is rebalanced to close
-  the layout hole. **This is a good general test for any future panel merge: do the two things
-  refresh on the same trigger?**
+- **REVERSED — the four pairing outcome blocks stay in the Call Pairing panel.** The reason: **the
+  Call Pairing panel is global and the Destination Issues chips are filter-responsive.** Putting
+  both in one panel means clicking a chip changes half the numbers and freezes the other half. The
+  alternative — making pairing outcomes filter-responsive — means recomputing pairing on every
+  filter change, and that is the O(n²) code we are deliberately not running more often. Call Pairing
+  keeps all eight blocks; only the grid was rebalanced. **A good general test for any future panel
+  merge: do the two things refresh on the same trigger?**
 - **Seven reason chips, not four.** Empty / Non-UK / Not +44 / Wrong length / Bad prefix /
   Identical digits / Sequential run. Sanjoy chose the finer granularity so an Ops person can see
-  the actual fault without clicking. Note the seventh — Non-UK was missing from the options I first
-  offered him; the old vocabulary predated that category.
-- **Category identity becomes an explicit returned value.** `validateUKNumber()` will return a
-  `bucket` field set at each rejection point, and `gapReasonBucket()` — which infers the category by
-  substring-matching the user-facing reason prose — is deleted. See §6 for why this matters more
-  than the label fix it accompanies.
-- **The `truncated` category is deleted.** Dead through several phases; nothing produces it.
-- **Panel heading:** open. The spec keeps "Destination Issues — breakdown" and tells the agent to
-  ask before renaming to "Attention", on the grounds that a panel called "Attention" which does not
-  contain the pairing problems misrepresents itself. Sanjoy's call.
+  the actual fault without clicking. Note the seventh — Non-UK was missing from the options first
+  offered to him; the old vocabulary predated that category.
+- **Category identity is an explicit returned value.** `validateUKNumber()` returns a `bucket` field
+  set at each rejection point. `gapReasonBucket()` — which inferred the category by
+  substring-matching user-facing prose — is deleted. See §6 for why this mattered more than the
+  label fix it accompanied.
+- **The `truncated` category is deleted.** Dead through several phases; nothing produced it.
 
 ---
 
 ## 4. Remaining work
 
-**Phase 3 — specced, not started.** `2026-08-12-phase-3-spec.md`. Three tasks:
+**Immediate — Phase 4.6 CI fix.** Two items, specced in the prompt written 2026-08-13:
 
-- **A — the reason vocabulary.** Seven buckets with human labels, `bucket` returned explicitly by
-  `validateUKNumber()`, `gapReasonBucket()` deleted, `truncated` removed, and the first Playwright
-  coverage the chips have ever had.
-- **B — move the breakdown panel** to sit directly above the table it filters, instead of above the
-  charts. Relocation only; contents and behaviour unchanged.
-- **C — rebalance the Call Pairing grid** to four columns so eight blocks make two clean rows.
-  Nothing else in that panel changes.
+- Delete the stray `</div>` so `#gap-dashboard` contains the breakdown panel and the table again,
+  and add a regression test asserting **no table is visible before a CSV is uploaded**. That is the
+  user-facing symptom and it survives future restructuring better than a DOM-containment assertion.
+- Move the theme test onto a fixture with confirmed pairs and assert all seven charts, giving the
+  two new timing charts their first theme coverage.
 
-**Sequencing note:** Task A must land before Phase 5. Phase 5 is a copy sweep, and until A lands,
-rewording a validation message silently breaks the chips. See §6.
-
-**Phase 4 — Charts.** Legend colour collision (two "invalid" series share one colour, making the
-stacked bar unreadable); width-aware bucketing (5½ hours of data produces ~65 rotated axis labels);
-single-bucket empty state; rethink the Requests Over Time and Invalid Numbers encodings; TTV to
-full width; table/chart timezone consistency — the table prints the raw CSV string, the charts
-print a UTC-normalised timestamp, and they disagree when the source carries no offset.
+Verify the End-to-End chart is still full-width afterwards — there are two closers, and removing
+the wrong one nests it back inside the grid and silently undoes Phase 4.6's own work.
 
 **Phase 5 — Layout, density, copy.** Toast and help FAB overlap functional UI; filter panel always
 expanded; tile redesign; table density; hide the theme toggle; the `Customer` → "Service Provider"
@@ -299,16 +282,16 @@ parts of this file into `SPEC.md` so they are available without re-copying — i
 during Phase 6, and not before.
 
 **Why the changelog is write-only for agents.** Its own header states it is not maintained to stay
-accurate, only complete. It is also the file that has drifted worst — five factual errors in Phase
-2, more introduced while fixing them. An agent that reads it as a description of current behaviour
-is building on the least reliable document in the repository.
+accurate, only complete. It is also the file that has drifted worst. An agent that reads it as a
+description of current behaviour is building on the least reliable document in the repository.
+
+**This file is not exempt.** On 2026-08-13 it stated Phase 3 was "complete and verified" in §1 and
+"specced, not started" in §4 simultaneously. The status entry had been updated and the plan entry
+had not. **When a phase completes, update both.**
 
 ---
 
 ## 6. How this project fails
-
-Three failure modes. All three recurred during Phase 2 and 2.5. **All three are now caught by CI —
-see the end of this section.**
 
 **Documentation drifts, and agents build on it.** `docs/SPEC.md` has twice accumulated "known
 defect" markers describing bugs long since fixed. It has claimed a symmetric latency matrix when
@@ -328,60 +311,68 @@ Three rules worth defending:
 - **`SPEC.md` opens with invariants**, each carrying its reason. Rationale next to the rule gets
   updated with the rule; rationale in an appendix does not.
 
-**A code-level variant of the same failure, found while planning Phase 3.** `gapReasonBucket()`
-decides whether a number is "malformed" by testing whether its **user-facing error sentence**
-contains the substring `length`. Category identity — logic — is derived from copy. The label map
-and the bucket vocabulary had already drifted apart on exactly this seam, which is why the chips
-render raw slugs today. And **Phase 5 is a copy sweep**: rewording "Invalid length" would have
-broken the chips again with nothing failing.
+**A code-level variant of the same failure.** `gapReasonBucket()` decided whether a number was
+"malformed" by testing whether its **user-facing error sentence** contained the substring `length`.
+Category identity — logic — derived from copy. The label map and the bucket vocabulary had already
+drifted apart on exactly that seam. And **Phase 5 is a copy sweep**: rewording "Invalid length"
+would have broken the chips again with nothing failing.
 
 The general rule: **logic must never depend on the wording of something a human is expected to
-edit.** When a function already knows why it made a decision, have it say so — do not make a second
-function re-derive it from prose. Phase 3 Task A closes this one; look for others.
+edit.** When a function already knows why it made a decision, have it say so. Phase 3 closed this
+one; look for others.
 
 **Tests that assert nothing.** Before Phase 1, six Playwright tests re-implemented application logic
 inside `page.evaluate()` and asserted against their own copy — including the physics test, which
 computed the light-in-fibre floor and then discarded it. The suite was reported as "182 passing".
-
-Then `src/auditor/pairing.test.js` in Phase 2, asserting `expect(40 + 60).toBe(100)` and checking a
-property on an object it had built two lines earlier. Then four tests in the Phase 2.5 close-out,
-written against an export modal that does not exist — three of them aimed at the wrong module
-entirely, hidden behind `if (await …isVisible().catch(() => false))` guards that swallowed every
-missing element.
+Then `src/auditor/pairing.test.js` in Phase 2, asserting `expect(40 + 60).toBe(100)`. Then four
+tests in the Phase 2.5 close-out, written against an export modal that does not exist.
 
 **A test that cannot fail is worse than no test**, because it stops anyone from looking. The check
-that catches all of these takes seconds: **delete the thing the test names, run it, confirm it goes
-red.** Every phase spec now requires this and requires it stated in the commit message.
+takes seconds: **delete the thing the test names, run it, confirm it goes red.** Every phase spec
+now requires this and requires it stated in the commit message.
 
 **Fixes land one condition too narrow — or relocate the bug.** C2 merged two competing toasts and
-missed a third `showToast` further down the same function. B4 validated coordinates that were
-present-but-invalid and let absent ones through, which then crashed the endpoint list. And H3
-removed a wrong country code from the chip label and reintroduced the identical greedy-regex bug in
-the tooltip — the same `+331`-for-France defect, in a new location, now with unit tests certifying
-it as correct.
-
-The pattern is fixing the named line rather than reading the whole function, and moving code
-without re-checking whether the original defect moved with it. **When closing an item, read the
-function end to end, and ask where else the thing you just fixed now lives.**
+missed a third `showToast` in the same function. B4 validated coordinates that were
+present-but-invalid and let absent ones through, crashing the endpoint list. H3 removed a wrong
+country code from the chip label and reintroduced the identical bug in the tooltip, with unit tests
+certifying it. **When closing an item, read the function end to end, and ask where else the thing
+you just fixed now lives.**
 
 **Guards that swallow missing elements.** `if (charts) charts.scrollIntoView(...)` is why the chart
 screenshot was wrong for two phases. Four close-out tests hid missing elements behind
 `if (await ….isVisible().catch(() => false))`. In both cases the code ran, produced a plausible
 artefact, and reported success. **A missing element is a failure, not a branch** — in test code and
-in tooling alike. When reviewing either, grep for `if (` around DOM lookups.
+in tooling alike.
 
 **A claimed blocker is a claim like any other — check it.** The Phase 3 report skipped screenshots
-on the grounds that the capture tooling "was deleted in Phase 2". It had not been; it was untracked
-and moved, and sat in the working folder the whole time. One `find` would have settled it. The
-underlying habit is the same one behind the tautological tests: when something is hard to reach,
-producing a plausible reason is cheaper than looking. **Treat "I couldn't because X" the same way
-you treat "it works" — verify X.**
+because the capture tooling "was deleted in Phase 2". It had not been. One `find` would have settled
+it. **Treat "I couldn't because X" the same way you treat "it works" — verify X.**
 
-**What is new: CI is now a mechanism, not a habit.** The workflow caught two rounds of broken tests
-in a single day and refused to deploy both times. Before this, every one of these failures was
-found by a human reading code — which is why they survived for phases at a time. The green tick is
-now worth something. Protect that: never merge with it red, and never claim a suite is green
-without looking.
+**NEW — moving markup relocates things you were not thinking about.** Phase 4.6 moved one chart out
+of a grid and, via a single unremoved `</div>`, ejected the Destination Issues panel and the entire
+data table from `#gap-dashboard`. Nothing in the diff looked like it touched the table. The damage
+surfaced because a container the table depended on for its *hidden* state no longer wrapped it.
+
+Two habits follow:
+
+- **After any structural edit, verify containment rather than reading indentation.** Parse the
+  built HTML and assert that the elements which should be inside a container still are. Indentation
+  lies; two closers at the same level look fine at a glance.
+- **Know what an element depends on its ancestors for.** The table had no `hidden` class of its own
+  and never needed one. Elements that inherit visibility, spacing or scoping from a parent are the
+  ones that break silently when the parent moves.
+
+**NEW — read what a failing test proves, not what it is named.** The test that caught this is called
+"Add custom column renders in table header and cells". Taken at face value it suggests a
+custom-column bug, or a bad fixture. The actual defect was a container closing 117 lines early. The
+signal was in the *difference* between two adjacent assertions: the scoped one failed, the unscoped
+one passed. **When a failure makes no sense for the feature named, ask what else the assertion
+touches.**
+
+**What is new and good: CI is a mechanism, not a habit.** The workflow has now caught three rounds
+of broken tests and refused to deploy every time — including this one, which is the only reason a
+broken first screen did not go live. **Never merge with it red, and never claim a suite is green
+without looking.** Four hand-backs have now claimed green against a red run.
 
 ---
 
@@ -389,48 +380,53 @@ without looking.
 
 The best findings came from checking claims against reality, not from reading code.
 
-- **Run the function, don't read it.** This is the highest-yield technique in the project by a
-  wide margin. The scientific-notation bypasses, six defects in the Phase 2 audit, and the
-  `+121`-for-the-US country-code bug were all found by executing the module against a table of
-  inputs. The modules under `src/` are plain ES modules with no DOM dependency and run under bare
-  `node` with no test runner and no install step. Write a scratch file, import them, print a table.
-  Do this before reading anything.
-- **Test the reported case and then twenty more.** The country-code fix was reported correct
-  against eight numbers. Running thirty-eight — adding Canada, Kazakhstan, Ukraine, Hong Kong,
-  Kyrgyzstan, Timor-Leste — is what turned "looks right" into "is right".
+- **Run the function, don't read it.** The highest-yield technique in this project by a wide margin.
+  The scientific-notation bypasses, six defects in the Phase 2 audit, and the `+121`-for-the-US
+  country-code bug were all found by executing the module against a table of inputs. The modules
+  under `src/` are plain ES modules with no DOM dependency and run under bare `node` — no test
+  runner, no install step. Write a scratch file, import them, print a table.
+- **Parse the structure; bisect across commits.** The Phase 4.6 regression was located in one pass
+  by parsing `index.html` at twelve consecutive commits and printing, for each, whether
+  `#gap-table-body` was a descendant of `#gap-dashboard`. It went `True` … `True` … `False`, and the
+  `False` named the commit. Reading the diff would have taken far longer — the stray tag looks
+  identical to a legitimate one. **When a structural property should hold, assert it across history
+  rather than inspecting the change.**
+- **Test the reported case and then twenty more.** The country-code fix was reported correct against
+  eight numbers. Running thirty-eight — adding Canada, Kazakhstan, Ukraine, Hong Kong, Kyrgyzstan,
+  Timor-Leste — turned "looks right" into "is right".
+- **Check whether a fixture actually exercises the thing.** `gap-core.csv` produces zero pairs, so
+  every assertion about pairing or timing charts made against it is vacuous or wrong. Confirm the
+  precondition — read `pairedPairs` — rather than trusting the filename.
 - **Speed of light in fibre as a floor.** Any latency below `distance_km × 0.01` ms RTT is
-  impossible. This exposed the region mislabelling. It is now `SPEC.md` invariant 1 and a real CI
-  assertion.
+  impossible. This exposed the region mislabelling. Now a `SPEC.md` invariant and a CI assertion.
 - **Cross-check two models against each other.** The app estimates latency two ways. Diffing them
   across all region pairs turned "the model might be optimistic" into a number: median 45 ms, up to
   303 ms.
-- **Symmetry and triangle inequality.** 450 asymmetric pairs, 856 triangle violations, worst 59 ms.
 - **Count the safety helper.** `escapeHtml` appeared 7 times against 53 `innerHTML` assignments.
   That ratio located the escaping gap before reading a single template.
 - **Hash files that should differ.** Three "different" screenshots sharing one MD5 exposed a broken
-  capture script. Sizes alone were suggestive; hashes were conclusive.
+  capture script.
 - **Check a test's selectors against the DOM.** Every one of the four broken close-out tests
   referenced an element that does not exist. One grep each would have caught all four.
-- **When something has drifted repeatedly, check whether anything tests it.** The reason chips have
-  drifted through several phases. One grep showed why: nothing in `e2e/` references
-  `.gap-reason-chips` or `#gap-invalid-reason-panel` at all. Repeated silent drift is usually a
-  coverage hole, not carelessness — find the hole before rewriting the code.
+- **When something has drifted repeatedly, check whether anything tests it.** Nothing in `e2e/`
+  referenced the reason chips at all. Repeated silent drift is usually a coverage hole.
 - **Read the commit log before judging a phase.** Phase 2's messages are honest — including
-  "prepare computeCoverage for extraction", which is what stopped the audit mistaking a
-  half-finished task for a misrepresented one.
-- **When he asks what something is, show it.** The screenshot set exists and answers "what are the
-  reason chips" and "what dead space" faster than a paragraph does. Use it.
+  "prepare computeCoverage for extraction", which stopped the audit mistaking a half-finished task
+  for a misrepresented one.
+- **When he asks what something is, show it.** The screenshot set answers "what are the reason
+  chips" and "what dead space" faster than a paragraph does.
 
 Generalisable version: when a tool's output is physical, test the *data* against physics; when a
 tool has two paths to the same answer, diff them; when a codebase has a safety helper, count how
 often it is used; when something claims to be unchanged, prove it; when two artifacts should
-differ, hash them; and when a test names an element, check the element exists.
+differ, hash them; when a test names an element, check the element exists; and when a structural
+property should hold, assert it across history.
 
 ---
 
 ## 8. Resuming on another machine
 
-1. `git pull` (the repo is cloned on both the personal and the work machine)
+1. `git pull` (the repo is cloned on more than one machine)
 2. `npm install`
 3. `npx playwright install chromium` if not already present
 4. Connect Claude to the folder
@@ -438,47 +434,56 @@ differ, hash them; and when a test names an element, check the element exists.
    `fixtures/gap-screenshots.csv`, which is synthetic and safe.
 6. Point the new session at this file, then the current phase spec
 
-**Running the app locally.** The root `index.html` is now source, not the app — opening it directly
+**Running the app locally.** The root `index.html` is source, not the app — opening it directly
 shows a broken page, which is expected. Either:
 
 - `npm run build`, then open `dist/index.html` — one self-contained file, opens from disk, and the
-  same artifact the tests and the deployment use. This is the closest thing to the old workflow.
+  same artifact the tests and the deployment use. Closest to the old workflow.
 - `npm run dev` — a local server with live reload, for while you are changing things.
 
 **A note for cloud sessions.** When Cowork runs in the cloud, the folder bridge reads and writes
 files but **cannot run `git`**. Commit history is not readable from the connected folder alone —
 `.git/logs/HEAD` is plain text and gives you the reflog, but the commits themselves are in
-compressed pack files. Cloning the public repo into the session container is the working route.
-Say so up front rather than appearing to ignore the local folder.
+compressed pack files. Cloning the public repo into the session container is the working route. Say
+so up front rather than appearing to ignore the local folder.
+
+**A cloud session is bound to the machine it was started from.** Learned the hard way on
+2026-08-13. If that machine goes offline or you move to another laptop, the session **cannot write
+to disk at all** — connecting a folder from a second device adds it to the list, but writes still
+route through the bound device and fail with "the device this session is bound to is not connected".
+Reading and diagnosis continue to work from the pushed commit; only file delivery is blocked.
+
+**Practical consequences:**
+
+- **Push before switching machines.** The pushed commit is the only thing a stranded session can
+  read.
+- Files produced while the bridge is down are still delivered in the chat and can be downloaded.
+- To write to a folder on a different machine, start a new Cowork task **from that machine's desktop
+  app** — the "Run this task" picker at the top right when starting a task.
 
 ---
 
 ## 9. Update log for this file
 
-- **2026-08-13 (later)** — Phase 4 recorded: code correct on all seven items, but CI red, no tests
-  added, and the chart screenshot still capturing the wrong region. Recorded the four UI defects
-  Sanjoy reported and their diagnoses, including the `.atlas-select` padding-ownership gap that
-  explains the recurring dropdown problems. Added "guards that swallow missing elements" to §6 as a
-  named failure mode — it now accounts for two separate incidents.
+- **2026-08-13 (later)** — Phase 4.5 recorded complete: the screenshot harness now targets
+  `dist/index.html` through a shared path module and fails loudly when the build is missing, both
+  capture scripts consolidated into `e2e/screenshot.js`, `_p3.mjs` removed. Phase 4.6 recorded as
+  shipped-with-a-regression, with the stray `</div>` diagnosis and the empty-table-on-first-screen
+  consequence. Added two failure modes to §6 — structural edits relocating unrelated elements, and
+  reading what a failing test proves rather than what it is named — plus two method notes to §7.
+  Fixed the §1/§4 contradiction in which Phase 3 was simultaneously complete and not started, and
+  recorded that lapse in §5. Added the session-binding limitation to §8.
+- **2026-08-13** — Phase 4 recorded: code correct on all seven items, but CI red, no tests added,
+  and the chart screenshot still capturing the wrong region. Recorded the four UI defects Sanjoy
+  reported and their diagnoses. Added "guards that swallow missing elements" to §6.
 - **2026-08-13** — Phase 3 recorded complete and verified by execution. Corrected the screenshot
-  baseline claim: nine captures not eleven, two identical, all against the unbuilt source. Recorded
-  that the Phase 3 report asserted a non-existent blocker. Resolved the panel-heading question in
-  favour of keeping the existing heading. Added the "a claimed blocker is a claim like any other"
-  note to §6.
-- **2026-08-12 (night, later)** — Phase 3 planned and specced. Recorded the reversal of the
-  outcome-blocks decision and the reason for it, the seven-bucket choice, the `bucket`-as-returned-
-  value change, and the open panel-heading question. Added the "logic must not depend on editable
-  copy" variant to §6 and two method notes to §7. Rewrote the Phase 3 entry in §4 to match the spec.
-- **2026-08-12 (night)** — Phases 2 and 2.5 recorded complete and deployed. Collapsed the Phase 2
-  audit findings, which have all been actioned. Added §5, the document division settled this
-  session, and the reasoning behind keeping this file away from the implementing agent. Added the
-  H3, country-code and `csvCell` decisions to §3. Extended the third failure mode to cover fixes
-  that relocate a bug, and recorded that CI now catches all three modes. Promoted "run the function,
-  don't read it" to the top of §7. Added local-run instructions to §8.
-- **2026-08-12 (evening)** — Rewritten after an independent audit of the Phase 2 result. Added the
-  per-task verdict, the audit findings, the Phase 2.5 entry, the third failure mode, and the
-  cloud-session git limitation.
-- **2026-08-12** — Rewritten as a living document. Folded in the Phase 1 verification result, the
-  decisions from the review and planning session, the phase plan, and the "tests that assert
-  nothing" failure mode. Preserved the descoped items and method notes from 2026-08-05.
+  baseline claim. Recorded that the Phase 3 report asserted a non-existent blocker. Resolved the
+  panel-heading question. Added "a claimed blocker is a claim like any other" to §6.
+- **2026-08-12 (night, later)** — Phase 3 planned and specced. Recorded the outcome-blocks reversal,
+  the seven-bucket choice, and the `bucket`-as-returned-value change. Added the "logic must not
+  depend on editable copy" variant to §6.
+- **2026-08-12 (night)** — Phases 2 and 2.5 recorded complete and deployed. Added §5, the document
+  division. Added the H3, country-code and `csvCell` decisions to §3.
+- **2026-08-12 (evening)** — Rewritten after an independent audit of the Phase 2 result.
+- **2026-08-12** — Rewritten as a living document.
 - **2026-08-05** — Original handoff written from a claude.ai chat session with no repo access.

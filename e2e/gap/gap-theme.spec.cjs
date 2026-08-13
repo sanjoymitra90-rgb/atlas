@@ -42,15 +42,18 @@ test.describe('Gap Analyzer — Theme Toggle', () => {
   });
 
   test('charts re-render without errors on theme toggle', async ({ page }) => {
-    await uploadAndAnalyze(page, 'gap-core.csv');
+    await uploadAndAnalyze(page, 'gap-screenshots.csv');
     // Toggle theme
     await page.getByTestId('gap-theme-toggle').click();
     await expect(page.locator('#main-content')).toHaveAttribute('data-theme', 'light');
-    // Charts should still be present
+    // All seven charts should still be present
     await expect(page.locator('#gap-chart-invalid')).toBeVisible();
     await expect(page.locator('#gap-chart-volume')).toBeVisible();
     await expect(page.locator('#gap-chart-processing')).toBeVisible();
+    await expect(page.locator('#gap-chart-requests')).toBeVisible();
     await expect(page.locator('#gap-chart-ttv')).toBeVisible();
+    await expect(page.locator('#gap-chart-pairproc')).toBeVisible();
+    await expect(page.locator('#gap-chart-e2e')).toBeVisible();
   });
 
   test('light theme: canvas background is light', async ({ page }) => {
