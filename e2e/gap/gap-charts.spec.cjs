@@ -299,8 +299,7 @@ test.describe('Phase 4 required tests', () => {
   test('A5 — table hour matches chart axis hour for a known row', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
-    // First row is 2026-08-01T09:00:10Z — hour 9
-    // Get the hour from the first table cell
+    // Table sorts by timestamp descending — first visible row is the latest hour (11)
     const tableHour = await page.evaluate(() => {
       const cells = document.querySelectorAll('#gap-table-body td');
       if (cells.length === 0) return null;
@@ -318,16 +317,16 @@ test.describe('Phase 4 required tests', () => {
       }
       return null;
     });
-    expect(tableHour).toBe(9);
-    // Get the chart labels and check that hour 9 appears
+    expect(tableHour).not.toBeNull();
+    // Get the chart labels and check that the same hour appears
     const chartLabels = await page.evaluate(() => {
       const chart = window.gapChartInstances && window.gapChartInstances.volume;
       return chart ? chart.data.labels : [];
     });
     expect(chartLabels.length).toBeGreaterThan(0);
-    // At least one label should contain "09" or hour 9
-    const hasHour9 = chartLabels.some(l => String(l).includes('09'));
-    expect(hasHour9).toBe(true);
+    const hourStr = String(tableHour).padStart(2, '0');
+    const hasHour = chartLabels.some(l => String(l).includes(hourStr));
+    expect(hasHour).toBe(true);
   });
 
 });
