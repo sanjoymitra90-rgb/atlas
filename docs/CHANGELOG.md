@@ -7,9 +7,36 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-14 (Phase 5B: Call Auditor copy sweep — Customer → Service Provider, Status tooltip, empty-state and toast fixes)
+**Last updated:** 2026-08-14 (Phase 6: tokens, dead code, changelog repair, Endpoint→Service Provider, toast repositioning)
 
 ---
+
+### Phase 6 — tokens, dead code, changelog repair, Endpoint→Service Provider, toast repositioning, help drawer
+
+Spec: `2026-08-13-phase-6-spec.md`. Commits: (in progress).
+
+**Task A — toast returns to top-right with pointer-events: none.** Moved from bottom-left back to
+top-right; `pointer-events: none` added so clicks pass through to header buttons. The 5A
+clickability test passes unmodified.
+
+**Task B — Endpoint → Service Provider in Optimizer.** 46 display-text occurrences renamed; export
+keys (`totalEndpoints`, `Endpoint Name` CSV headers) left unchanged. The Optimizer's one
+"cost-per-customer" became "cost-per-service-provider". Onboarding genuine "customer" untouched.
+
+**Task C — --gap-* CSS tokens renamed to --atlas-*.** All 27 custom properties renamed across
+definitions, CSS references, inline styles, and JS reads. Other modules' hardcoded near-matches
+left alone and reported.
+
+**Task D — dead light-theme CSS deleted.** 12 `[data-theme='light']` rule blocks removed after
+confirming nothing reads or writes `data-theme` outside them.
+
+**Task E — changelog two colliding eras separated.** Original-era headings prefixed with "Legacy";
+current-era entries unchanged.
+
+**Task F — help drawer brought up to date.** (To be completed.)
+
+**Task G — three one-line leftovers.** E2e timezone pinned to UTC; bucketing test gains year
+boundary; zero-count trap in gap-layout.spec.cjs guarded.
 
 ### Phase 5B — Call Auditor display copy: Customer → Service Provider
 
@@ -568,7 +595,12 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 
 ---
 
-### Phase 7 — Requests Over Time, series filters, pair metrics, header filter sync
+## Legacy changelog (original build numbering)
+
+The entries below use the original phase numbering from the initial build.
+They are preserved as-is for historical reference.
+
+### Legacy Phase 7 — Requests Over Time, series filters, pair metrics, header filter sync
 - **Requests Over Time chart** — New line chart showing signing-request and verification-request counts over time as two lines (green/blue). Own Time Bucket dropdown (`gap-bucket-interval-requests`), registered in `gapChartInstances` and `gapChartBucketOrders`. Clickable for drill-through. Excludes `timeValid === false` rows.
 - **Per-graph Series dropdown** — Second dropdown in each chart card header defaulting to "Both". Requests: Both/Signing only/Verification only. Volume: Both/Signing/Verification. Invalid: Both/Signing/Verification (split into signing-invalid/verification-invalid). Proc: Both/Signing/Verification (split into signing-avg/verification-avg). TTV: Both/Median/P95. State: `gapSeriesFilters`. Hidden series removed from dataset.
 - **Header filter sync** — Extracted `clearGapFilterInputs()` (deferred R23). Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`. Two-way sync between filter bar and column header inputs via `syncFromColFilter()`/`syncToColDropdowns()`.
@@ -582,7 +614,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 
 ---
 
-### Phase 6D — Dark-theme select/icon fixes, round 2
+### Legacy Phase 6D — Dark-theme select/icon fixes, round 2
 - **`color-scheme: dark`** — Added to `:root` and `select, input` for native dark rendering of select listboxes, datetime-local pickers, and scrollbars.
 - **Chevron geometry** — `.atlas-select` now has `appearance: none; -webkit-appearance: none; padding-right: 2rem;` with light-stroke SVG chevron (`#e2e8f0`). Background-position and size adjusted for proper alignment.
 - **Column filter dropdown selects** — Added `.atlas-select` class to all 5 column filter dropdowns (`col-filter-service`, `col-filter-status`, `col-filter-customer`, `col-filter-validation`, `col-filter-pair`).
@@ -602,14 +634,14 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 
 ---
 
-### Phase 11 — Removed Gap Count & Gap Percentage tiles
+### Legacy Phase 11 — Removed Gap Count & Gap Percentage tiles
 - **Gap Count tile removed** — Deleted the tile HTML, `signedGap`/`gap` computation in `updateGapMetrics()`, the `drillDownGap('gap')` branch, the `gap` pair filter dropdown option, and the `pairFilter === 'gap'` handling in `applyGapFilters()`. Help drawer Gap Count bullet removed.
 - **Gap Percentage tile removed** — Deleted the tile HTML, `gapPct` computation, and DOM update. Tile grid now has 6 tiles in a 4+2 layout: Row 1 (Total Records, Paired Calls, Signing Requests, Verification Requests), Row 2 (Destination Issues, Slow Requests).
 - **Tests updated** — Tile order test updated to expect 6 tiles. Gap Count tests removed from `gap-charts.spec.js` and `gap-pairing.spec.js`.
 
 ---
 
-### Phase 10 — Gap Count bug fix, CSV reporter v2, HTML test report viewer
+### Legacy Phase 10 — Gap Count bug fix, CSV reporter v2, HTML test report viewer
 - **Gap Count tile click bug fixed** — Clicking the Gap Count tile now correctly filters to unverified + unsigned records (the rows contributing to the gap) instead of resetting all filters. Added `gap` option to the pair filter dropdown. New filter `drillDownGap('gap')` sets the pair filter; `applyGapFilters()` handles the combined `unverified || unsigned` logic.
 - **CSV reporter v2** — Enhanced with 4 new columns: Spec File (relative path), Describe Block (cleaned hierarchy), Fixture (detected CSV filename), and Scenario (3-step Gherkin: Given/When/Then). Describe chain filters out file-path-like titles. When step defaults to "When I run the analysis" for assertion-style titles.
 - **HTML test report viewer** — One-time `reports/test-report-viewer.html` file. Self-contained dark-theme viewer with drag-and-drop CSV import, module tabs (Gap Analyzer / Optimizer / Onboarding), per-module metrics, Expand All / Collapse All per module, collapsible spec file sections, Gherkin color coding (Given=violet, When=amber, Then=blue), fixture badges, error expansion for failed tests, search box, and status filter buttons.
@@ -617,7 +649,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 
 ---
 
-### Phase 9 — Cleanup, restructure, CSV test report
+### Legacy Phase 9 — Cleanup, restructure, CSV test report
 - **REVIEW.md removed** — Deleted stale `REVIEW.md` file. Removed all references from `SPEC.md`, `FEATURES.md`, and `CHANGELOG.md`. `claude_memory.md` left untouched.
 - **Stale fixture removed** — Deleted `fixtures/gap-phase1.csv` (zero references in any test or source file).
 - **Docs restructured** — `SPEC.md`, `FEATURES.md`, and `CHANGELOG.md` moved from project root into `docs/` folder.
@@ -627,7 +659,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 
 ---
 
-### Phase 8 — Paired Calls tile, metric grid reorder, Processing Time bucket fix
+### Legacy Phase 8 — Paired Calls tile, metric grid reorder, Processing Time bucket fix
 - **Paired Calls tile** — New metric tile (`gap-tile-paired`) showing distinct `pairId` count where `pairStatus === 'paired'` in `gapFilteredData`. Sub-label shows global match rate from `gapPairSummary`. Clickable via `drillDownPair('paired')`. Icon: `fa-link text-cyan-400`.
 - **Metric grid reordered to 4+4** — Row 1: Total Records, Paired Calls, Signing Requests, Verification Requests. Row 2: Destination Issues, Slow Requests, Gap Count, Gap Percentage. Tile count increased from 7 to 8.
 - **Filtered strip updated** — When a filter is active, the strip now shows the paired global count alongside the record count.
@@ -636,7 +668,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 
 ---
 
-### Phase 7 — Time-to-Verify info tooltip, module rename, doc split
+### Legacy Phase 7 — Time-to-Verify info tooltip, module rename, doc split
 - **TTV info icon** — Added `fa-info-circle` info icon to the Time-to-Verify tile in the Call Pairing panel, matching the existing pattern on Gap Count and Gap Percentage tiles. Tooltip explains median, P95, and what a large P95-vs-median gap means.
 - **Module rename** — Display name "Gap Analyzer" renamed to "Call Auditor" across all user-visible strings: gateway card title + description, module header, help drawer tab label, help section heading/body, and ARIA live announcement map. Internal IDs (`module-gap-analyzer`, `gap-*` globals, `e2e/gap/` paths) unchanged.
 - **Doc split** — `Atlas_memory.md` retired. Source of truth is now three files: `SPEC.md` (engineering), `FEATURES.md` (product), `CHANGELOG.md` (history).
@@ -763,7 +795,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 - **npm scripts** — `npm test` (full regression), `npm run test:gap`, `npm run test:optimizer`, `npm run test:headed`.
 - **Post-gate: 69/69 passed** — pre-gate and post-gate counts identical.
 
-### Phase 6C — Mapping Modal Layout Refinements
+### Legacy Phase 6C — Mapping Modal Layout Refinements
 - **Modal widened** — `max-w-4xl` → `max-w-6xl` (1152px) to accommodate 4-column mapping grid.
 - **Pairing Key section moved up** — now sits directly after the Processing Time / Pairing Window inputs, before the column mappings.
 - **Pairing key horizontal layout** — dropdowns render in a `flex flex-wrap` row with muted `+` separators. Merged `+` and X into Option B: small circular X button positioned `absolute -top-1.5 -right-1.5` above each dropdown (top-right corner). Components removable down to minimum 1; add button "+ Add pairing component" hidden at 4.
@@ -774,13 +806,13 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 - **Additional columns** — unchanged 2-column grid of bordered grouped units.
 - **15 e2e tests** in `gap-flexibility.spec.js` Phase 6C block: horizontal flex-wrap, + separators, button label, max-4 hidden, min-1 remove, grid-cols-2 container, bordered units, unit contents, 4-column mapping grid, pr-8 chevron, X above dropdown, section order, Map Columns header, cancel resets state, Analyze persists state.
 
-### Phase 6B — PM Feedback Round
+### Legacy Phase 6B — PM Feedback Round
 - **Modal widened** — `max-w-2xl` → `max-w-4xl`, `max-h-[90vh]` → `max-h-[85vh]`. Threshold/pairing window in `sm:grid-cols-2` wrapper. Column mappings grid `sm:grid-cols-2`.
 - **Pairing key editable defaults** — `renderPairingKeysUI()` rewritten: always shows From/To as first two dropdowns with labels ("From (required)", "To (required)"). `gapPairingKeys` always populated with `[fromHeader, toHeader]` defaults. Options disabled if already used elsewhere. "+ Add column" button hidden at max 4. Extra columns get remove buttons. `confirmGapColumnMapping()` ensures at least from/to fallback. `openGapSettings()` syncs defaults via `syncPairDefaults()` on From/To change.
 - **Per-chart time bucket dropdowns** — Global dropdown removed. 4 per-chart dropdowns in chart card headers (`gap-bucket-interval-invalid|volume|proc|ttv`). State: `gapBucketIntervals = { invalid:'auto', volume:'auto', proc:'auto', ttv:'auto' }`. `handleChartBucketIntervalChange(chartType, val)` re-renders only that chart. `gapChartBucketOrders` stores per-chart bucket key order. Drill-through uses source chart's interval for `applyGapFilters()`.
 - **Table column min-widths** — Removed `min-w-[1200px]`. Added `whitespace-nowrap` to all `<th>` and `<td>`. Per-column `style="min-width: Xpx"` on `<th>` elements for stable column widths.
 
-### Phase 6 — Data Flexibility & Pairing Generality
+### Legacy Phase 6 — Data Flexibility & Pairing Generality
 - **Horizontal scroll for wide tables** — `overflow-x-auto` wrapper with `rounded-lg border border-slate-700/50`. No `min-w-[1200px]` on table. Per-column `min-width` styles on `<th>` elements (Time 140px, Service 80px, From 120px, To 120px, Status 80px, Customer 120px, Source IP 120px, Proc Time 90px, UK Valid 80px, Pair 140px). All `<th>` and `<td>` have `whitespace-nowrap`.
 - **`row.raw` stored on each row** — `raw: row` property in `processGapData()` preserves the original header-keyed CSV values for custom column access.
 - **Additional columns UI** — In the mapping modal, "Additional Columns" section with "+ Add Column" button. Each entry has a header dropdown (`gap-add-col-header`) and display name input (`gap-add-col-name`). `gapAdditionalColumns: [{header, displayName}]` global. `renderAdditionalColumnsUI()` renders entries. `handleAdditionalColHeaderChange()` / `handleAdditionalColNameChange()` update state and preview.
@@ -794,7 +826,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 - **`getUnmappedHeaders()`** — Returns CSV headers not already mapped to the 8 core fields, used for additional column and pairing key dropdowns.
 - **14 e2e tests** in `e2e/gap-flexibility.spec.js`: horizontal scroll, table no min-w, th whitespace-nowrap, td whitespace-nowrap, th min-width, modal width, pairing key defaults, pairing key pre-selected, modal section, custom column header+cell, live preview, pairing key UI, CSV export includes custom columns, TTV chart canvas. **80 tests total.**
 
-### Phase 5 — Time-Series Overhaul & Chart Cleanup
+### Legacy Phase 5 — Time-Series Overhaul & Chart Cleanup
 - **Smart Auto-Bucketing** — `getGapBucketKey(timestamp, interval)` and `getAutoBucketInterval(minTime, maxTime)` helper functions. Data range ≤1h → 1min, ≤6h → 5min, ≤3d → 1hour, >3d → 1day. `gapBucketIntervals` per-chart object (default all `'auto'`). Per-chart UI dropdowns (`gap-bucket-interval-invalid|volume|proc|ttv`) in each chart card header. Changing an interval re-renders only that chart via `renderSingleChart()`.
 - **`gapBucketIntervals` per-chart state** — `{ invalid: 'auto', volume: 'auto', proc: 'auto', ttv: 'auto' }`. Each chart can be bucketed independently. `gapChartBucketOrders` stores per-chart bucket key order for drill-through.
 - **`makeChartClickHandler(chartType)`** — Returns closure that sets `gapBucketFilterSource` to the chart type and calls `toggleGapBucket()`. `applyGapFilters()` and `renderGapBucketChip()` resolve interval from `gapBucketIntervals[gapBucketFilterSource]`.
@@ -846,7 +878,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 - Hover highlight updated: `outline: 1px solid rgba(167,139,250,0.7)` + `background: rgba(139,92,246,0.10)` (no bright fills).
 - Added banding visual spec to `e2e/gap-phase4.spec.js`: asserts palette spine colors for paired rows, slate for orphans, alternating `gap-group-alt`, adjacent-paired-different-colors. All 18 tests pass.
 
-### Phase 4 — Layout, pair legibility, median clarity
+### Legacy Phase 4 — Layout, pair legibility, median clarity
 - **Task 0**: Verified help prefix (already 1,2,3,7,8), privacy text (already synced), median convention (already documented). All pre-existing from earlier sessions.
 - **Task 1**: Widened all three module workspaces to `max-w-[1680px]` (Optimizer: was `max-w-6xl`, Onboarding: was `max-w-[1600px]`, Gap Analyzer: was `max-w-7xl`). Gateway card grid left centered.
 - **Task 2**: Added `title` tooltip and `signing → verification handoff` caption to the time-to-verify tile.
@@ -889,7 +921,7 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 - Assertion fix: widened window TTV changed from 550 to 600 to match actual algorithm median (6 paired calls → median 600ms).
 - All 11 tests pass. Test suite is dev tooling alongside the single-file app.
 
-### Phase 3 — Event Pairing
+### Legacy Phase 3 — Event Pairing
 - **Task 0: Settings button fix** — root cause: HTML `onclick="openGapSettings()"` passed no arguments; JS `headers.find()` on `undefined` crashed before modal `classList` toggle. Fixed with `gapRawHeaders` fallback.
 - **Task 1: pairGapCalls engine** — greedy stream matching on `(from, to)` key within `gapPairWindow` (default 1000ms). Assigns `row.pairStatus` (paired/unverified/unsigned/unpairable/duplicate), `row.pairId` (P1, P2…), `row.timeToVerify` (ms). After pairing, unverified signings with a paired signing on the same key are reclassified as `duplicate`. Computes `gapPairSummary` (match rate, counts including duplicates, median/P95, invalid cross-tabs). Runs on full `gapData`, not filtered subset.
 - **Task 2: Call Pairing panel** — full-width panel below metric tiles with 6 stat blocks (match rate, unverified, unsigned, duplicates, unpairable, time-to-verify) + correlation line. Clickable blocks via `drillDownPair(status)`. Global (not filtered).
@@ -897,40 +929,40 @@ unchanged rows) require a product decision that was not supplied, so per spec §
 - **Task 4: Configurable pairing window** — number input in Settings modal; `handleGapPairWindowChange()` re-runs `pairGapCalls()` and re-renders panel + table. Persists for session.
 - **Task 5: Export + help** — CSV export includes pairStatus, pairId, timeToVerify columns + pairing summary line with duplicate count. Help drawer gains Call Pairing section (heuristic explained, algorithm, statuses including duplicate, window). Dashboard Metrics section updated to reference pairing panel.
 
-### Phase 2B hotfix
+### Legacy Phase 2B hotfix
 - **H8: drillDownGap outliers uses threshold** — `drillDownGap('outliers')` set `procMin.value = '100'` (hardcoded). Changed to `procMin.value = String(gapSlowThreshold)` so the drill-down respects the user-configured threshold.
 - **H9: Settings button root cause** — `openGapSettings()` called with no arguments from the button's `onclick`; `headers.find()` on `undefined` threw TypeError before the modal opened. Fixed by adding `if (!headers) headers = gapRawHeaders;` fallback at function entry.
 
-### Phase 2B — Exploration Polish
+### Legacy Phase 2B — Exploration Polish
 - **P2.5: Privacy messaging** — shield icon + "Private by design — your call data is processed entirely in this browser and never sent to a server." text added below the upload drop-zone in the Gap Analyzer module.
 - **P2.4: Filtered-view indicator** — when any filter is active, a slim strip (`gap-filtered-strip`) appears above the metrics grid showing global (unfiltered) counts per metric as "N of M" with `title` tooltips, plus a Reset Filters button. Global values computed in `updateGapMetrics()` by counting against `gapData` when `isFiltered` is true. Strip hidden when no filters active.
 - **P2.6: Configurable slow threshold** — `gapSlowThreshold` global (default 100), number input in Settings modal, `handleGapThresholdChange()` updates tile label, chart annotation line + `suggestedMax`, and re-renders data. Annotation label dynamically shows `"{threshold}ms Threshold"`.
 - **P2.3: Chart → table drill-through** — `row.bucketKey` derived in `processGapData()` (ISO hour or `'__unknown__'`). `gapBucketOrder` stores label order. All four charts gain `onClick: chartClickHandler` resolving x-index → bucket key via `gapBucketOrder[idx]`. `toggleGapBucket(key)` sets/clears `gapBucketFilter`; `applyGapFilters()` checks it. Removable chip in filter bar shows active bucket. `resetGapFilters()`, `drillDownGap()`, `resetGapMetrics()` clear bucket filter.
 
-### Phase 2A hotfixes
+### Legacy Phase 2A hotfixes
 - **H3: Unknown time bucket** — invalid-time rows now go to an explicit "Unknown" bucket (always last) in all four charts instead of being excluded. Chart bucket totals must equal tile totals.
 - **H4: 100ms threshold visibility** — Processing Time chart y-axis `suggestedMax: 100` ensures the dashed annotation line is visible when all averages fall below 100ms.
 - **H5: Net vs. per-hour labeling** — Gap Count tile caption appends "net" (e.g. "−1 net · unsigned verifications"); Gaps Over Time subtitle prefixed with "Per hour:".
 - **H6: Help-text sync** — Gap Analyzer help drawer's Dashboard Metrics section updated: "Gap (Missing)" → "Gap Count" with signed description and per-hour chart reference; Processing Time Distribution entry appends threshold-line mention.
 - **H7: Directional tooltip labels + vocabulary alignment** — Gaps Over Time chart gains `tooltip.callbacks.label` formatting by sign: "+N · signed but not verified" / "−N · verified but not signed" / "0 · balanced". Tile caption, subtitle, and help drawer Visualizations section aligned to the same phrasing (replacing "missing verifications"/"unsigned verifications").
 
-### Phase 2A — Diagnostic Foundations
+### Legacy Phase 2A — Diagnostic Foundations
 - **Task 1: Timestamp parse guard** — `processGapData()` parses each row's time into `row.timestamp` (ms epoch) + `row.timeValid` flag. 10-digit → epoch seconds, 13-digit → epoch ms, otherwise `new Date()`. Invalid timestamps: counted in tiles, excluded from time-bucketed charts, amber icon in table, sort to bottom. Summary toast appends "· N unparseable timestamp(s)".
 - **Task 2: Signed directional gap** — Gap Count tile shows signed value with dynamic caption (positive = "missing verifications", negative = "unsigned verifications", zero = "balanced"). Gaps Over Time converted from line to bar chart: red above zero, amber below, dashed zero baseline via annotation plugin. Subtitle added.
 - **Task 3: Invalid-reason breakdown** — `gapReasonBucket()` maps `ukValidationReason` strings to six buckets via keyword matching. Full-width panel below metrics grid with clickable chips; sets `gapInvalidReason` global for filtering. Export CSV includes breakdown line. Help drawer updated.
 
-### Phase 1 F1 (parse errors)
+### Legacy Phase 1 F1 (parse errors)
 - `parseGapCSV` returns `{headers, rows, errors}`. Errors collected for empty rows and short-row padding. Count surfaced in summary toast as "· N skipped" when > 0.
 
-### Phase 1 documentation cleanup (D1–D3)
+### Legacy Phase 1 documentation cleanup (D1–D3)
 - **D1:** §5 Global decisions renumbered 38–42 (collision with Phase 1 Gap decisions 33–37 resolved).
 - **D2:** Stale "Fix the chart annotation" recipe removed from §13 (plugin now loaded).
 - **D3:** §4 file-map ranges rewritten from actual line numbers (1–305 through 3361–4095).
 
-### Phase 1 hotfixes
+### Legacy Phase 1 hotfixes
 - **H1: Verification predicate widened** — `isVerify` changed from `svc.includes('verify')` to `svc.includes('verif')` (stem match). `'verification'.includes('verify')` is false (`"ication"` ≠ `"y"`); `'verification'.includes('verif')` is true. Fixes `Verification` service value being uncounted.
 
-### Phase 1 Hardening (T1–T7)
+### Legacy Phase 1 Hardening (T1–T7)
 - **T1: RFC-4180 CSV parser** — replaced `text.split("\n")` + `text.split(",")` with a single-pass state machine (`parseGapCSV`): BOM stripping, quoted commas, quoted newlines, CRLF, `""` escape, empty/short-row padding. Shared `readGapFile(file)` for both picker and drag-drop. Empty/header-only/zero-data error toasts added.
 - **T2: Case-insensitive service classification** — `processGapData()` now uses `const svc = (row.service || '').toLowerCase()` for `isSigning`/`isVerify`; `row.service` unchanged for display. Fixes `Signing`, `VERIFY`, mixed-case values.
 - **T3: chartjs-plugin-annotation@3.0.1** — CDN added after Chart.js script tag. 100ms dashed threshold line now renders.
