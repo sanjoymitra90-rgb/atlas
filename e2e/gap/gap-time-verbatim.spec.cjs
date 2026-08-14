@@ -78,7 +78,7 @@ for (const mode of ['grouped', 'flat']) {
 
 for (const mode of ['grouped', 'flat']) {
   test.describe(`Phase 5A — Task H: XSS stays escaped (${mode})`, () => {
-    test('XSS fixture time value is escaped in attribute position', async ({ page }) => {
+    test('XSS fixture time value stays escaped (verbatim or tooltip)', async ({ page }) => {
       await openGapAnalyzer(page);
       await uploadAndAnalyze(page, 'gap-xss-time.csv');
       if (mode === 'grouped') {
@@ -97,14 +97,22 @@ for (const mode of ['grouped', 'flat']) {
         };
       });
       expect(result.hasElement).toBe(false);
-      expect(result.text).not.toContain('<img');
-      expect(result.tooltip).toContain('source:');
-      expect(result.tooltip).toContain('<img');
+      // The non-ISO XSS value parses via new Date() (local-time, documented), so
+      // on a UTC runner it matches the source-as-UTC instant and renders verbatim
+      // as escaped text; on other runners it converts to UTC with a source tooltip.
+      if (result.tooltip === null) {
+        expect(result.text).toContain('Jan 1 2025');
+      } else {
+        expect(result.text).not.toContain('<img');
+        expect(result.tooltip).toContain('source:');
+        expect(result.tooltip).toContain('<img');
+      }
       const serialized = await page.evaluate(() => {
         const td = document.querySelector('#gap-table-body tr td');
         return td ? td.innerHTML : null;
       });
       expect(serialized).toContain('&lt;img');
+      expect(serialized).not.toContain('<img');
     });
   });
 }
