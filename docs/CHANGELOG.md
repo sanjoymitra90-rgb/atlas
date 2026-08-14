@@ -7,14 +7,15 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 5A: containment guard, copy-proofing, layout hardening, Time-column rule)
+**Last updated:** 2026-08-14 (Phase 5A: containment guard, copy-proofing, layout hardening, Time-column rule)
 
 ---
 
 ### Phase 5A — containment guard, copy-proofing, layout hardening, Time-column source rule
 
 Spec: `2026-08-13-phase-5a-spec.md`. Commits: `0b7165c`, `0d6f075`, `771b9ec`, `f228fb8`,
-`7110be0`, `d1c80b9`, `d900471`, `96d69d7`, `e18cbdb`.
+`7110be0`, `d1c80b9`, `d900471`, `96d69d7`, `e18cbdb`, `4631a20`, `b5663d9`, `d792694`,
+`a264ede`, `9c51f57`, `27c5a92`, `36b8121`, `a9bab11`.
 
 **Containment test (written first, §4).** `e2e/gap/gap-containment.spec.cjs` loads the built HTML
 and asserts programmatically that the table body, table wrapper, metric-tile grid, invalid-reason
@@ -81,12 +82,18 @@ time it states and compares that instant to `row.timestamp`. Same instant → so
 verbatim, no tooltip (Z-suffixed and offset-less rows). Differing instant → converted UTC plus a
 `source:` tooltip (epochs and `±HH:MM` rows). `timeValid === false` rows and the export are
 unchanged. `e2e/gap/gap-time-verbatim.spec.cjs` covers all four formats × grouped/flat, and the
-XSS fixture is still escaped in attribute position (serialized `&lt;img`) in both modes. 10 tests,
-all failing against the pre-H build.
+XSS fixture stays escaped in both modes (serialized `&lt;img`, no live element). 10 tests,
+all failing against the pre-H build. The XSS tests are timezone-independent: the non-ISO payload
+reaches `new Date()` (documented local-time parsing), so on a UTC runner it renders verbatim as
+escaped text while elsewhere it converts to UTC with a source tooltip — both asserted safe.
 
 **Verification.** Containment assertion re-run on the final build (passes). `test:unit` and
 `test:unit:dhaka` green (107 each). Full e2e: 214 tests pass (154 gap + 60 optimizer/onboarding).
-Before/after screenshots in `screenshots/5a-before` and `screenshots/5a-after`.
+Actions is green — [final run](https://github.com/sanjoymitra90-rgb/qwen-test-atlas/actions/runs/31812498308)
+(success): unit, unit:dhaka, build, e2e and the Pages deploy all pass, site live at
+https://sanjoymitra90-rgb.github.io/qwen-test-atlas/. Geometry tests (`gap-density`,
+`gap-tiles-reflow`) were made OS-robust for the Linux runner (`d792694`). Before/after
+screenshots in `screenshots/5a-before` and `screenshots/5a-after`.
 
 ---
 
