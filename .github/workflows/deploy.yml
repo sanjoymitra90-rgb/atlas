@@ -29,6 +29,18 @@ jobs:
       - run: npm run test:unit:dhaka
       - run: npm run build
       - run: bash -c 'npx playwright test --reporter=list 2>&1 | tee e2e.log; exit ${PIPESTATUS[0]}'
+      - name: Surface failing tests as annotations
+        if: failure()
+        shell: bash
+        run: |
+          grep -nE '^\s+[0-9]+\) ' e2e.log | sed -E 's/^[0-9]+:\s*//' | sort -u | while IFS= read -r l; do
+            l="${l//%/%25}"; l="${l//$'\r'/}"; l="${l//$'\n'/}"
+            echo "::error::E2E-FAIL $l"
+          done
+          grep -nE 'Error:|AssertionError|Timed out' e2e.log | sed -E 's/^[0-9]+:\s*//' | sort -u | while IFS= read -r l; do
+            l="${l//%/%25}"; l="${l//$'\r'/}"; l="${l//$'\n'/}"
+            echo "::error::E2E-FAIL $l"
+          done
       - run: echo "## Playwright e2e output" >> $GITHUB_STEP_SUMMARY; cat e2e.log >> $GITHUB_STEP_SUMMARY
         if: always()
       - uses: actions/upload-artifact@v4
