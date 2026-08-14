@@ -82,7 +82,7 @@ test.describe('Gap Analyzer', () => {
     await page.getByTestId('gap-launch').click();
     await page.getByTestId('gap-upload-prompt').waitFor({ state: 'visible' });
     await expect(page.locator('.gap-heading')).toHaveText('Call Auditor');
-    await page.locator('.help-fab').click();
+    await page.locator('header [title="User Guide"]').click();
     await expect(page.locator('#help-tab-gap')).toHaveText('Call Auditor');
     await page.locator('#help-tab-gap').click();
     await expect(page.locator('#gap-intro h3')).toContainText('Call Auditor');

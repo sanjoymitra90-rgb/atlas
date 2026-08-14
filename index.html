@@ -1941,6 +1941,13 @@ function showModule(moduleName) {
   active.setAttribute('id', 'main-content');
   currentAppModule = moduleName;
 
+  // The help FAB is the Gateway's only help entry (it has no header Guide
+  // button). The other three modules each have a header Guide button, so the
+  // FAB would be redundant and would sit on live data there. Show it only on
+  // the Gateway.
+  const helpFab = document.querySelector('.help-fab');
+  if (helpFab) helpFab.style.display = (moduleName === 'gateway') ? '' : 'none';
+
   // Announce module change to screen readers
   const ariaLive = document.getElementById('aria-live');
   if (ariaLive) {
