@@ -22,4 +22,15 @@ test.describe('Phase 5B — Task B: Status response-code tooltip', () => {
     await uploadAndAnalyze(page, 'gap-core.csv');
     await expect(page.locator('#col-dd-status label .fa-info-circle')).toHaveCount(0);
   });
+
+  test('the tooltip survives a re-render after a sort and after a filter change', async ({ page }) => {
+    await openGapAnalyzer(page);
+    await uploadAndAnalyze(page, 'gap-core.csv');
+    await expandGapFilters(page);
+    const th = page.locator('th[onclick="handleGapSort(\'status\')"]');
+    await th.click();
+    await page.selectOption('#gap-filter-status', '200');
+    await expect(th.locator('.fa-info-circle[title="service provider response code"]')).toHaveCount(1);
+    await expect(page.locator('#gap-filter-panel .fa-info-circle[title="service provider response code"]')).toHaveCount(1);
+  });
 });
