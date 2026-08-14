@@ -4591,12 +4591,10 @@ function readGapFile(file) {
         return row;
       });
       if (result.errors.length > 0) window.gapParseErrors = result.errors;
-      if (gapRawData.length === 0) { showToast('No data rows found in CSV file.', true); return; }
-      let toastMsg = 'Analyzed ' + gapRawData.length + ' rows';
-      if (dedupResult.duped > 0) toastMsg += ' · ' + dedupResult.duped + ' duplicate column name(s) renamed';
-      showToast(toastMsg);
+      if (gapRawData.length === 0) { showToast('No data rows found in CSV file. Add at least one data row and re-upload.', true); return; }
+      if (dedupResult.duped > 0) showToast(dedupResult.duped + ' duplicate column name(s) renamed', true);
       openGapSettings(gapRawHeaders);
-    } catch (err) { console.error('CSV parse error:', err); showToast('Failed to parse CSV file.', true); }
+    } catch (err) { console.error('CSV parse error:', err); showToast('Failed to parse CSV file. Check the file format and re-upload.', true); }
     finally { document.getElementById('gap-csv-upload').value = ''; }
   };
   reader.onerror = function() { showToast('Error reading file.', true); };
@@ -4950,16 +4948,16 @@ function processGapData() {
   document.getElementById("gap-export-btn").classList.remove("opacity-50", "pointer-events-none");
   document.getElementById("gap-settings-btn").disabled = false;
   document.getElementById("gap-settings-btn").classList.remove("opacity-50", "pointer-events-none");
-  const _s = gapData.filter(d => d.isSigning).length;
-  const _v = gapData.filter(d => d.isVerify).length;
   const _i = gapData.filter(d => !d.ukValid).length;
   const _e = (window.gapParseErrors || []).length;
   const _ut = gapData.filter(d => !d.timeValid).length;
-  let msg = gapData.length + " records analyzed · " + _s + " signing, " + _v + " verify";
-  if (_i > 0) msg += ", " + _i + " invalid";
-  if (_e > 0) msg += " · " + _e + " skipped";
-  if (_ut > 0) msg += " · " + _ut + " unparseable timestamp(s)";
-  showToast(msg);
+  if (_i > 0 || _e > 0 || _ut > 0) {
+    let msg = gapData.length + " records analyzed";
+    if (_i > 0) msg += " · " + _i + " invalid";
+    if (_e > 0) msg += " · " + _e + " skipped";
+    if (_ut > 0) msg += " · " + _ut + " unparseable timestamp(s)";
+    showToast(msg, true);
+  }
 }
 
 function ukPillHtml(row) {
@@ -5614,7 +5612,12 @@ function formatGapTimeCell(row) {
 function renderGapTable() {
   const tableBody = document.getElementById("gap-table-body");
   if (!tableBody || gapFilteredData.length === 0) {
-    if (tableBody) tableBody.innerHTML = "<tr><td colspan='" + (10 + gapAdditionalColumns.length) + "' class='text-center text-slate-400 py-8'>No data to display. Upload a CSV file to begin analysis.</td></tr>";
+    if (tableBody) {
+      const emptyMsg = gapData.length === 0
+        ? "No data to display. Upload a CSV file to begin analysis."
+        : "No records match the current filters. Adjust or clear the filters.";
+      tableBody.innerHTML = "<tr><td colspan='" + (10 + gapAdditionalColumns.length) + "' class='text-center text-slate-400 py-8'>" + emptyMsg + "</td></tr>";
+    }
     return;
   }
 
@@ -6481,7 +6484,7 @@ function exportGapData() {
   const dataToExport = window.gapExportAllData ? gapData : gapFilteredData;
   
   if (dataToExport.length === 0) {
-    showToast('No data to export', true);
+    showToast(gapData.length === 0 ? 'No data to export. Upload a CSV file first.' : 'No data to export. Adjust or clear the filters.', true);
     return;
   }
   
@@ -6498,7 +6501,7 @@ function exportGapData() {
   const invalidData = dataToExport.filter(d => !d.ukValid);
   const reasonCounts = {};
   invalidData.forEach(d => { const b = d.ukBucket || 'other'; reasonCounts[b] = (reasonCounts[b] || 0) + 1; });
-  const breakdownLine = invalid > 0 ? 'Invalid breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => r + ' \u00d7' + c).join(', ') : '';
+  const breakdownLine = invalid > 0 ? 'Destination issues breakdown: ' + Object.entries(reasonCounts).sort((a,b) => b[1]-a[1]).map(([r,c]) => ((bucketLabels && bucketLabels[r]) || r) + ' \u00d7' + c).join(', ') : '';
   const pairLine = ps.pairedPairs !== undefined ? 'Pairing: ' + ps.pairedPairs + ' paired, ' + ps.unverified + ' unverified, ' + ps.unsigned + ' unsigned, ' + ps.duplicates + ' duplicates, ' + ps.unpairable + ' unpairable, match rate ' + ps.matchRate + '%' : '';
   const csvRows = [
     'Total Records,Signing,Verification,Destination Issues,Processing Time Outliers',

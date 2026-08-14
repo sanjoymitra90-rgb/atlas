@@ -5,7 +5,7 @@ const { openGapAnalyzer, uploadAndAnalyze } = require('../_helpers.cjs');
 test.describe('Phase 5A — Task B: toast must not cover the header Export button', () => {
   test('Export button is clickable while the toast is visible', async ({ page }) => {
     await openGapAnalyzer(page);
-    await uploadAndAnalyze(page, 'gap-screenshots.csv');
+    await uploadAndAnalyze(page, 'gap-invalid-reasons.csv');
 
     // The import toast fires in processGapData(), synchronously with the
     // export button being enabled. Capture the state quickly, while the

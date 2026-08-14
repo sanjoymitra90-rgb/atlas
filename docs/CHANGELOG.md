@@ -7,7 +7,7 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-14 (Phase 5B: Call Auditor Customer → Service Provider rename)
+**Last updated:** 2026-08-14 (Phase 5B: Call Auditor copy sweep — Customer → Service Provider, Status tooltip, empty-state and toast fixes)
 
 ---
 
@@ -37,6 +37,34 @@ column-header filter dropdown's "Status Code" label deliberately carries no icon
 guard (`e2e/gap/gap-containment.spec.cjs`) re-run after the change: no markup was added outside
 the table header and the filter bar. `e2e/gap/gap-status-tooltip.spec.cjs` proves both sites and
 proves the dropdown label stays icon-free; it failed (red) against the pre-change build.
+
+**Task C — copy sweep (four fault classes).** All changes are display text only; the behaviour
+contract (filter/sort/mapping keys) is unchanged.
+
+1. **Same concept, two vocabularies.** The export's invalid-reason breakdown line said
+   "Invalid breakdown" and used raw bucket keys (`wrong-length ×2`), while the chips and the
+   metric tiles use `bucketLabels` and "Destination Issues". The export now writes
+   "Destination issues breakdown" and maps keys through `bucketLabels`, so the export, the chips
+   and the tiles describe the same buckets in the same words.
+2. **Empty states that said nothing about what to do.** The table's "No data to display. Upload a
+   CSV file to begin analysis." is now two messages chosen by `gapData.length`: before any data it
+   still points at upload; when a filter excludes every row it says to adjust or clear the filters.
+   The same split applies to "No data to export" and to "No data rows found in CSV file" /
+   "Failed to parse CSV file", which now say to re-upload (and to check the format).
+3. **Toasts that fired on the normal case.** The upload toast ("Analyzed N rows") and the analysis
+   toast ("N records analyzed …") fired on every clean import. The upload toast now fires only
+   when duplicate column names were renamed; the analysis toast only when rows are invalid,
+   skipped, or have unparseable timestamps — a clean import is silent. SPEC.md invariant 9
+   amended to match.
+4. **Test-infrastructure fixes.** `e2e/gap/gap-toast.spec.cjs` now uses `gap-invalid-reasons.csv`
+   (which triggers the conditional analysis toast) instead of `gap-screenshots.csv`.
+   `e2e/gap/gap-copy-sweep.spec.cjs` proves all four fixes and was proven red against the
+   pre-change build. New fixture `fixtures/gap-clean.csv` (a fully valid import) proves a clean
+   import shows no toast. `e2e/gap/gap-fab.spec.cjs` was hardened: it waited only for the toast
+   to lose `.show` and measured mid-transition while the toast still overlapped the Call Pairing
+   blocks, and it counted the permanently closed off-screen help drawer as an offender by a
+   0.5px viewport-edge overlap. It now waits for the toast to leave the viewport and skips
+   off-screen fixed elements.
 
 ---
 

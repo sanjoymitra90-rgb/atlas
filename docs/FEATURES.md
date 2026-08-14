@@ -35,8 +35,10 @@ Network operations and monitoring teams use the Call Auditor.
 header with a home button and module-specific actions. Context-aware help: a floating "?" button
 on the Gateway opens the help drawer (in the other three modules the header's "User Guide" button
 does the same job), each tab with a table of contents.
-Toast notifications for every action that completes or fails, appearing bottom-left so they never
-cover the header controls. Dark theme throughout, with a
+Toast notifications for actions that complete or fail and for anything that needs your attention,
+appearing bottom-left so they never cover the header controls. Routine clean successes stay silent —
+a Call Auditor import shows a toast only when rows are invalid, skipped, or have unreadable
+timestamps. Dark theme throughout, with a
 colour per module — green for the Optimizer, blue for Onboarding, violet for the Call Auditor.
 
 **Privacy.** Nothing is uploaded. All processing happens in the browser, and session state moves
@@ -349,7 +351,8 @@ the value genuinely moved — an epoch or a timestamp carrying a non-UTC offset 
 and hovering the cell shows the original source value. Rows with unreadable timestamps carry an
 amber warning icon and always sort to the bottom. Paired rows show their pair ID on the pill.
 The Status column header and the filter bar's Status Code label carry a small info icon explaining
-that the values are the service provider's response code.
+that the values are the service provider's response code. If a filter excludes every row, the table
+says to adjust or clear the filters rather than asking you to upload again.
 
 Hovering a paired row highlights its partner and dims everything else; if the partner is on
 another page, the tooltip says which one. Paired pill tooltips include processing time and

@@ -7,9 +7,10 @@ test.describe('Phase 5A — Task C: no fixed element sits on the Call Pairing da
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
 
-    // The import toast is a transient overlay (bottom-left, 3s auto-hide);
-    // wait for it to leave before checking permanent overlays.
-    await expect(page.locator('#toast-msg')).not.toHaveClass(/show/);
+    // The import toast is a transient overlay (bottom-left, 3s auto-hide).
+    // Wait until it has actually left the viewport (class removal alone only
+    // starts its 0.3s off-screen transition) before checking overlays.
+    await expect(page.locator('#toast-msg')).not.toBeInViewport();
 
     const result = await page.evaluate(() => {
       function overlaps(a, b) {
@@ -28,7 +29,11 @@ test.describe('Phase 5A — Task C: no fixed element sits on the Call Pairing da
         if (cs.position !== 'fixed') return false;
         if (el.classList.contains('hidden') || cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false;
         const r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0;
+        if (r.width <= 0 || r.height <= 0) return false;
+        // Fully off-screen fixed elements (e.g. the closed help drawer,
+        // translateX(100%)) cannot sit on visible data; skip them.
+        if (r.right <= 0 || r.left >= window.innerWidth || r.bottom <= 0 || r.top >= window.innerHeight) return false;
+        return true;
       });
       const offenders = [];
       for (const b of blocks) {

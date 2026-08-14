@@ -42,7 +42,11 @@ assertion is noted where one is practical.
    *Resolved R10.*
 8. **A row with `timeValid === false` never enters a time-bucketed chart**, always appears in
    the table with an amber marker, and always sorts to the bottom regardless of direction.
-9. **`showToast()` fires on every user action that completes or fails.** No silent outcomes.
+9. **`showToast()` fires on every user action that completes or fails, and on every outcome that
+   carries information.** No silent *unexpected* outcomes: errors and problem reports always toast.
+   A clean routine success may be silent — since Phase 5B a clean Call Auditor import shows no toast
+   (the analysis toast fires only when rows are invalid, skipped, or have unparseable timestamps).
+   *Amended Phase 5B (F4).*
 9a. **Presentation failures never roll back data.** In `processGapData()` the transactional
     boundary ends at the `gapFilteredData` assignment. Everything after it — charts, the pairing
     panel — degrades independently inside its own try/catch. A missing chart library must not
@@ -455,6 +459,10 @@ The Status column header and the filter bar's "Status Code" label carry an info-
 (`title="service provider response code"`) explaining that the values are the service provider's
 response code. The column-header filter dropdown's "Status Code" label carries no icon.
 
+The table's empty state distinguishes its two causes: before any data is loaded it says to upload a
+CSV; when data exists but a filter excludes every row it says to adjust or clear the filters.
+`renderGapTable()` branches on `gapData.length === 0` to pick the message.
+
 Table density: body cells are `py-1.5 px-4` (about 33 px per row at 1440×900) so a full
 25-row page fits one viewport; horizontal padding is unchanged. The six metric tiles sit in a
 `lg:grid-cols-3` grid (2 full rows of 3, no orphaned half-row) — every `gap-metric-*` id and
@@ -471,7 +479,8 @@ the pill tooltip. Paired pill tooltips include `· proc {p}ms · end-to-end {e}m
 Export is a modal choosing Filtered, All, or Pair Summary scope. Pair Summary produces one row
 per paired pair with columns: pairId, from, to, signTime, verifyTime, handoffMs, signProcMs,
 verifyProcMs, pairProcessingMs, endToEndMs. Filtered/All produce CSV with a metrics summary block,
-an invalid-reason breakdown line, a pairing summary line, a column-rename note line, then quoted
+a Destination-issues breakdown line (reason labels from `bucketLabels`, matching the chips; prefix
+"Destination issues breakdown"), a pairing summary line, a column-rename note line, then quoted
 data rows including pair status, pair ID, time-to-verify and any custom columns. The data header
 row names the provider column "Service Provider" (renamed from "Customer"; the note line flags the
 rename for scripts that read the old header). Values beginning with `=`, `@`, or `+`/`-`
