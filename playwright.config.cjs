@@ -6,7 +6,7 @@ module.exports = defineConfig({
   workers: 1,
   reporter: [['list'], [require.resolve('./e2e/reporters/csv-reporter.cjs')]],
   globalSetup: require.resolve('./e2e/global-setup.cjs'),
-  use: { headless: true, viewport: { width: 1440, height: 900 } },
+  use: { headless: true, viewport: { width: 1440, height: 900 }, timezoneId: 'UTC' },
   projects: [
     {
       name: 'gap',

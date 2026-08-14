@@ -38,7 +38,7 @@ describe('getGapBucketKey timezone-independence', () => {
     '1min': [MIDNIGHT_CROSSING, new Date('2024-01-15T10:30:45Z').getTime()],
     '5min': [MIDNIGHT_CROSSING, new Date('2024-01-15T10:33:00Z').getTime()],
     '1hour': [MIDNIGHT_CROSSING, new Date('2024-01-15T10:30:00Z').getTime()],
-    '1day': [MIDNIGHT_CROSSING, new Date('2024-01-15T10:30:00Z').getTime()]
+    '1day': [MIDNIGHT_CROSSING, new Date('2024-01-15T10:30:00Z').getTime(), new Date('2024-12-31T23:30:00Z').getTime(), new Date('2025-01-01T00:30:00Z').getTime()]
   };
 
   for (const [interval, timestamps] of Object.entries(inputs)) {

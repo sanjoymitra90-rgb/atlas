@@ -98,7 +98,10 @@ test.describe('Gap Analyzer — Phase 4 (layout + pair legibility)', () => {
     const validReps = reps.filter(r => !r.hasInvalidTimestamp);
     const invalidCount = reps.filter(r => r.hasInvalidTimestamp).length;
     // Invalid-timestamp groups must be at the bottom (invariant 8: timeValid sorts last)
-    expect(reps.slice(-invalidCount).every(r => r.hasInvalidTimestamp)).toBe(true);
+    // Guard: slice(-0) returns the whole array, so only assert when there are invalid rows
+    if (invalidCount > 0) {
+      expect(reps.slice(-invalidCount).every(r => r.hasInvalidTimestamp)).toBe(true);
+    }
     // Valid-timestamp groups must be monotonic by representative proc time
     const asc = validReps.every((v,i) => i===0 || validReps[i-1].procTime <= v.procTime);
     const desc = validReps.every((v,i) => i===0 || validReps[i-1].procTime >= v.procTime);

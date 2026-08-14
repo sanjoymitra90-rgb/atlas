@@ -97,16 +97,11 @@ for (const mode of ['grouped', 'flat']) {
         };
       });
       expect(result.hasElement).toBe(false);
-      // The non-ISO XSS value parses via new Date() (local-time, documented), so
-      // on a UTC runner it matches the source-as-UTC instant and renders verbatim
-      // as escaped text; on other runners it converts to UTC with a source tooltip.
-      if (result.tooltip === null) {
-        expect(result.text).toContain('Jan 1 2025');
-      } else {
-        expect(result.text).not.toContain('<img');
-        expect(result.tooltip).toContain('source:');
-        expect(result.tooltip).toContain('<img');
-      }
+      // The non-ISO XSS value parses via new Date() (local-time, documented).
+      // With timezoneId pinned to UTC, it always matches the source-as-UTC
+      // instant and renders verbatim with no tooltip.
+      expect(result.tooltip).toBeNull();
+      expect(result.text).toContain('Jan 1 2025');
       const serialized = await page.evaluate(() => {
         const td = document.querySelector('#gap-table-body tr td');
         return td ? td.innerHTML : null;
