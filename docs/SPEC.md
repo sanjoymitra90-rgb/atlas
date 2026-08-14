@@ -447,7 +447,8 @@ is loaded. Single-bucket and empty-filter states show a message instead of an em
 
 ### 7.6 Table and export
 
-Ten columns; **nine are sortable** — UK Valid has no handler. Default sort time descending,
+Ten columns — Time (UTC), Service, From, To, Status, Service Provider, Source IP, Proc. Time,
+UK Valid, Pair; **nine are sortable** — UK Valid has no handler. Default sort time descending,
 comparing `row.timestamp` (ms epoch) in both flat and grouped paths. Pagination 25/50/100.
 
 Table density: body cells are `py-1.5 px-4` (about 33 px per row at 1440×900) so a full
@@ -466,8 +467,10 @@ the pill tooltip. Paired pill tooltips include `· proc {p}ms · end-to-end {e}m
 Export is a modal choosing Filtered, All, or Pair Summary scope. Pair Summary produces one row
 per paired pair with columns: pairId, from, to, signTime, verifyTime, handoffMs, signProcMs,
 verifyProcMs, pairProcessingMs, endToEndMs. Filtered/All produce CSV with a metrics summary block,
-an invalid-reason breakdown line, a pairing summary line, then quoted data rows including pair
-status, pair ID, time-to-verify and any custom columns. Values beginning with `=`, `@`, or `+`/`-`
+an invalid-reason breakdown line, a pairing summary line, a column-rename note line, then quoted
+data rows including pair status, pair ID, time-to-verify and any custom columns. The data header
+row names the provider column "Service Provider" (renamed from "Customer"; the note line flags the
+rename for scripts that read the old header). Values beginning with `=`, `@`, or `+`/`-`
 not followed by a digit are guarded by `csvCell()` to prevent formula injection. `processingTime = 0` exports as `0`.
 
 ### 7.7 Column-header filters

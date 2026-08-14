@@ -1063,9 +1063,9 @@ th:hover .gap-col-filter {
             </select>
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Customer</label>
+            <label class="block text-xs text-slate-400 mb-1">Service Provider</label>
             <select id="gap-filter-customer" class="w-full atlas-select" onchange="applyGapFilters()">
-              <option value="all">All Customers</option>
+              <option value="all">All Service Providers</option>
             </select>
           </div>
           <div>
@@ -1425,11 +1425,11 @@ th:hover .gap-col-filter {
                     </select>
                   </div>
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:120px" onclick="handleGapSort('customer')">Customer <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('customer')" data-col="customer"><i class="fas fa-filter text-xs"></i></span>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:120px" onclick="handleGapSort('customer')">Service Provider <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('customer')" data-col="customer"><i class="fas fa-filter text-xs"></i></span>
                   <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-customer">
-                    <label>Customer</label>
+                    <label>Service Provider</label>
                     <select id="col-filter-customer" class="atlas-select" onchange="syncFromColFilter('customer')">
-                      <option value="all">All Customers</option>
+                      <option value="all">All Service Providers</option>
                     </select>
                   </div>
                 </th>
@@ -1845,7 +1845,7 @@ th:hover .gap-col-filter {
         <p>Click the <strong>Upload CSV</strong> button or drag-and-drop a file onto the drop zone. ATLAS auto-detects columns by matching CSV headers against expected field names (e.g., "Time", "Service", "Source IP"). If auto-detection fails, use the manual <strong>Column Mapping</strong> dropdowns to assign each required field.</p>
         <div class="help-callout">
           <div class="callout-title"><i class="fas fa-info-circle"></i> Required Columns</div>
-          At minimum you need a <strong>timestamp</strong>, a <strong>service type</strong> (signing / verify), a <strong>destination number</strong>, and a <strong>status</strong> field. Optional columns include source IP, processing time, and customer name.
+          At minimum you need a <strong>timestamp</strong>, a <strong>service type</strong> (signing / verify), a <strong>destination number</strong>, and a <strong>status</strong> field. Optional columns include source IP, processing time, and service provider name.
         </div>
         <div class="help-callout">
           <div class="callout-title"><i class="fas fa-exclamation-triangle text-amber-400"></i> Excel Tip</div>
@@ -1868,7 +1868,7 @@ th:hover .gap-col-filter {
 
       <section class="help-section" id="gap-table">
         <h3><i class="fas fa-table text-amber-400"></i> Data Table</h3>
-        <p>The paginated table shows individual call records with a <strong>Pair</strong> column indicating match status. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, customer, destination, processing time range, or pair status.</p>
+        <p>The paginated table shows individual call records with a <strong>Pair</strong> column indicating match status. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, service provider, destination, processing time range, or pair status.</p>
         <ul>
           <li><strong>Pair ID</strong> &mdash; paired pills display their pair ID (e.g. <code>P3 · Paired</code>); orphan pills show status text only.</li>
           <li><strong>Hover highlight</strong> &mdash; hovering a paired row highlights its partner (violet ring) and dims other rows. If the partner is on another page, the pill tooltip notes <em>(partner on page N)</em>.</li>
@@ -4623,7 +4623,7 @@ function openGapSettings(headers) {
     { key: "from", label: "From Number Column", icon: "fa-phone" },
     { key: "to", label: "To Number Column", icon: "fa-phone-volume" },
     { key: "status", label: "Status Column", icon: "fa-info-circle" },
-    { key: "customer", label: "Customer Column", icon: "fa-building" },
+    { key: "customer", label: "Service Provider Column", icon: "fa-building" },
     { key: "sourceIP", label: "Source IP Column", icon: "fa-globe" },
     { key: "processingTime", label: "Processing Time Column", icon: "fa-tachometer-alt" }
   ];
@@ -4980,7 +4980,7 @@ function populateGapFilterDropdowns() {
   const statusSelect = document.getElementById("gap-filter-status");
   const customerSelect = document.getElementById("gap-filter-customer");
   statusSelect.innerHTML = "<option value=\"all\">All Statuses</option>" + statuses.map(s => "<option value=\"" + escapeHtml(s) + "\">" + escapeHtml(s) + "</option>").join("");
-  customerSelect.innerHTML = "<option value=\"all\">All Customers</option>" + customers.map(c => "<option value=\"" + escapeHtml(c) + "\">" + escapeHtml(c) + "</option>").join("");
+  customerSelect.innerHTML = "<option value=\"all\">All Service Providers</option>" + customers.map(c => "<option value=\"" + escapeHtml(c) + "\">" + escapeHtml(c) + "</option>").join("");
   const colStatus = document.getElementById("col-filter-status");
   const colCustomer = document.getElementById("col-filter-customer");
   if (colStatus) colStatus.innerHTML = statusSelect.innerHTML;
@@ -6492,7 +6492,7 @@ function exportGapData() {
   const outliers = dataToExport.filter(d => d.processingTime > gapSlowThreshold).length;
   const ps = gapPairSummary;
   
-  const headers = ['Time (UTC)', 'Time (original)', 'Service', 'From', 'To', 'Status', 'Customer', 'Source IP', 'Processing (ms)', 'UK Valid', 'Pair Status', 'Pair ID', 'Time to Verify (ms)'];
+  const headers = ['Time (UTC)', 'Time (original)', 'Service', 'From', 'To', 'Status', 'Service Provider', 'Source IP', 'Processing (ms)', 'UK Valid', 'Pair Status', 'Pair ID', 'Time to Verify (ms)'];
   const customExportHeaders = gapAdditionalColumns.map(col => col.displayName || col.header);
   const allHeaders = [...headers, ...customExportHeaders];
   const invalidData = dataToExport.filter(d => !d.ukValid);
@@ -6506,6 +6506,7 @@ function exportGapData() {
     '',
     ...(breakdownLine ? [csvCell(breakdownLine), ''] : []),
     ...(pairLine ? [csvCell(pairLine), ''] : []),
+    [csvCell('Column rename: the header previously named Customer now reads Service Provider; update scripts that read the old header.'), ''],
     allHeaders.map(csvCell).join(',')
   ];
   

@@ -7,7 +7,28 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-14 (Phase 5A: containment guard, copy-proofing, layout hardening, Time-column rule)
+**Last updated:** 2026-08-14 (Phase 5B: Call Auditor Customer → Service Provider rename)
+
+---
+
+### Phase 5B — Call Auditor display copy: Customer → Service Provider
+
+Spec: `2026-08-13-phase-5b-spec.md`. Commits: `…`.
+
+**Task A — Customer renamed Service Provider (breaking).** The Call Auditor's display text for the
+provider column now reads "Service Provider": the table header, filter-bar label, column-header
+filter dropdown label, "All Service Providers" default option (bar and column dropdown, static and
+populated), the column-mapping label ("Service Provider Column") and the User Guide copy. The
+rename is display-only — field keys (`customer`, `gap-filter-customer`, `col-filter-customer`),
+testids and classes are unchanged, so filtering, sorting and the column-mapping "customer" key
+behave exactly as before. **Breaking:** the CSV export data header row renames the column
+`Customer` → `Service Provider`; scripts reading the old header will find nothing. A one-line note
+in the export's metrics summary block names the old header, the new header, and that scripts must
+be updated. The Gateway, Onboarding, Optimizer and their docs keep "customer" (real customers).
+`e2e/gap/gap-rename.spec.cjs` proves the header and export carry the new label, that filtering by
+value still works (display text is not the selection key), and that Onboarding/Optimizer still say
+"customer". Proven red before the change: the header and export assertions failed against the
+unmodified build.
 
 ---
 

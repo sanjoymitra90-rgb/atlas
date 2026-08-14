@@ -203,7 +203,7 @@ and whether destination numbers are valid.
 ### Upload and mapping
 
 Drop a CSV onto the upload zone or pick it with the file browser. A mapping dialog then asks
-which column is which — time, service, from, to, status, customer, source IP, processing time.
+which column is which — time, service, from, to, status, service provider, source IP, processing time.
 Columns are pre-selected wherever the header names are recognisable; time, service and
 destination are required. A live preview shows the first row as you map, so mistakes surface
 before analysis rather than after.
@@ -283,7 +283,7 @@ unfiltered totals alongside the paired count, so you always know what fraction o
 are looking at.
 
 Filters cover service type, validation status, from and to substring search, status code,
-customer, source IP, processing-time range, and pair status, with one-click Reset All. The filter
+service provider, source IP, processing-time range, and pair status, with one-click Reset All. The filter
 bar is collapsible — it collapses by default once data loads (the header shows how many filters are
 active) and the open/closed state lasts for the session. Collapsing never changes the results, only
 how much screen space the controls take.
