@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze, tileText } = require('../_helpers.cjs');
+const { openGapAnalyzer, uploadAndAnalyze, tileText, expandGapFilters } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Duplicate Detection', () => {
 
@@ -28,6 +28,7 @@ test.describe('Gap Analyzer — Duplicate Detection', () => {
   test('pair status filter includes duplicate option', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-dup.csv');
+    await expandGapFilters(page);
     const select = page.getByTestId('gap-filter-pair');
     await expect(select).toBeVisible();
     const options = await select.locator('option').allTextContents();

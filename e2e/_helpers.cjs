@@ -21,4 +21,12 @@ async function tileText(page, name) {
   return (await page.getByTestId('gap-tile-' + name).textContent()).trim();
 }
 
-module.exports = { APP_URL, openGapAnalyzer, uploadAndAnalyze, tileText };
+async function expandGapFilters(page) {
+  const toggle = page.getByTestId('gap-filter-toggle');
+  if (await toggle.getAttribute('aria-expanded') === 'false') {
+    await toggle.click();
+    await page.getByTestId('gap-filter-grid').waitFor({ state: 'visible' });
+  }
+}
+
+module.exports = { APP_URL, openGapAnalyzer, uploadAndAnalyze, tileText, expandGapFilters };

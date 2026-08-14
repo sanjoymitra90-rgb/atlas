@@ -36,6 +36,7 @@ test.describe('Review pass — gap analyzer tests', () => {
     });
     expect(before).toBeGreaterThan(0);
     // Apply a filter
+    await helpers.expandGapFilters(page);
     await page.selectOption('#gap-filter-service', 'signing');
     await page.waitForTimeout(500);
     // Verify dataset changed

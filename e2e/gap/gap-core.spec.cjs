@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze, tileText, APP_URL } = require('../_helpers.cjs');
+const { openGapAnalyzer, uploadAndAnalyze, tileText, expandGapFilters, APP_URL } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer', () => {
 
@@ -50,6 +50,7 @@ test.describe('Gap Analyzer', () => {
   test('P2.4 — filtered-view strip shows global counts', async ({ page }) => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-core.csv');
+    await expandGapFilters(page);
     await page.getByTestId('gap-service-filter').selectOption({ label: 'Signing Only' });
     await expect(page.getByTestId('gap-filtered-strip')).toBeVisible();
     await expect(page.getByTestId('gap-filtered-strip')).toContainText('5 of 11');

@@ -1022,15 +1022,19 @@ th:hover .gap-col-filter {
     <!-- Dashboard (shown when data is loaded) -->
     <div id="gap-dashboard" class="hidden space-y-6">
       <!-- Filters Section -->
-      <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-5">
+      <div id="gap-filter-panel" class="bg-slate-900/50 border border-slate-800 rounded-2xl p-4 sm:p-5">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold text-white"><i class="fas fa-filter text-violet-400 mr-2"></i>Filters</h3>
+          <button class="flex items-center gap-2 text-left group" onclick="toggleGapFilterPanel()" id="gap-filter-toggle" data-testid="gap-filter-toggle" aria-expanded="true">
+            <h3 class="text-sm font-semibold text-white"><i class="fas fa-filter text-violet-400 mr-2"></i>Filters</h3>
+            <i class="fas fa-chevron-up text-xs text-slate-400 transition-transform duration-200" id="gap-filter-chevron"></i>
+            <span id="gap-filter-count" class="text-xs text-violet-300 font-medium" data-testid="gap-filter-count">0 active</span>
+          </button>
           <button class="text-xs text-violet-400 hover:text-violet-300" onclick="resetGapFilters()" data-testid="gap-reset-btn">
             <i class="fas fa-undo mr-1"></i>Reset All
           </button>
         </div>
         <div id="gap-bucket-chip" class="hidden mb-3 px-3 py-1.5 bg-violet-500/10 border border-violet-500/30 rounded-lg inline-flex items-center gap-2" data-testid="gap-bucket-chip"></div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="gap-filter-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-testid="gap-filter-grid">
           <div>
             <label class="block text-xs text-slate-400 mb-1">Service Type</label>
             <select id="gap-filter-service" class="w-full atlas-select" data-testid="gap-service-filter" onchange="applyGapFilters()">
@@ -4500,6 +4504,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCostCellsList();
   updateSpecificDropdown();
   updateBaselineSummary();
+  initGapFilterPanelState();
   showModule('gateway');
 });
 
@@ -4936,6 +4941,14 @@ function processGapData() {
   try { initGapHoverHighlight(); } catch(e) { console.error("Hover highlight error:", e); }
   document.getElementById("gap-upload-prompt").classList.add("hidden");
   document.getElementById("gap-dashboard").classList.remove("hidden");
+  // Collapse the filter panel by default once data has loaded, unless the
+  // user already chose an open/closed state this session.
+  if (!_gapFilterChoiceMade) {
+    _gapFilterCollapsed = true;
+    applyGapFilterPanelState();
+  } else {
+    applyGapFilterPanelState();
+  }
   document.getElementById("gap-export-btn").disabled = false;
   document.getElementById("gap-export-btn").classList.remove("opacity-50", "pointer-events-none");
   document.getElementById("gap-settings-btn").disabled = false;
@@ -5029,6 +5042,7 @@ function applyGapFilters() {
   renderGapTable();
   renderGapCharts();
   if (typeof syncToColDropdowns === 'function') syncToColDropdowns();
+  updateGapFilterCount();
 }
 
 function clearGapFilterInputs() {
@@ -5052,11 +5066,68 @@ function clearGapFilterInputs() {
   if (colTimeFrom) colTimeFrom.value = '';
   if (colTimeTo) colTimeTo.value = '';
   syncToColDropdowns();
+  updateGapFilterCount();
 }
 
 function resetGapFilters() {
   clearGapFilterInputs();
   applyGapFilters();
+}
+
+/* ── Filter panel collapse (Phase 5A Task D) ──────────────────────── */
+
+let _gapFilterCollapsed = false;
+let _gapFilterChoiceMade = false;
+
+function initGapFilterPanelState() {
+  try {
+    const saved = sessionStorage.getItem('atlas-gap-filter-collapsed');
+    if (saved !== null) {
+      _gapFilterCollapsed = saved === '1';
+      _gapFilterChoiceMade = true;
+    }
+  } catch (e) {}
+  applyGapFilterPanelState();
+}
+
+function applyGapFilterPanelState() {
+  const grid = document.getElementById('gap-filter-grid');
+  const chevron = document.getElementById('gap-filter-chevron');
+  const toggle = document.getElementById('gap-filter-toggle');
+  if (grid) grid.style.display = _gapFilterCollapsed ? 'none' : '';
+  if (chevron) chevron.className = 'fas ' + (_gapFilterCollapsed ? 'fa-chevron-down' : 'fa-chevron-up') + ' text-xs text-slate-400 transition-transform duration-200';
+  if (toggle) toggle.setAttribute('aria-expanded', _gapFilterCollapsed ? 'false' : 'true');
+  updateGapFilterCount();
+}
+
+function toggleGapFilterPanel() {
+  _gapFilterCollapsed = !_gapFilterCollapsed;
+  _gapFilterChoiceMade = true;
+  try { sessionStorage.setItem('atlas-gap-filter-collapsed', _gapFilterCollapsed ? '1' : '0'); } catch (e) {}
+  applyGapFilterPanelState();
+}
+
+function gapFilterActiveCount() {
+  let n = 0;
+  const barIds = ['gap-filter-service', 'gap-filter-validation', 'gap-filter-from', 'gap-filter-to',
+    'gap-filter-status', 'gap-filter-customer', 'gap-filter-ip', 'gap-filter-proc-min', 'gap-filter-proc-max', 'gap-filter-pair'];
+  barIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'SELECT') { if (el.value !== 'all') n++; }
+    else if (el.value.trim() !== '') n++;
+  });
+  if (gapInvalidReason) n++;
+  if (gapBucketFilter) n++;
+  if (gapTimeFrom || gapTimeTo) n++;
+  return n;
+}
+
+function updateGapFilterCount() {
+  const badge = document.getElementById('gap-filter-count');
+  if (!badge) return;
+  const n = gapFilterActiveCount();
+  badge.textContent = n + ' active';
 }
 
 /* ── Column-header filter dropdowns ─────────────────────────────── */

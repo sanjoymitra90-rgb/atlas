@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze, tileText } = require('../_helpers.cjs');
+const { openGapAnalyzer, uploadAndAnalyze, tileText, expandGapFilters } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Phase 5+6B: Charts & Per-Chart Buckets', () => {
 
@@ -357,6 +357,7 @@ test.describe('Phase 4 required tests', () => {
     const fullChartHours = await chartLabelHours(page, 'volume');
     expect(fullChartHours).toContain(6);
     // Filter to I9 Corp to find the offset-bearing row (it may be on page 3)
+    await expandGapFilters(page);
     await page.selectOption('#gap-filter-customer', 'I9 Corp');
     await page.waitForTimeout(500);
     const found = await page.evaluate(() => {

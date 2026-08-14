@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze, tileText } = require('../_helpers.cjs');
+const { openGapAnalyzer, uploadAndAnalyze, tileText, expandGapFilters } = require('../_helpers.cjs');
 
 test.describe('Gap Analyzer — Paired Calls tile', () => {
 
@@ -33,6 +33,7 @@ test.describe('Gap Analyzer — Paired Calls tile', () => {
     await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-pairing.csv');
     const unfiltered = await tileText(page, 'paired');
+    await expandGapFilters(page);
     await page.getByTestId('gap-service-filter').selectOption({ label: 'Signing Only' });
     await page.waitForTimeout(200);
     const filtered = await tileText(page, 'paired');
