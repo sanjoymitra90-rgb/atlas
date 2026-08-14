@@ -451,6 +451,10 @@ Ten columns — Time (UTC), Service, From, To, Status, Service Provider, Source 
 UK Valid, Pair; **nine are sortable** — UK Valid has no handler. Default sort time descending,
 comparing `row.timestamp` (ms epoch) in both flat and grouped paths. Pagination 25/50/100.
 
+The Status column header and the filter bar's "Status Code" label carry an info-circle tooltip
+(`title="service provider response code"`) explaining that the values are the service provider's
+response code. The column-header filter dropdown's "Status Code" label carries no icon.
+
 Table density: body cells are `py-1.5 px-4` (about 33 px per row at 1440×900) so a full
 25-row page fits one viewport; horizontal padding is unchanged. The six metric tiles sit in a
 `lg:grid-cols-3` grid (2 full rows of 3, no orphaned half-row) — every `gap-metric-*` id and

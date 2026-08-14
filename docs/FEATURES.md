@@ -348,6 +348,8 @@ offset-less timestamp), the cell shows the source exactly as written and no tool
 the value genuinely moved — an epoch or a timestamp carrying a non-UTC offset — it converts to UTC
 and hovering the cell shows the original source value. Rows with unreadable timestamps carry an
 amber warning icon and always sort to the bottom. Paired rows show their pair ID on the pill.
+The Status column header and the filter bar's Status Code label carry a small info icon explaining
+that the values are the service provider's response code.
 
 Hovering a paired row highlights its partner and dims everything else; if the partner is on
 another page, the tooltip says which one. Paired pill tooltips include processing time and

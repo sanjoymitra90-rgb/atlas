@@ -1057,7 +1057,7 @@ th:hover .gap-col-filter {
             <input type="text" id="gap-filter-to" placeholder="Search..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" oninput="applyGapFilters()">
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Status Code</label>
+            <label class="block text-xs text-slate-400 mb-1">Status Code <i class="fas fa-info-circle text-[10px] text-violet-400" title="service provider response code"></i></label>
             <select id="gap-filter-status" class="w-full atlas-select" onchange="applyGapFilters()">
               <option value="all">All Statuses</option>
             </select>
@@ -1417,7 +1417,7 @@ th:hover .gap-col-filter {
                     <input type="text" id="col-filter-to" placeholder="Search..." oninput="syncFromColFilter('to')">
                   </div>
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('status')">Status <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('status')" data-col="status"><i class="fas fa-filter text-xs"></i></span>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('status')">Status <i class="fas fa-info-circle text-[10px] text-violet-400" title="service provider response code"></i><i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('status')" data-col="status"><i class="fas fa-filter text-xs"></i></span>
                   <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-status">
                     <label>Status Code</label>
                     <select id="col-filter-status" class="atlas-select" onchange="syncFromColFilter('status')">

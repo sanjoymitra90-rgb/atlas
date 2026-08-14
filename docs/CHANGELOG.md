@@ -30,6 +30,14 @@ value still works (display text is not the selection key), and that Onboarding/O
 "customer". Proven red before the change: the header and export assertions failed against the
 unmodified build.
 
+**Task B — Status response-code tooltip.** The Status column header and the filter bar's
+"Status Code" label now carry a small info-circle tooltip (`title="service provider response
+code"`) explaining what the values are, following the Time-to-verify tile pattern. The
+column-header filter dropdown's "Status Code" label deliberately carries no icon. Containment
+guard (`e2e/gap/gap-containment.spec.cjs`) re-run after the change: no markup was added outside
+the table header and the filter bar. `e2e/gap/gap-status-tooltip.spec.cjs` proves both sites and
+proves the dropdown label stays icon-free; it failed (red) against the pre-change build.
+
 ---
 
 ### Phase 5A — containment guard, copy-proofing, layout hardening, Time-column source rule
