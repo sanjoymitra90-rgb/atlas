@@ -24,9 +24,6 @@ if (!fs.existsSync(distPath)) {
   });
   await page.waitForTimeout(500);
   await page.screenshot({ path: path.resolve(__dirname, '..', 'screenshot-gap-dark.png'), fullPage: true });
-  await page.getByTestId('gap-theme-toggle').click();
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: path.resolve(__dirname, '..', 'screenshot-gap-light.png'), fullPage: true });
   await browser.close();
-  console.log('Screenshots saved: screenshot-gap-dark.png, screenshot-gap-light.png');
+  console.log('Screenshots saved: screenshot-gap-dark.png');
 })();

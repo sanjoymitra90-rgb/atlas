@@ -1,67 +1,39 @@
 const { test, expect } = require('@playwright/test');
-const { openGapAnalyzer, uploadAndAnalyze } = require('../_helpers.cjs');
+const { openGapAnalyzer, uploadAndAnalyze, APP_URL } = require('../_helpers.cjs');
 
-test.describe('Gap Analyzer — Theme Toggle', () => {
-  test.beforeEach(async ({ page }) => {
+test.describe('Phase 5A — Task G: theme toggle is gone and persisted light is inert', () => {
+  test('no theme control is reachable anywhere in the header', async ({ page }) => {
     await openGapAnalyzer(page);
+    await expect(page.locator('[data-testid="gap-theme-toggle"]')).toHaveCount(0);
+    await expect(page.locator('#gap-theme-icon')).toHaveCount(0);
+    const headerText = await page.locator('.gap-header').innerText();
+    expect(headerText.toLowerCase()).not.toContain('theme');
+    expect(headerText.toLowerCase()).not.toContain('light');
   });
 
-  test('toggle button is visible in the header', async ({ page }) => {
-    const btn = page.getByTestId('gap-theme-toggle');
-    await expect(btn).toBeVisible();
-  });
-
-  test('clicking toggle switches to light theme (data-theme="light")', async ({ page }) => {
-    await page.getByTestId('gap-theme-toggle').click();
-    const root = page.locator('#main-content');
-    await expect(root).toHaveAttribute('data-theme', 'light');
-  });
-
-  test('clicking toggle again switches back to dark (no data-theme)', async ({ page }) => {
-    await page.getByTestId('gap-theme-toggle').click();
-    await expect(page.locator('#main-content')).toHaveAttribute('data-theme', 'light');
-    await page.getByTestId('gap-theme-toggle').click();
+  test('persisted light theme is inert: app still renders dark', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('atlas-gap-theme', 'light');
+    });
+    await openGapAnalyzer(page);
     await expect(page.locator('#main-content')).not.toHaveAttribute('data-theme', 'light');
+    const root = page.locator('#main-content');
+    expect(await root.getAttribute('data-theme')).toBeNull();
+    const saved = await page.evaluate(() => localStorage.getItem('atlas-gap-theme'));
+    expect(saved).toBe('light');
   });
 
-  test('icon changes from sun to moon in light mode', async ({ page }) => {
-    const icon = page.locator('#gap-theme-icon');
-    await expect(icon).toHaveClass(/fa-sun/);
-    await page.getByTestId('gap-theme-toggle').click();
-    await expect(icon).toHaveClass(/fa-moon/);
-  });
-
-  test('localStorage persists theme across navigation', async ({ page }) => {
-    await page.getByTestId('gap-theme-toggle').click();
-    await expect(page.locator('#main-content')).toHaveAttribute('data-theme', 'light');
-    // Re-navigate
-    await page.goto(page.url());
-    await page.getByTestId('gap-launch').click();
-    await page.getByTestId('gap-upload-prompt').waitFor({ state: 'visible' });
-    await expect(page.locator('#main-content')).toHaveAttribute('data-theme', 'light');
-  });
-
-  test('charts re-render without errors on theme toggle', async ({ page }) => {
+  test('persisted light leaves the Call Auditor dark after analysis', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('atlas-gap-theme', 'light');
+    });
+    await openGapAnalyzer(page);
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
-    // Toggle theme
-    await page.getByTestId('gap-theme-toggle').click();
-    await expect(page.locator('#main-content')).toHaveAttribute('data-theme', 'light');
-    // All seven charts should still be present
-    await expect(page.locator('#gap-chart-invalid')).toBeVisible();
-    await expect(page.locator('#gap-chart-volume')).toBeVisible();
-    await expect(page.locator('#gap-chart-processing')).toBeVisible();
-    await expect(page.locator('#gap-chart-requests')).toBeVisible();
-    await expect(page.locator('#gap-chart-ttv')).toBeVisible();
-    await expect(page.locator('#gap-chart-pairproc')).toBeVisible();
-    await expect(page.locator('#gap-chart-e2e')).toBeVisible();
-  });
-
-  test('light theme: canvas background is light', async ({ page }) => {
-    await page.getByTestId('gap-theme-toggle').click();
     const bg = await page.evaluate(() => {
       const el = document.getElementById('main-content');
       return el ? getComputedStyle(el).getPropertyValue('--gap-canvas').trim() : null;
     });
-    expect(bg).toBe('#f8fafc');
+    expect(bg).not.toBe('#f8fafc');
+    await expect(page.locator('[data-testid="gap-theme-toggle"]')).toHaveCount(0);
   });
 });
