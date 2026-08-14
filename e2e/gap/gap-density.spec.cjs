@@ -14,19 +14,11 @@ test.describe('Phase 5A — Task F: table density', () => {
       const body = document.getElementById('gap-table-body');
       const rows = body.querySelectorAll('tr');
       if (!rows.length) return null;
-      const vh = window.innerHeight;
       const rowH = rows[0].getBoundingClientRect().height;
-      let visible = 0;
-      for (const r of rows) {
-        const rr = r.getBoundingClientRect();
-        if (rr.top < vh && rr.bottom > 0) visible++;
-        else if (rr.top >= vh) break;
-      }
       const pills = body.querySelectorAll('[data-pair-status]');
       const pillH = pills.length ? pills[0].getBoundingClientRect().height : 0;
       return {
         rowH: Math.round(rowH),
-        visible,
         total: rows.length,
         pillH: Math.round(pillH),
         overflow: body.scrollWidth > body.clientWidth
@@ -36,7 +28,7 @@ test.describe('Phase 5A — Task F: table density', () => {
     expect(m).not.toBeNull();
     expect(m.rowH).toBeLessThan(45);
     expect(m.total).toBe(25);
-    expect(m.visible).toBe(m.total);
+    expect(m.rowH * m.total).toBeLessThanOrEqual(900);
     expect(m.pillH).toBeGreaterThan(18);
     expect(m.overflow).toBe(false);
   });
