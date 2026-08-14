@@ -5747,17 +5747,17 @@ function renderGapTable() {
       }
       const tc = formatGapTimeCell(row);
       return summaryRow + `<tr class="${trClasses}" data-pair-group="${groupKey}">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${tc.html}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.status || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
-      <td class="py-3 px-4 whitespace-nowrap">${ukPillHtml(row)}</td>
-      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(pillTitle)}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
-      ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${tc.html}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
+      <td class="py-1.5 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.status || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
+      <td class="py-1.5 px-4 whitespace-nowrap">${ukPillHtml(row)}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(pillTitle)}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
+      ${gapAdditionalColumns.map(col => '<td class="py-1.5 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
     }).join('');
 
@@ -5803,17 +5803,17 @@ function renderGapTable() {
       }
       const tc = formatGapTimeCell(row);
       return `<tr class="border-b border-slate-800 hover:bg-slate-800/50">
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${tc.html}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
-      <td class="py-3 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.status || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
-      <td class="py-3 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
-      <td class="py-3 px-4 whitespace-nowrap">${ukPillHtml(row)}</td>
-      <td class="py-3 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(pillTitle)}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
-      ${gapAdditionalColumns.map(col => '<td class="py-3 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${tc.html}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.service || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.from || '-')}</td>
+      <td class="py-1.5 px-4 text-slate-300 font-mono text-xs ${!row.ukValid ? 'text-red-400' : 'text-emerald-400'}">${escapeHtml(row.to || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.status || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${escapeHtml(row.customer || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">${escapeHtml(row.sourceIP || '-')}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap text-slate-300">${row.processingTime} ms</td>
+      <td class="py-1.5 px-4 whitespace-nowrap">${ukPillHtml(row)}</td>
+      <td class="py-1.5 px-4 whitespace-nowrap"><span data-pair-status="${row.pairStatus}" ${row.pairStatus === 'paired' ? 'data-pair-id="' + row.pairId + '"' : ''} class="px-2 py-1 rounded-full text-xs ${row.pairStatus === 'paired' ? 'bg-emerald-900/50 text-emerald-400' : row.pairStatus === 'unverified' ? 'bg-red-900/50 text-red-400' : row.pairStatus === 'unsigned' ? 'bg-amber-900/50 text-amber-400' : row.pairStatus === 'duplicate' ? 'bg-blue-900/50 text-blue-400' : 'bg-slate-800 text-slate-400'}" title="${escapeHtml(pillTitle)}">${row.pairStatus === 'paired' ? row.pairId + ' \u00b7 Paired' : row.pairStatus === 'unverified' ? 'Signed \u00b7 not verified' : row.pairStatus === 'unsigned' ? 'Verified \u00b7 not signed' : row.pairStatus === 'duplicate' ? 'Duplicate' : 'Unpairable'}</span></td>
+      ${gapAdditionalColumns.map(col => '<td class="py-1.5 px-4 whitespace-nowrap text-slate-300 font-mono text-xs">' + escapeHtml(row.raw && row.raw[col.header] || '-') + '</td>').join('')}
     </tr>`;
     }).join('');
 
