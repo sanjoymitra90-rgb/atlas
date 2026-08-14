@@ -13,7 +13,7 @@ to stay true, only to stay complete.
 
 ### Phase 5B — Call Auditor display copy: Customer → Service Provider
 
-Spec: `2026-08-13-phase-5b-spec.md`. Commits: `…`.
+Spec: `2026-08-13-phase-5b-spec.md`. Commits: `2dbef8b`, `5722f8f`, `0a05dee`.
 
 **Task A — Customer renamed Service Provider (breaking).** The Call Auditor's display text for the
 provider column now reads "Service Provider": the table header, filter-bar label, column-header
@@ -65,6 +65,14 @@ contract (filter/sort/mapping keys) is unchanged.
    blocks, and it counted the permanently closed off-screen help drawer as an offender by a
    0.5px viewport-edge overlap. It now waits for the toast to leave the viewport and skips
    off-screen fixed elements.
+
+**Task D — copy-dependency search re-run (clean).** Re-ran the §2 search across `index.html` and
+`src/` after Tasks A–C: every comparison or substring match against a string literal is an internal
+enum/identifier value (module names, SLA mode, view mode, pair status, bucket interval, column keys),
+a keyboard key or tag name, or a data-driven read of the *user's* CSV (service-column
+`svc.includes('sign')` / `svc.includes('verif')`, header-keyword autodetection, the region search,
+the `.csv` extension check). No code compares against, or substring-matches, any user-editable copy —
+including the strings renamed or reworded in this phase.
 
 ---
 
