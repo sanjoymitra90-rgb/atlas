@@ -13,7 +13,7 @@ to stay true, only to stay complete.
 
 ### Phase 5B — Call Auditor display copy: Customer → Service Provider
 
-Spec: `2026-08-13-phase-5b-spec.md`. Commits: `2dbef8b`, `5722f8f`, `0a05dee`.
+Spec: `2026-08-13-phase-5b-spec.md`. Commits: `2dbef8b`, `5722f8f`, `0a05dee`, `af43f25`.
 
 **Task A — Customer renamed Service Provider (breaking).** The Call Auditor's display text for the
 provider column now reads "Service Provider": the table header, filter-bar label, column-header
@@ -35,8 +35,9 @@ unmodified build.
 code"`) explaining what the values are, following the Time-to-verify tile pattern. The
 column-header filter dropdown's "Status Code" label deliberately carries no icon. Containment
 guard (`e2e/gap/gap-containment.spec.cjs`) re-run after the change: no markup was added outside
-the table header and the filter bar. `e2e/gap/gap-status-tooltip.spec.cjs` proves both sites and
-proves the dropdown label stays icon-free; it failed (red) against the pre-change build.
+the table header and the filter bar. `e2e/gap/gap-status-tooltip.spec.cjs` proves both sites,
+proves the dropdown label stays icon-free, and proves the tooltip survives a re-render after a
+sort and a filter change (B3); it failed (red) against the pre-change build.
 
 **Task C — copy sweep (four fault classes).** All changes are display text only; the behaviour
 contract (filter/sort/mapping keys) is unchanged.
