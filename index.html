@@ -554,7 +554,7 @@ th:hover .gap-col-filter {
       </div>
       <h2 class="text-2xl font-bold text-white mb-3">Cell Placement Optimizer</h2>
       <p class="text-slate-400 text-sm leading-relaxed mb-6">
-        Determine optimal infrastructure placement, run realistic latency models, map your global endpoints, and forecast baseline monthly OPEX.
+        Determine optimal infrastructure placement, run realistic latency models, map your global service providers, and forecast baseline monthly OPEX.
       </p>
       <div class="mt-auto pt-4 border-t border-slate-700/50 w-full text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 group">
         Launch Optimizer <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
@@ -621,7 +621,7 @@ th:hover .gap-col-filter {
           </button>
           <button class="export-option" onclick="exportSessionCSV()">
             <div class="export-option-title"><i class="fas fa-table text-emerald-400"></i> CSV File</div>
-            <div class="export-option-desc">Exports a spreadsheet-friendly report of your current endpoints, SLA, and footprint. Cannot be imported back.</div>
+            <div class="export-option-desc">Exports a spreadsheet-friendly report of your current service providers, SLA, and footprint. Cannot be imported back.</div>
           </button>
           <button class="export-option" onclick="exportShareReport()">
             <div class="export-option-title"><i class="fas fa-share-alt text-emerald-400"></i> Share Report (HTML)</div>
@@ -639,7 +639,7 @@ th:hover .gap-col-filter {
       <div class="flex items-center gap-0 w-full min-w-[300px] sm:min-w-0 sm:max-w-2xl">
         <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(1)" id="step-ind-1"><div class="step-dot active"><i class="fas fa-server text-sm"></i></div><span class="text-xs font-medium accent step-text">Current Footprint</span></div>
         <div class="step-line" id="line-1"></div>
-        <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(2)" id="step-ind-2"><div class="step-dot"><i class="fas fa-network-wired text-sm"></i></div><span class="text-xs font-medium text-slate-500 step-text">Endpoints</span></div>
+        <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(2)" id="step-ind-2"><div class="step-dot"><i class="fas fa-network-wired text-sm"></i></div><span class="text-xs font-medium text-slate-500 step-text">Service Providers</span></div>
         <div class="step-line" id="line-2"></div>
         <div class="flex flex-col items-center gap-2 step-indicator" onclick="tryGoToStep(3)" id="step-ind-3"><div class="step-dot"><i class="fas fa-sliders text-sm"></i></div><span class="text-xs font-medium text-slate-500 step-text">SLA Config</span></div>
         <div class="step-line" id="line-3"></div>
@@ -665,7 +665,7 @@ th:hover .gap-col-filter {
           <div id="fp-map" class="w-full h-full"></div>
           <div class="absolute top-4 right-4 glass rounded-lg p-3 z-[1000] space-y-2">
             <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing Cell</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Endpoint</div>
+<div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Service Provider</div>
             <div class="legend-item"><div class="legend-diamond" style="background:#3b82f6"></div>Recommended</div>
           </div>
         </div>
@@ -710,17 +710,17 @@ th:hover .gap-col-filter {
         </div>
       </div>
 
-      <div class="flex justify-end mt-8"><button class="btn-primary px-6 py-3 rounded-xl" onclick="goToStep(2)">Next: Add Endpoints <i class="fas fa-arrow-right ml-2"></i></button></div>
+      <div class="flex justify-end mt-8"><button class="btn-primary px-6 py-3 rounded-xl" onclick="goToStep(2)">Next: Add Service Providers <i class="fas fa-arrow-right ml-2"></i></button></div>
     </div>
   
     <div id="step-2" class="step-content hidden fade-in">
       <div class="text-center mb-8">
-        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Endpoint Locations</h2>
-        <p class="text-xs sm:text-sm text-slate-400">Add the locations of your target endpoints</p>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">Service Provider Locations</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Add the locations of your target service providers</p>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <div class="glass rounded-2xl overflow-hidden">
-          <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-2"><h3 class="font-semibold text-white">Endpoint Map</h3><div class="flex gap-3 text-xs flex-wrap"><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Endpoint</div></div></div>
+          <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between flex-wrap gap-2"><h3 class="font-semibold text-white">Service Provider Map</h3><div class="flex gap-3 text-xs flex-wrap"><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Existing</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Service Provider</div></div></div>
           <div class="h-[300px] sm:h-[420px] relative">
             <div id="cust-map" class="w-full h-full"></div>
             <!-- FIXED: Added full-width wrapper to prevent jumping on hover -->
@@ -742,7 +742,7 @@ th:hover .gap-col-filter {
             <div class="relative mb-3"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i><input type="text" class="search-input text-sm" placeholder="Search cities or countries..." id="cust-search" oninput="filterCustList()"></div>
             <div id="cust-source-list" class="max-h-[200px] overflow-y-auto space-y-1 pr-1"></div>
           </div>
-          <div class="glass rounded-2xl p-5"><h3 class="font-semibold text-white mb-3">Endpoints (<span id="cust-count">0</span>)</h3><div id="cust-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1"></div></div>
+          <div class="glass rounded-2xl p-5"><h3 class="font-semibold text-white mb-3">Service Providers (<span id="cust-count">0</span>)</h3><div id="cust-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1"></div></div>
         </div>
       </div>
       <div class="flex justify-between mt-8"><button class="btn-ghost px-6 py-3" onclick="goToStep(1)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-primary px-6 py-3 rounded-xl" onclick="goToStep(3)">Next: Configure SLA <i class="fas fa-arrow-right ml-2"></i></button></div>
@@ -757,7 +757,7 @@ th:hover .gap-col-filter {
         <div class="glass rounded-2xl p-6">
           <div class="flex items-center gap-2 mb-4"><h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Latency Estimation</h3></div>
           <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><b>Unified model:</b> When a city endpoint resolves to an AWS region within 50 km, the measured matrix latency is used directly. Otherwise, distance-based estimation applies (0.012 ms/km + infrastructure tier tax).</p>
+            <p class="text-xs text-blue-300 mb-2"><i class="fas fa-info-circle mr-1"></i><b>Unified model:</b> When a city service provider resolves to an AWS region within 50 km, the measured matrix latency is used directly. Otherwise, distance-based estimation applies (0.012 ms/km + infrastructure tier tax).</p>
             <ul class="text-xs text-blue-200/80 space-y-1 ml-4 list-disc"><li><b>AWS region or resolved city:</b> Uses the measured backbone matrix — most accurate.</li><li><b>Unresolved city:</b> Haversine distance × 0.012 ms/km + Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms</li></ul>
           </div>
         </div>
@@ -765,11 +765,11 @@ th:hover .gap-col-filter {
           <h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">SLA Mode</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="mode-card selected" onclick="setSLAMode('global')" id="sla-global-card"><div class="mode-icon"><i class="fas fa-globe"></i></div><div><div class="font-semibold text-white">Global SLA</div><div class="text-xs text-slate-400">One threshold for all</div></div></div>
-            <div class="mode-card" onclick="setSLAMode('per-customer')" id="sla-per-card"><div class="mode-icon"><i class="fas fa-cogs"></i></div><div><div class="font-semibold text-white">Per-Endpoint SLA</div><div class="text-xs text-slate-400">Different per endpoint</div></div></div>
+            <div class="mode-card" onclick="setSLAMode('per-customer')" id="sla-per-card"><div class="mode-icon"><i class="fas fa-cogs"></i></div><div><div class="font-semibold text-white">Per-Service-Provider SLA</div><div class="text-xs text-slate-400">Different per service provider</div></div></div>
           </div>
         </div>
         <div id="sla-global-section" class="glass rounded-2xl p-6"><h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Global Latency Threshold</h3><div class="flex items-center gap-3"><input type="number" id="global-sla-input" value="150" min="1" class="text-lg font-mono"><span class="text-slate-400 font-medium">ms</span></div></div>
-        <div id="sla-per-section" class="glass rounded-2xl p-6 hidden"><h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Custom SLA per Endpoint</h3><div id="sla-per-list" class="space-y-3"></div></div>
+        <div id="sla-per-section" class="glass rounded-2xl p-6 hidden"><h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Custom SLA per Service Provider</h3><div id="sla-per-list" class="space-y-3"></div></div>
   
         <div class="glass rounded-2xl p-6">
           <h3 class="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Internal Processing Time</h3>
@@ -791,7 +791,7 @@ th:hover .gap-col-filter {
         <p class="text-xs sm:text-sm text-slate-400" id="dash-subtitle">Optimal cell placement recommendations</p>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
-        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Endpoints</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Service Providers</div></div>
         <div class="stat-card"><div class="stat-value text-emerald-400" id="stat-covered">0</div><div class="stat-label">Already Covered</div></div>
         <div class="stat-card"><div class="stat-value text-amber-400" id="stat-pending">0</div><div class="stat-label">Pending Coverage</div></div>
         <div class="stat-card"><div class="stat-value text-blue-400" id="stat-new-cells">0</div><div class="stat-label">New Cells Needed</div></div>
@@ -811,13 +811,13 @@ th:hover .gap-col-filter {
       <div id="green-plan-card" class="glass rounded-2xl p-5 mb-8 border-l-4 border-emerald-500 hidden">
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center"><i class="fas fa-leaf text-emerald-400"></i></div><h3 class="font-semibold text-white">What-if: Make Everything Green</h3></div>
-          <button id="green-plan-toggle" class="btn-ghost text-xs px-3 py-1.5 rounded-lg border border-slate-700 hover:border-emerald-500" data-mode="global" onclick="toggleGreenPlanMode()">Switch to Per-Endpoint</button>
+          <button id="green-plan-toggle" class="btn-ghost text-xs px-3 py-1.5 rounded-lg border border-slate-700 hover:border-emerald-500" data-mode="global" onclick="toggleGreenPlanMode()">Switch to Per-Service-Provider</button>
         </div>
         <div id="green-plan-summary"></div>
         <div id="green-plan-details"></div>
       </div>
       <div class="glass rounded-2xl p-6 mb-8"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><i class="fas fa-lightbulb text-blue-400"></i></div><div class="flex-1"><h3 class="font-semibold text-white text-lg">Recommended New Cells</h3></div><button class="dash-section-toggle" aria-expanded="true" onclick="toggleDashSection(this, 'dash-recommendations')" title="Collapse/expand"><i class="fas fa-chevron-down"></i></button></div><div id="dash-recommendations" class="space-y-4 dash-section-body"></div></div>
-      <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div class="flex-1"><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered endpoint (including existing ones)</p></div><button class="dash-section-toggle" aria-expanded="true" onclick="toggleDashSection(this, 'explorer-list')" title="Collapse/expand"><i class="fas fa-chevron-down"></i></button></div><div id="explorer-list" class="space-y-5 dash-section-body"></div></div>
+      <div id="latency-explorer" class="glass rounded-2xl p-6 mb-8 hidden"><div class="flex items-center gap-3 mb-6"><div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><i class="fas fa-microscope text-purple-400"></i></div><div class="flex-1"><h3 class="font-semibold text-white text-lg">Latency Explorer</h3><p class="text-xs text-slate-400">Top candidate cells for each uncovered service provider (including existing ones)</p></div><button class="dash-section-toggle" aria-expanded="true" onclick="toggleDashSection(this, 'explorer-list')" title="Collapse/expand"><i class="fas fa-chevron-down"></i></button></div><div id="explorer-list" class="space-y-5 dash-section-body"></div></div>
       <div class="flex justify-between"><button class="btn-ghost px-6 py-3" onclick="goToStep(3)"><i class="fas fa-arrow-left mr-2"></i>Back</button><button class="btn-secondary px-6 py-3 rounded-xl" onclick="goToStep(1)"><i class="fas fa-redo mr-2"></i>Start Over</button></div>
     </div>
   </main>
@@ -1751,16 +1751,16 @@ th:hover .gap-col-filter {
 
   <!-- HELP CONTENT: OPTIMIZER -->
   <div id="help-content-optimizer" class="flex-1 overflow-y-auto flex flex-col">
-    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">💡 Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">💰 Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Endpoints</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">🔧 How It Works</a><a class="help-toc-link" onclick="scrollToSection('greenplan')">🌿 Green-Plan</a><a class="help-toc-link" onclick="scrollToSection('scenarios')">🔖 Scenarios</a><a class="help-toc-link" onclick="scrollToSection('sharereport')">📤 Share Report</a></div></div>
+    <div class="help-toc"><div class="help-toc-title">Jump to section</div><div class="help-toc-list"><a class="help-toc-link" onclick="scrollToSection('intro')">📖 Overview</a><a class="help-toc-link" onclick="scrollToSection('concepts')">💡 Key Concepts</a><a class="help-toc-link" onclick="scrollToSection('step1')">Step 1: Current Footprint</a><a class="help-toc-link" onclick="scrollToSection('cost')">💰 Cost Calculator</a><a class="help-toc-link" onclick="scrollToSection('step2')">Step 2: Service Providers</a><a class="help-toc-link" onclick="scrollToSection('step3')">Step 3: SLA Config</a><a class="help-toc-link" onclick="scrollToSection('step4')">Step 4: Analysis</a><a class="help-toc-link" onclick="scrollToSection('underhood')">🔧 How It Works</a><a class="help-toc-link" onclick="scrollToSection('greenplan')">🌿 Green-Plan</a><a class="help-toc-link" onclick="scrollToSection('scenarios')">🔖 Scenarios</a><a class="help-toc-link" onclick="scrollToSection('sharereport')">📤 Share Report</a></div></div>
     <div class="help-body" id="help-body-optimizer">
-      <section class="help-section" id="intro"><h3><i class="fas fa-book-open text-emerald-400"></i> What Is This Tool?</h3><p>This tool helps you figure out <strong>where to place your infrastructure ("cells")</strong> around the world so that your endpoints get fast, reliable connections.</p><p>You tell the tool:</p><ul><li>Where your <em>existing cells</em> are today</li><li>Where your <em>endpoints</em> are located</li><li>What <em>latency</em> (in milliseconds) you promised them in your SLA</li><li>Optionally, how much your current cells <em>cost</em> per month</li></ul><p>The tool then uses realistic distance parameters and a 32x32 AWS latency matrix to recommend exactly where to deploy new cells — optimizing to strictly meet your SLA for the lowest possible cost.</p></section>
-      <section class="help-section" id="concepts"><h3><i class="fas fa-lightbulb text-amber-400"></i> Key Concepts</h3><h4>Cell</h4><p>A server or piece of infrastructure you deploy in an AWS data center.</p><h4>Endpoint</h4><p>An integration partner, service consumer, or client application that needs to connect to your cell.</p><h4>SLA (Service Level Agreement)</h4><p>The maximum latency (in milliseconds) you've promised your endpoints.</p><h4>Latency</h4><p>The round-trip time (in milliseconds) for data to travel from your cell to your endpoint and back.</p></section>
+      <section class="help-section" id="intro"><h3><i class="fas fa-book-open text-emerald-400"></i> What Is This Tool?</h3><p>This tool helps you figure out <strong>where to place your infrastructure ("cells")</strong> around the world so that your service providers get fast, reliable connections.</p><p>You tell the tool:</p><ul><li>Where your <em>existing cells</em> are today</li><li>Where your <em>service providers</em> are located</li><li>What <em>latency</em> (in milliseconds) you promised them in your SLA</li><li>Optionally, how much your current cells <em>cost</em> per month</li></ul><p>The tool then uses realistic distance parameters and a 32x32 AWS latency matrix to recommend exactly where to deploy new cells — optimizing to strictly meet your SLA for the lowest possible cost.</p></section>
+      <section class="help-section" id="concepts"><h3><i class="fas fa-lightbulb text-amber-400"></i> Key Concepts</h3><h4>Cell</h4><p>A server or piece of infrastructure you deploy in an AWS data center.</p><h4>Service Provider</h4><p>An integration partner, service consumer, or client application that needs to connect to your cell.</p><h4>SLA (Service Level Agreement)</h4><p>The maximum latency (in milliseconds) you've promised your service providers.</p><h4>Latency</h4><p>The round-trip time (in milliseconds) for data to travel from your cell to your service provider and back.</p></section>
       <section class="help-section" id="step1"><h3><span class="step-num">1</span> Current Footprint</h3><p>Tell the tool where you <strong>already</strong> have cells deployed. This is optional.</p><p>Use <strong>List View</strong> to browse regions by continent, or <strong>Map View</strong> to visualize your selections.</p><p>Below the cell selection, you'll find the <strong>Infrastructure Cost Profile</strong> accordion — see the next section for details.</p></section>
       <section class="help-section" id="cost"><h3><i class="fas fa-dollar-sign text-amber-400"></i> Cost Calculator</h3><p>The cost calculator is <strong>optional but powerful</strong>. It lets you estimate the monthly OPEX impact of deploying new cells.</p><h4>The "Hidden Global Index"</h4><p>The tool has a hardcoded <strong>AWS Regional Price Index</strong> anchored to <strong>US East (N. Virginia) = 1.00x</strong>. Every other region is priced relative to it:</p><div class="help-index-grid"><div class="help-index-row"><span class="region">US East (Virginia)</span><span class="idx discount">1.00x</span></div><div class="help-index-row"><span class="region">Europe (Paris)</span><span class="idx parity">1.10x</span></div><div class="help-index-row"><span class="region">Asia Pacific (Tokyo)</span><span class="idx premium">1.25x</span></div><div class="help-index-row"><span class="region">South America (São Paulo)</span><span class="idx premium">1.50x</span></div><div class="help-index-row"><span class="region">Africa (Cape Town)</span><span class="idx premium">1.30x</span></div><div class="help-index-row"><span class="region">Middle East (Dubai)</span><span class="idx premium">1.25x</span></div></div><h4>Reverse-Engineering the Global Base</h4><p>When you input a cost for Paris ($2,674), the tool knows Paris is 1.10x. It <strong>reverse-engineers</strong> the normalized base:</p><div class="help-formula">$2,674 ÷ 1.10 = <strong>$2,430</strong> (True Global Base)</div><h4>Blended vs. Specific Baseline</h4><ul><li><strong>Blended:</strong> Averages reverse-engineered base costs from all inputted cells.</li><li><strong>Specific:</strong> Anchors to one specific cell of your choice.</li></ul></section>
-      <section class="help-section" id="step2"><h3><span class="step-num">2</span> Endpoint Locations</h3><p>Add endpoints via the <strong>AWS Regions</strong> tab or <strong>World Cities</strong> tab. You can also click anywhere on the map to snap to the nearest major city.</p></section>
+      <section class="help-section" id="step2"><h3><span class="step-num">2</span> Service Provider Locations</h3><p>Add service providers via the <strong>AWS Regions</strong> tab or <strong>World Cities</strong> tab. You can also click anywhere on the map to snap to the nearest major city.</p></section>
       <section class="help-section" id="step3"><h3><span class="step-num">3</span> SLA Configuration</h3><h4>Latency Estimation</h4><p>The tool uses a unified latency model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly — most accurate.</li><li><b>Unresolved city:</b> Haversine distance × 0.012 ms/km + infrastructure tier tax.</li></ul></section>
-      <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <b>Latency Explorer</b> to debug exactly why a cell passed or failed for a given endpoint.</p></section>
-      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <b>coverage-first</b> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol><li><b>Eligibility gate:</b> A (region, endpoint) pair is eligible only if <code>headroom = SLA − latency ≥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><b>Selection priority:</b> Among regions covering ≥1 eligible uncovered endpoint:<ul><li>1st: MAX endpoints covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered endpoints</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered endpoints; repeat until nothing more can be covered.</li></ol><p><b>Marginal bucket:</b> Endpoints with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal — not impossible, but requiring SLA relaxation. Existing cells still cover endpoints even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly. The latency matrix is noisy (asymmetric by up to ~30 ms), so single-millisecond figures are indicative; recommendation cards show a latency band and confidence chip instead of a false-precise point.</p><h4>Legacy Mode</h4><p>Set the safety margin to <b>0ms</b> to restore classic pass/fail SLA behavior with cost-per-customer scoring.</p><h4>Latency Model</h4><p>One unified model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly. This is the most accurate path.</li><li><b>Unresolved city (no region within 50 km):</b> Haversine distance × 0.012 ms/km + infrastructure tier tax (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul><p>Adding the same city from the World Cities tab, the AWS Regions tab, or by clicking on the map all produce identical latency — the tool resolves to the same region.</p>
+      <section class="help-section" id="step4"><h3><span class="step-num">4</span> Coverage Analysis</h3><p>The dashboard shows your total coverage, pending coverage, number of new cells needed, and estimated monthly OPEX.</p><p>You can also use the <b>Latency Explorer</b> to debug exactly why a cell passed or failed for a given service provider.</p></section>
+      <section class="help-section" id="underhood"><h3><i class="fas fa-cogs text-purple-400"></i> How It Works Under the Hood</h3><h4>Coverage-First Algorithm with SLA Safety Floor</h4><p>The tool uses a <b>coverage-first</b> greedy algorithm. Placement quality outranks cost. Each iteration:</p><ol><li><b>Eligibility gate:</b> A (region, service provider) pair is eligible only if <code>headroom = SLA − latency ≥ safetyFloor</code>. The safety floor (default 20ms) ensures no marginal passes.</li><li><b>Selection priority:</b> Among regions covering ≥1 eligible uncovered service provider:<ul><li>1st: MAX service providers covered (breadth first)</li><li>2nd tie-break: MAX minimum headroom across covered service providers</li><li>3rd tie-break: MIN region cost</li></ul></li><li>Remove covered service providers; repeat until nothing more can be covered.</li></ol><p><b>Marginal bucket:</b> Service providers with no eligible region but passing at <code>headroom &lt; safetyFloor</code> are flagged as marginal — not impossible, but requiring SLA relaxation. Existing cells still cover service providers even below the floor (flagged <code>marginalExisting</code>), but new recommendations apply the floor strictly. The latency matrix is noisy (asymmetric by up to ~30 ms), so single-millisecond figures are indicative; recommendation cards show a latency band and confidence chip instead of a false-precise point.</p><h4>Legacy Mode</h4><p>Set the safety margin to <b>0ms</b> to restore classic pass/fail SLA behavior with cost-per-service-provider scoring.</p><h4>Latency Model</h4><p>One unified model — no mode selector:</p><ul><li><b>AWS region or resolved city (within 50 km):</b> Uses the measured backbone matrix directly. This is the most accurate path.</li><li><b>Unresolved city (no region within 50 km):</b> Haversine distance × 0.012 ms/km + infrastructure tier tax (Tier 1: +5ms · Tier 2: +20ms · Tier 3: +40ms · Tier 4: +60ms).</li></ul><p>Adding the same city from the World Cities tab, the AWS Regions tab, or by clicking on the map all produce identical latency — the tool resolves to the same region.</p>
       <h4>Why 0.012 ms/km? (The Physics)</h4>
       <p>This propagation delay factor is mathematically grounded in the physics of fiber optic networking:</p>
       <ul>
@@ -1770,9 +1770,9 @@ th:hover .gap-col-filter {
         <li><b>Round-Trip Time (RTT):</b> Networking latency measures the time to go and come back. Doubling the one-way time: 0.005 ms × 2 = 0.01 ms per km.</li>
       </ul>
       <div class="help-callout success"><div class="callout-title"><i class="fas fa-heart text-emerald-400"></i> That's it!</div>Close this guide and start planning your next cell deployment.</div></section>
-      <section class="help-section" id="greenplan"><h3><i class="fas fa-leaf text-emerald-400"></i> Green-Plan What-If</h3><p>After running a coverage analysis, the dashboard shows a <b>"What-if: Make Everything Green"</b> section. This tells you exactly how much you'd need to relax your SLA to eliminate all marginal and impossible endpoints.</p><h4>Two modes</h4><ul><li><b>Global:</b> One relaxed SLA for all endpoints. Simple — just raise the SLA threshold and everything turns green.</li><li><b>Per-Endpoint:</b> Each endpoint gets its own minimal relaxation. More precise — some endpoints need only 5ms more, others need 50ms.</li></ul><p>The section also shows the <b>extra OPEX</b> — the cost difference between your current plan and the green plan.</p></section>
-      <section class="help-section" id="scenarios"><h3><i class="fas fa-bookmark text-amber-400"></i> Saved Scenarios</h3><p>On the SLA Configuration step (step 3), you'll find a <b>Saved Scenarios</b> section. Save your current analysis configuration — endpoints, SLA, safety floor, footprint, costs — and reload it later.</p><p><b>Important:</b> Scenarios are stored in your browser's localStorage. They are <b>per-machine</b> — if you switch browsers or clear your browser data, scenarios are lost. Use session JSON export for portable backups.</p></section>
-      <section class="help-section" id="sharereport"><h3><i class="fas fa-share-alt text-emerald-400"></i> Share Report</h3><p>On the Coverage Analysis dashboard (step 4), click <b>"Share Report"</b> to download a standalone HTML file. This file contains all your analysis results — endpoints, coverage, recommendations, costs — in a self-contained format.</p><p>The report opens in any browser with no internet connection required. Share it with stakeholders who don't have access to ATLAS.</p></section>
+      <section class="help-section" id="greenplan"><h3><i class="fas fa-leaf text-emerald-400"></i> Green-Plan What-If</h3><p>After running a coverage analysis, the dashboard shows a <b>"What-if: Make Everything Green"</b> section. This tells you exactly how much you'd need to relax your SLA to eliminate all marginal and impossible service providers.</p><h4>Two modes</h4><ul><li><b>Global:</b> One relaxed SLA for all service providers. Simple — just raise the SLA threshold and everything turns green.</li><li><b>Per-Service-Provider:</b> Each service provider gets its own minimal relaxation. More precise — some service providers need only 5ms more, others need 50ms.</li></ul><p>The section also shows the <b>extra OPEX</b> — the cost difference between your current plan and the green plan.</p></section>
+      <section class="help-section" id="scenarios"><h3><i class="fas fa-bookmark text-amber-400"></i> Saved Scenarios</h3><p>On the SLA Configuration step (step 3), you'll find a <b>Saved Scenarios</b> section. Save your current analysis configuration — service providers, SLA, safety floor, footprint, costs — and reload it later.</p><p><b>Important:</b> Scenarios are stored in your browser's localStorage. They are <b>per-machine</b> — if you switch browsers or clear your browser data, scenarios are lost. Use session JSON export for portable backups.</p></section>
+      <section class="help-section" id="sharereport"><h3><i class="fas fa-share-alt text-emerald-400"></i> Share Report</h3><p>On the Coverage Analysis dashboard (step 4), click <b>"Share Report"</b> to download a standalone HTML file. This file contains all your analysis results — service providers, coverage, recommendations, costs — in a self-contained format.</p><p>The report opens in any browser with no internet connection required. Share it with stakeholders who don't have access to ATLAS.</p></section>
     </div>
   </div>
 
@@ -3059,7 +3059,7 @@ function handleCustKeydown(e, idx) {
     e.preventDefault();
     const name = customers[idx] ? customers[idx].name : '';
     removeCustomer(idx);
-    showToast(`Removed endpoint: ${name}`);
+    showToast(`Removed service provider: ${name}`);
   }
 }
 
@@ -3158,7 +3158,7 @@ function updateCustMap() {
   
   customers.forEach((c, i) => {
     const marker = L.marker([c.lat, c.lng], { icon: createPulseIcon('#ef4444') }).addTo(custMap);
-    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-slate-400">Endpoint #${i + 1}</span>`);
+    marker.bindPopup(`<b>${c.name}</b><br><span class="text-xs text-slate-400">Service Provider #${i + 1}</span>`);
     custMapMarkers.push(marker);
   });
 
@@ -3191,7 +3191,7 @@ function setSLAMode(mode) {
 function renderSLAPerList() {
   const container = document.getElementById('sla-per-list');
   if (customers.length === 0) {
-    container.innerHTML = '<p class="text-sm text-slate-500 italic">No endpoints added yet.</p>';
+    container.innerHTML = '<p class="text-sm text-slate-500 italic">No service providers added yet.</p>';
     return;
   }
   
@@ -3593,7 +3593,7 @@ function renderDashboard() {
 
   const summaryEl = document.getElementById('strategy-summary');
   if (recommendations.length > 0 || covered.length > 0) {
-    const marginalHint = marginal.length > 0 ? `<p class="text-xs text-amber-300 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${marginal.length} endpoint${marginal.length > 1 ? 's' : ''} only coverable with marginal headroom — relax SLA by ${Math.min(...marginal.map(m => m.relaxationNeeded))}ms to cover them.</p>` : '';
+    const marginalHint = marginal.length > 0 ? `<p class="text-xs text-amber-300 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${marginal.length} service provider${marginal.length > 1 ? 's' : ''} only coverable with marginal headroom — relax SLA by ${Math.min(...marginal.map(m => m.relaxationNeeded))}ms to cover them.</p>` : '';
     summaryEl.innerHTML = `
       <div class="flex items-start gap-3">
         <i class="fas fa-bullseye text-xl mt-1 text-emerald-400"></i>
@@ -3633,7 +3633,7 @@ function renderDashboard() {
     const marginalTag = c.marginalExisting ? '<span class="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded ml-2 uppercase tracking-wide">Marginal</span>' : '';
     const headroom = c.sla - c.serving.breakdown.total;
     return `<div class="py-2 px-3 rounded-lg ${c.marginalExisting ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'}"><div class="flex items-center gap-2"><i class="fas ${c.marginalExisting ? 'fa-exclamation-triangle text-amber-400' : 'fa-check-circle text-emerald-400'}"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}${marginalTag}</div><div class="text-xs text-slate-400">via ${regions[c.serving.cellIdx].name} · headroom ${headroom}ms</div>${renderBreakdown(c.serving.breakdown)}</div></div></div>`;
-  }).join('') : '<p class="text-sm text-slate-500 italic">No endpoints covered by existing cells.</p>';
+  }).join('') : '<p class="text-sm text-slate-500 italic">No service providers covered by existing cells.</p>';
 
   const pendList = document.getElementById('dash-pending-list');
   pendList.innerHTML = pendingCovered.length > 0 ? pendingCovered.map(c => `<div class="py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/20"><div class="flex items-center gap-2"><i class="fas fa-clock text-amber-400"></i><div class="flex-1 min-w-0"><div class="text-sm font-medium text-white truncate">${c.name}</div><div class="text-xs text-slate-400">via <span class="text-blue-400">${c.coveredByCell}</span></div>${renderBreakdown(c.recBreakdown)}</div></div></div>`).join('') : '<p class="text-sm text-slate-500 italic">No pending coverage.</p>';
@@ -3669,7 +3669,7 @@ function renderDashboard() {
     const gpDetails = document.getElementById('green-plan-details');
     const gpToggle = document.getElementById('green-plan-toggle');
     const isPerEndpoint = gpToggle && gpToggle.dataset.mode === 'per-endpoint';
-    if (gpToggle) gpToggle.textContent = isPerEndpoint ? 'Switch to Global' : 'Switch to Per-Endpoint';
+    if (gpToggle) gpToggle.textContent = isPerEndpoint ? 'Switch to Global' : 'Switch to Per-Service-Provider';
 
     if (!isPerEndpoint) {
       gpSummary.innerHTML = `<div class="flex items-center gap-4 flex-wrap mb-3">
@@ -3680,9 +3680,9 @@ function renderDashboard() {
       </div>`;
       gpDetails.innerHTML = '';
     } else {
-      gpSummary.innerHTML = `<div class="text-xs text-slate-400 mb-3">Per-endpoint relaxation: each endpoint gets exactly enough SLA headroom to be green.</div>`;
+      gpSummary.innerHTML = `<div class="text-xs text-slate-400 mb-3">Per-service-provider relaxation: each service provider gets exactly enough SLA headroom to be green.</div>`;
       gpDetails.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="text-left text-slate-400">
-        <th class="py-1 pr-3">Endpoint</th><th class="py-1 pr-3">Current SLA</th><th class="py-1 pr-3">Relax by</th><th class="py-1">Relaxed SLA</th>
+        <th class="py-1 pr-3">Service Provider</th><th class="py-1 pr-3">Current SLA</th><th class="py-1 pr-3">Relax by</th><th class="py-1">Relaxed SLA</th>
       </tr></thead><tbody>${gp.perEndpoint.filter(e => e.relaxationNeeded > 0).map(e =>
         `<tr class="border-t border-slate-700/50"><td class="py-1 pr-3 text-white">${e.name}</td><td class="py-1 pr-3">${e.currentSLA}ms</td><td class="py-1 pr-3 text-amber-400">+${e.relaxationNeeded}ms</td><td class="py-1 text-emerald-400">${e.relaxedSLA}ms</td></tr>`
       ).join('')}</tbody></table></div>`;
@@ -3711,9 +3711,9 @@ function renderDashboard() {
 
   const recDiv = document.getElementById('dash-recommendations');
   if (uncovered.length === 0) {
-    recDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-4xl text-emerald-400 mb-3"></i><p class="text-lg font-semibold text-white">All endpoints are already covered!</p><p class="text-sm text-slate-400 mt-1">No new cell deployments required.</p></div>';
+    recDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-4xl text-emerald-400 mb-3"></i><p class="text-lg font-semibold text-white">All service providers are already covered!</p><p class="text-sm text-slate-400 mt-1">No new cell deployments required.</p></div>';
   } else if (recommendations.length === 0) {
-    recDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3"></i><p class="text-lg font-semibold text-white">Impossible SLA Requirements</p><p class="text-sm text-slate-400 mt-1">No AWS region on Earth can serve these endpoints within their SLA.</p></div>';
+    recDiv.innerHTML = '<div class="text-center py-8"><i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3"></i><p class="text-lg font-semibold text-white">Impossible SLA Requirements</p><p class="text-sm text-slate-400 mt-1">No AWS region on Earth can serve these service providers within their SLA.</p></div>';
   } else {
     recDiv.innerHTML = recommendations.map((r, i) => {
       const cost = estimateRegionCost(r.cellIdx);
@@ -3735,7 +3735,7 @@ function renderDashboard() {
             <div class="text-xs text-slate-400">${r.cellCode} · ${idx.toFixed(2)}x · ${tierLabel} · <span class="text-${confColor}-400">${worstConf} confidence</span></div>
           </div>
           <div class="flex flex-col items-end gap-1">
-            <div class="text-sm text-emerald-400 font-medium">${r.covers.length} endpoint${r.covers.length > 1 ? 's' : ''}</div>
+            <div class="text-sm text-emerald-400 font-medium">${r.covers.length} service provider${r.covers.length > 1 ? 's' : ''}</div>
             <div class="flex items-center gap-2">
               <span class="latency-badge">~${r.avgHeadroom}ms headroom</span>
               <span class="cost-tag ${tier}">~${formatMoney(cost)}/mo</span>
@@ -3967,17 +3967,17 @@ function buildAndDownloadPDF() {
     if (infraData.summary.totalEndpoints > 0) {
     html += `
       <h2 class="pdf-section-title">${sectionCounter++}. Global Infrastructure Strategy</h2>
-      <p>Our optimization engine has analyzed the geographic distribution of your endpoints with a <strong>${infraData.summary.safetyFloor}ms safety margin</strong>. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
+      <p>Our optimization engine has analyzed the geographic distribution of your service providers with a <strong>${infraData.summary.safetyFloor}ms safety margin</strong>. To achieve optimal SLA compliance, we recommend the following deployment topology:</p>
       <ul style="margin-bottom:20px;">
          ${infraData.recommendedNewCells.map(c => `<li>• <strong>Deploy new dedicated cell:</strong> ${c.cellName} (${c.cellCode}) — min headroom ${c.minHeadroom}ms</li>`).join('')}
-         ${infraData.alreadyCovered.length > 0 && infraData.recommendedNewCells.length === 0 ? '<li>• <strong>Status:</strong> All endpoints are optimally covered by existing infrastructure. No new cells required.</li>' : ''}
+         ${infraData.alreadyCovered.length > 0 && infraData.recommendedNewCells.length === 0 ? '<li>• <strong>Status:</strong> All service providers are optimally covered by existing infrastructure. No new cells required.</li>' : ''}
       </ul>
       
-      <p style="margin-top:10px; font-weight:bold;">Endpoint Coverage & Latency Forecast</p>
+      <p style="margin-top:10px; font-weight:bold;">Service Provider Coverage & Latency Forecast</p>
       <table class="pdf-table">
         <thead>
           <tr>
-            <th>Endpoint Name</th>
+            <th>Service Provider Name</th>
             <th>Target SLA</th>
             <th>Serving Cell</th>
             <th>Est. Latency</th>
@@ -4003,7 +4003,7 @@ function buildAndDownloadPDF() {
     
     html += `</tbody></table>`;
     } else {
-      html += `<p class="text-slate-400 italic"><i class="fas fa-info-circle mr-2"></i>No endpoints configured. Use the Cell Placement Optimizer to define your infrastructure targets first.</p>`;
+      html += `<p class="text-slate-400 italic"><i class="fas fa-info-circle mr-2"></i>No service providers configured. Use the Cell Placement Optimizer to define your infrastructure targets first.</p>`;
     }
   }
 
@@ -4195,7 +4195,7 @@ function exportSessionCSV() {
   csvContent += "--- TARGET ENDPOINTS ---\n";
   csvContent += "Endpoint Name,Latitude,Longitude,Tier,SLA Threshold (ms)\n";
   if (customers.length === 0) {
-    csvContent += "No endpoints defined.,,,,\n";
+    csvContent += "No service providers defined.,,,,\n";
   } else {
     customers.forEach((c, i) => {
       const tier = c.tier || (c.regionIdx !== undefined ? 1 : 2);
@@ -4245,7 +4245,7 @@ function exportSessionCSV() {
 function exportShareReport() {
   const result = computeCoverage({ customers, slaMode, globalSLA, perCustomerSLA, safetyFloor, selectedFootprint, getLatency: getCustomerLatency, regions, getRegionCost: estimateRegionCost });
   const opex = result.recommendations.reduce((s, r) => s + estimateRegionCost(r.cellIdx), 0);
-  const slaLabel = slaMode === 'global' ? globalSLA + 'ms (Global)' : 'Per-Endpoint';
+  const slaLabel = slaMode === 'global' ? globalSLA + 'ms (Global)' : 'Per-Service-Provider';
   const modeLabel = 'Unified';
   const date = new Date().toLocaleString();
 
@@ -4267,13 +4267,13 @@ function exportShareReport() {
     '</style></head><body>' +
     '<h1>ATLAS Coverage Report</h1>' +
     '<p>Generated: ' + date + ' · SLA: ' + slaLabel + ' · Safety Floor: ' + safetyFloor + 'ms · Mode: ' + modeLabel + '</p>' +
-    '<div class="stats"><div class="stat">Endpoints<b>' + customers.length + '</b></div><div class="stat">Already Covered<b style="color:#10b981">' + result.covered.length + '</b></div>' +
+    '<div class="stats"><div class="stat">Service Providers<b>' + customers.length + '</b></div><div class="stat">Already Covered<b style="color:#10b981">' + result.covered.length + '</b></div>' +
     '<div class="stat">Pending<b style="color:#f59e0b">' + result.pendingCovered.length + '</b></div><div class="stat">Marginal<b style="color:#eab308">' + result.marginal.length + '</b></div>' +
     '<div class="stat">Impossible<b style="color:#ef4444">' + result.impossible.length + '</b></div><div class="stat">New OPEX<b>$' + opex + '/mo</b></div></div>' +
-    '<h2>Already Covered (' + result.covered.length + ')</h2>' + (coveredRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th><th>Status</th></tr>' + coveredRows + '</table>' : '<p>None</p>') +
-    '<h2>Pending Coverage (' + result.pendingCovered.length + ')</h2>' + (pendingRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th></tr>' + pendingRows + '</table>' : '<p>None</p>') +
-    '<h2>Marginal (' + result.marginal.length + ')</h2>' + (marginalRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Best Headroom</th><th>Relax by</th></tr>' + marginalRows + '</table>' : '<p>None</p>') +
-    '<h2>Impossible (' + result.impossible.length + ')</h2>' + (impossibleRows ? '<table><tr><th>Endpoint</th><th>SLA</th><th>Best Latency</th><th>Overshoot</th></tr>' + impossibleRows + '</table>' : '<p>None</p>') +
+    '<h2>Already Covered (' + result.covered.length + ')</h2>' + (coveredRows ? '<table><tr><th>Service Provider</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th><th>Status</th></tr>' + coveredRows + '</table>' : '<p>None</p>') +
+    '<h2>Pending Coverage (' + result.pendingCovered.length + ')</h2>' + (pendingRows ? '<table><tr><th>Service Provider</th><th>SLA</th><th>Cell</th><th>Latency</th><th>Headroom</th></tr>' + pendingRows + '</table>' : '<p>None</p>') +
+    '<h2>Marginal (' + result.marginal.length + ')</h2>' + (marginalRows ? '<table><tr><th>Service Provider</th><th>SLA</th><th>Best Headroom</th><th>Relax by</th></tr>' + marginalRows + '</table>' : '<p>None</p>') +
+    '<h2>Impossible (' + result.impossible.length + ')</h2>' + (impossibleRows ? '<table><tr><th>Service Provider</th><th>SLA</th><th>Best Latency</th><th>Overshoot</th></tr>' + impossibleRows + '</table>' : '<p>None</p>') +
     '<h2>Recommended New Cells (' + result.recommendations.length + ')</h2>' + (recRows ? '<table><tr><th>Cell</th><th>Code</th><th>Covers</th><th>Min Headroom</th><th>Avg Headroom</th><th>Cost</th></tr>' + recRows + '</table>' : '<p>None</p>') +
     '<footer>Generated by ATLAS · Provenant Inc. · ' + date + '</footer></body></html>';
 
