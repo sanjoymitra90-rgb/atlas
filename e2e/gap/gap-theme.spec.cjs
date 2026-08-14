@@ -31,7 +31,7 @@ test.describe('Phase 5A — Task G: theme toggle is gone and persisted light is 
     await uploadAndAnalyze(page, 'gap-screenshots.csv');
     const bg = await page.evaluate(() => {
       const el = document.getElementById('main-content');
-      return el ? getComputedStyle(el).getPropertyValue('--gap-canvas').trim() : null;
+      return el ? getComputedStyle(el).getPropertyValue('--atlas-canvas').trim() : null;
     });
     expect(bg).not.toBe('#f8fafc');
     await expect(page.locator('[data-testid="gap-theme-toggle"]')).toHaveCount(0);

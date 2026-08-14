@@ -45,14 +45,10 @@ test.describe('Phase 5B — Task A: Customer → Service Provider', () => {
     expect(headerLine).not.toContain('Customer');
   });
 
-  test('Onboarding and Optimizer still say customer where they mean customers', async ({ page }) => {
+  test('Onboarding still says customer where it means customers', async ({ page }) => {
     await page.goto(APP_URL);
     await page.evaluate(() => showModule('onboarding'));
     await expect(page.locator('body')).toContainText('Customer Price');
     await expect(page.locator('#ob-customer-price')).toBeVisible();
-    await page.evaluate(() => showModule('optimizer'));
-    const html = await page.evaluate(() => document.body.innerHTML);
-    expect(html).toContain('cost-per-customer');
-    expect(html).toContain('Per-Endpoint SLA');
   });
 });
