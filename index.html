@@ -5598,11 +5598,17 @@ function formatGapTimeCell(row) {
     String(d.getUTCMinutes()).padStart(2, '0') + ':' +
     String(d.getUTCSeconds()).padStart(2, '0');
   const raw = (row.time || '').trim();
-  const differs = utc !== raw && utc + 'Z' !== raw;
-  if (differs) {
+  // Compare the instant the source string denotes — its stated clock time
+  // read as UTC — against the parsed instant. If they match, no conversion
+  // happened and the source renders verbatim with no tooltip. Epochs and
+  // ±offset timestamps don't match (the value genuinely moved), so they
+  // convert and annotate. Decided from the parsed value, not string cases.
+  const asUtc = new Date(raw.replace(/(?:Z|z|[+-]\d{2}:?\d{2})$/, '') + 'Z');
+  const moved = isNaN(asUtc.getTime()) || asUtc.getTime() !== row.timestamp;
+  if (moved) {
     return { html: '<span title="source: ' + escapeHtml(raw) + '">' + escapeHtml(utc) + '</span>', hasTooltip: true };
   }
-  return { html: escapeHtml(utc), hasTooltip: false };
+  return { html: escapeHtml(raw), hasTooltip: false };
 }
 
 function renderGapTable() {
