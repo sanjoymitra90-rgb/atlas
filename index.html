@@ -1839,12 +1839,15 @@ th:hover .gap-col-filter {
 
       <section class="help-section" id="gap-charts">
         <h3><i class="fas fa-chart-bar text-pink-400"></i> Visualizations</h3>
-        <p>Below the table you will find four charts:</p>
+        <p>Below the table you will find seven charts:</p>
         <ul>
+          <li><strong>Requests Over Time</strong> &mdash; line chart of signing and verification request counts per time bucket.</li>
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
           <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket. The Y-axis scales dynamically to the data range.</li>
           <li><strong>Time to Verify Over Time</strong> &mdash; dual-line chart showing median TTV (cyan) and P95 TTV (pink dashed) per time bucket, computed from paired signing/verification calls.</li>
+          <li><strong>Pair Processing Over Time</strong> &mdash; line chart of average pair processing time (signing + verification processing) per time bucket.</li>
+          <li><strong>End-to-End Over Time</strong> &mdash; line chart of average end-to-end time (signing + handoff + verification) per time bucket.</li>
         </ul>
         <p>Each chart has its own <strong>Time Bucket</strong> dropdown (Auto / 1 Min / 5 Min / 1 Hour / 1 Day) in its card header for independent bucketing.</p>
       </section>
@@ -2373,7 +2376,11 @@ function closeHelp() {
 
 function scrollToSection(id) {
   const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    console.warn(`scrollToSection: section id "${id}" not found in the DOM`);
+  }
 }
 
 document.addEventListener('keydown', (e) => {
