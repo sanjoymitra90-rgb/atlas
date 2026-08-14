@@ -7,7 +7,86 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-13 (Phase 4.9: grouped-sort invariant, TZ tests, blind tests, doc corrections)
+**Last updated:** 2026-08-13 (Phase 5A: containment guard, copy-proofing, layout hardening, Time-column rule)
+
+---
+
+### Phase 5A — containment guard, copy-proofing, layout hardening, Time-column source rule
+
+Spec: `2026-08-13-phase-5a-spec.md`. Commits: `0b7165c`, `0d6f075`, `771b9ec`, `f228fb8`,
+`7110be0`, `d1c80b9`, `d900471`, `96d69d7`, `e18cbdb`.
+
+**Containment test (written first, §4).** `e2e/gap/gap-containment.spec.cjs` loads the built HTML
+and asserts programmatically that the table body, table wrapper, metric-tile grid, invalid-reason
+panel, and charts grid are all descendants of `#gap-dashboard`, and that no table is visible before
+a file is uploaded. Passed on the unmodified build before any 5A change.
+
+**Task A — Project Coordination matched by stable id, not name.** `generateGanttStateFromTasks()`
+selected `t.name === 'Project Coordination'` (two sites); a rename broke spanning. Now matches
+`t.id === 't9'`. `e2e/onboarding/onb-coordination.spec.cjs` renames t9 to "Something Else Entirely"
+and asserts its span (start day 1, end = max of others) survives. Proven to fail on the old code.
+A search of the codebase for other copy-dependent logic found only data-driven matches
+(`svc.includes('sign')`, header keyword autodetect, region search, `.csv` check) — none break on
+copy changes.
+
+**Task B — toast no longer covers header controls.** `.toast` moved from top-right
+(`top: 24px; right: 24px`) to bottom-left (`bottom: 24px; left: 24px`, slide-in from the left).
+`showToast()` signature, 3 s auto-hide timer and `.show` transition are unchanged. All 43 call
+sites verified. `e2e/gap/gap-toast.spec.cjs` proves the header Export button is *clickable*
+(element-from-point) while the toast shows, and that a real click opens the modal — it failed
+against the old top-right position and passes now.
+
+**Task C — help FAB kept on Gateway, hidden elsewhere.** The FAB overlapped the Call Pairing
+blocks at default scroll (1440×900); per product decision it stays on the Gateway (its only help
+entry) and is hidden in Call Auditor, Onboarding and Cell Optimizer via `showModule()`.
+`e2e/gap/gap-fab.spec.cjs` asserts no visible fixed element overlaps the pairing blocks after the
+toast hides; `e2e/gap/gap-fab-visibility.spec.cjs` covers per-module visibility. `gap-core.spec.cjs`
+help test now clicks the header "User Guide" button instead of the FAB.
+
+**Task D — collapsible filter panel.** The nine filter controls now sit in `#gap-filter-panel`
+with a toggle button (`#gap-filter-toggle`, chevron, `aria-expanded`) and an active-filter count
+badge (`#gap-filter-count`). The panel is collapsed by default after data loads; the open/closed
+state persists for the session via `sessionStorage['atlas-gap-filter-collapsed']` (deliberately not
+localStorage). Collapsing is presentation-only — `gapFilteredData` is untouched (test-proven).
+`applyGapFilters()` and `clearGapFilterInputs()` refresh the count; `resetGapFilters()` returns it
+to zero. `e2e/gap/gap-filter-panel.spec.cjs` (3 tests). Five existing tests that drove the filter
+bar assumed it was always expanded; `expandGapFilters()` helper added to `e2e/_helpers.cjs` and
+called before filter-bar interaction in gap-core/gap-charts/gap-dup/gap-pairing/gap-review.
+
+**Task E — metric tiles reflow to two full rows of three.** Six tiles in `lg:grid-cols-4`
+left an orphaned half-row (4+2). Chose `lg:grid-cols-3` (2 rows of 3) — the only factorisation of
+6 that fills every row at lg, keeping tiles ~453 px wide at 1440 viewport. All `gap-metric-*` ids
+and `gap-tile-*` testids unchanged; drill-down handlers untouched. `e2e/gap/gap-tiles-reflow.spec.cjs`
+reads tile bounding boxes and asserts rows of exactly 3 with matching columns; fails against the
+4-across build.
+
+**Task F — denser table rows.** Body cells `py-3` → `py-1.5` (both `renderGapTable()` branches),
+horizontal `px-4` unchanged. At 1440×900, 25-row pages went from 23 rows in viewport (45 px/row)
+to all 25 (33 px/row). Legibility held: amber invalid icon 14×14 px, pills 23 px tall in 33 px
+rows, no horizontal overflow. `e2e/gap/gap-density.spec.cjs` pins density and legibility; fails
+against the old `py-3` build.
+
+**Task G — theme toggle removed; persisted light is inert.** The header theme toggle is gone,
+and `toggleGapTheme()`/`initGapTheme()` are deleted, so a user who previously saved `light` in
+`localStorage['atlas-gap-theme']` is no longer stranded: the value is ignored and every load
+renders dark. `[data-theme="light"]` CSS stays in place (Phase 6's business). `gap-theme.spec.cjs`
+rewritten: no theme control reachable, persisted `light` ignored (attribute absent, value
+survives), and a post-analysis check confirms dark rendering. All three fail against pre-G code.
+`e2e/screenshot.js` updated (no toggle to click).
+
+**Task H — Time column echoes the source when nothing was converted.** The old
+`utc !== raw && utc + 'Z' !== raw` string comparison fired the tooltip on nearly every Z-suffixed
+row. `formatGapTimeCell()` now decides from the parsed value: it parses the source as the clock
+time it states and compares that instant to `row.timestamp`. Same instant → source rendered
+verbatim, no tooltip (Z-suffixed and offset-less rows). Differing instant → converted UTC plus a
+`source:` tooltip (epochs and `±HH:MM` rows). `timeValid === false` rows and the export are
+unchanged. `e2e/gap/gap-time-verbatim.spec.cjs` covers all four formats × grouped/flat, and the
+XSS fixture is still escaped in attribute position (serialized `&lt;img`) in both modes. 10 tests,
+all failing against the pre-H build.
+
+**Verification.** Containment assertion re-run on the final build (passes). `test:unit` and
+`test:unit:dhaka` green (107 each). Full e2e: 214 tests pass (154 gap + 60 optimizer/onboarding).
+Before/after screenshots in `screenshots/5a-before` and `screenshots/5a-after`.
 
 ---
 

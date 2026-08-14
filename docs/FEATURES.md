@@ -33,8 +33,10 @@ Network operations and monitoring teams use the Call Auditor.
 
 **Common to all three.** A landing page with one-click launch into any module. A persistent
 header with a home button and module-specific actions. Context-aware help: a floating "?" button
-opens the help drawer on the tab for the module you are in, each tab with a table of contents.
-Toast notifications for every action that completes or fails. Dark theme throughout, with a
+on the Gateway opens the help drawer (in the other three modules the header's "User Guide" button
+does the same job), each tab with a table of contents.
+Toast notifications for every action that completes or fails, appearing bottom-left so they never
+cover the header controls. Dark theme throughout, with a
 colour per module — green for the Optimizer, blue for Onboarding, violet for the Call Auditor.
 
 **Privacy.** Nothing is uploaded. All processing happens in the browser, and session state moves
@@ -271,8 +273,8 @@ format ever gains millisecond timestamps, recalibrate using the observed 95th pe
 
 ### Dashboard and filters
 
-Eight headline tiles in a 4×2 grid: total records, paired calls, signing requests, verification
-requests, destination issues, slow requests, gap count, and gap percentage. **Every tile is
+Six headline tiles in a 3×2 grid: total records, paired calls, signing requests, verification
+requests, destination issues, and slow requests. **Every tile is
 clickable** and filters the table to the records behind it. The Paired Calls tile shows the
 distinct pair count from filtered data and displays the global match rate beneath.
 
@@ -281,7 +283,10 @@ unfiltered totals alongside the paired count, so you always know what fraction o
 are looking at.
 
 Filters cover service type, validation status, from and to substring search, status code,
-customer, source IP, processing-time range, and pair status, with one-click Reset All.
+customer, source IP, processing-time range, and pair status, with one-click Reset All. The filter
+bar is collapsible — it collapses by default once data loads (the header shows how many filters are
+active) and the open/closed state lasts for the session. Collapsing never changes the results, only
+how much screen space the controls take.
 
 ### Charts
 
@@ -335,11 +340,13 @@ The TTV chart shows median + P95 only (no mean line); mean lives in the panel.
 
 ### Data table
 
-Ten columns, sortable, paginated at 25, 50 or 100 rows. The Time column header reads "Time (UTC)"
-to make the timezone assumption explicit — all times shown are UTC. A timestamp arriving with a
-different timezone offset is converted to UTC automatically; hovering the cell shows the original
-source value. Epoch timestamps are formatted as readable UTC dates. Rows with unreadable timestamps
-carry an
+Ten columns, sortable, paginated at 25, 50 or 100 rows. Compact rows — a full 25-row page fits on
+one screen — but the amber invalid-time marker and the colour-coded validity pills stay legible.
+The Time column header reads "Time (UTC)" to make the timezone assumption explicit — all times
+shown are UTC. Where the source value already states the same clock time (a `Z`-suffixed or
+offset-less timestamp), the cell shows the source exactly as written and no tooltip appears. Where
+the value genuinely moved — an epoch or a timestamp carrying a non-UTC offset — it converts to UTC
+and hovering the cell shows the original source value. Rows with unreadable timestamps carry an
 amber warning icon and always sort to the bottom. Paired rows show their pair ID on the pill.
 
 Hovering a paired row highlights its partner and dims everything else; if the partner is on

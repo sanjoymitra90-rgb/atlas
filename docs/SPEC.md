@@ -343,7 +343,13 @@ Timestamp parsing is in `src/auditor/time.js` as `parseGapTimestamp(raw)` → `{
 
 **All times are UTC.** The Time column renders the parsed timestamp formatted as UTC, under a header reading "Time (UTC)". Offset-less ISO strings (`2026-01-15T10:30:00`) are parsed as UTC via `Date.UTC()`, not as local time. `Z`-suffixed and offset-bearing ISO strings are handled by `new Date()` which resolves them to UTC correctly. Epochs (10-digit seconds, 13-digit milliseconds) are absolute. `D/M/YYYY H:MM(:SS)` uses `Date.UTC()` (assumed UTC). Non-ISO formats (e.g. `Jan 1 2025 (...)`) pass through `new Date()` unchanged.
 
-When the rendered UTC value differs from the raw source string, the cell carries an escaped `source:` tooltip showing the original. The export includes both "Time (UTC)" and "Time (original)" columns.
+When the parsed instant is the same clock time the source string already stated, the Time cell
+renders the source **verbatim** (e.g. `2026-08-01T12:05:00Z` or an offset-less `2026-08-01T12:05:00`)
+with **no** tooltip. The value only genuinely moved for epochs (10/13-digit) and timestamps carrying
+a non-UTC offset — those convert to UTC and the cell carries an escaped `source:` tooltip showing
+the original. The decision is made from the parsed value (the instant the source denotes, read as
+UTC, compared against `row.timestamp`), not by string-matching the source text. The export includes
+both "Time (UTC)" and "Time (original)" columns.
 
 `timeHadOffset` is `true` for epoch inputs (unambiguous) and for ISO strings with `Z` or `±HH:MM`; `false` for `Date.UTC` and offset-less ISO strings. Invalid rows count in tiles, appear in the table with an amber icon, sort to the bottom, and are excluded from charts (invariant 8).
 
@@ -444,6 +450,11 @@ is loaded. Single-bucket and empty-filter states show a message instead of an em
 Ten columns; **nine are sortable** — UK Valid has no handler. Default sort time descending,
 comparing `row.timestamp` (ms epoch) in both flat and grouped paths. Pagination 25/50/100.
 
+Table density: body cells are `py-1.5 px-4` (about 33 px per row at 1440×900) so a full
+25-row page fits one viewport; horizontal padding is unchanged. The six metric tiles sit in a
+`lg:grid-cols-3` grid (2 full rows of 3, no orphaned half-row) — every `gap-metric-*` id and
+`gap-tile-*` testid is unchanged from the 4-across layout.
+
 Group-by-pair is a render layer: paired rows share a group, orphans are solo, pagination counts
 groups, and sorting uses a representative row (the signing leg if present). Banding is luminance
 zebra (`gap-group-alt`) plus a seam on each group's first row — presentation only, exports
@@ -476,6 +487,11 @@ Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`.
   section ids. Keep them in sync when editing help content. Opened per module via `openHelp()`;
   the FAB opens the current module's tab.
 - **Toast** — single `#toast-msg`, 3 s auto-hide, `_toastTimer` cleared before each new timer.
+  Positioned bottom-left (`bottom: 24px; left: 24px`, slides in from the left) so it never covers
+  the header's Export/Upload controls.
+- **Help FAB** — `.help-fab` is visible only on the Gateway module (`showModule()` hides it in the
+  other three); it is the Gateway's only entry point to the help drawer. Each module's header keeps
+  a "User Guide" button.
 - **Loading overlay** — `showLoading()` / `hideLoading()`. All call sites wrapped in `try/finally`.
 - **Proposal modal (BETA)** — three independent include toggles; infra section built headlessly
   so it works without visiting the dashboard. Internal cost and blended rate never appear;
