@@ -29,6 +29,8 @@ jobs:
       - run: npm run test:unit:dhaka
       - run: npm run build
       - run: bash -c 'npx playwright test --reporter=list 2>&1 | tee e2e.log; exit ${PIPESTATUS[0]}'
+      - run: echo "## Playwright e2e output" >> $GITHUB_STEP_SUMMARY; cat e2e.log >> $GITHUB_STEP_SUMMARY
+        if: always()
       - uses: actions/upload-artifact@v4
         if: always()
         with:
