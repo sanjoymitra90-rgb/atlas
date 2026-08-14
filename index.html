@@ -2122,9 +2122,9 @@ function generateGanttStateFromTasks(tasks) {
   let linkId = 1;
   
   tasks.forEach(t => {
-      // Special logic: Project Coordination stretches the whole project by default
-      if (t.name === 'Project Coordination') {
-         const maxEnd = Math.max(...tasks.map(tx => tx.name === 'Project Coordination' ? 0 : tx.computed_end_days));
+      // Special logic: Project Coordination (stable id t9 in all tier templates) stretches the whole project by default
+      if (t.id === 't9') {
+         const maxEnd = Math.max(...tasks.map(tx => tx.id === 't9' ? 0 : tx.computed_end_days));
          t.computed_start_days = 1; // FIXED: Start on Day 1
          t.computed_end_days = maxEnd > 1 ? maxEnd : (t.hours / 8) + 1;
       }
