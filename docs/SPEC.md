@@ -296,7 +296,8 @@ tasks anchor at `PROJECT_START` (2025-01-02 = Day 1). Scale renders generic "Day
 `work_time = false`, so weekends are ignored deliberately. Day 0 renders empty as visual runway.
 Grid 540 px, resizable, drag-to-reorder. Inline `<input>` templates in grid cells rather than
 popup dialogs (`details_on_dblclick = false`). Dependencies drawn by dragging a bar's end-circle;
-double-click an arrow to delete.
+double-click an arrow to delete. The timeline card stacks, top to bottom: the chart, the bottom
+toolbar (`Add Task` button), then the `Assumptions & Exclusions` box (`#ob-assumptions`).
 
 **Multi-tier memory.** `tierStates = {1, 2, 3}`; `saveActiveState()` snapshots on every
 structural or grid change. Switching tiers never loses work. Reset Timeline is destructive and

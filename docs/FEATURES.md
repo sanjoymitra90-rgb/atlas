@@ -159,6 +159,10 @@ hours, total internal cost, and the customer price.
 
 ### The timeline
 
+Below the chart, the **Add Task** button opens the next row for a new task; the **Assumptions &
+Exclusions** box sits at the bottom of the timeline card, where it is out of the way of the
+planning controls. Assumptions are per-tier and are included in exports and the proposal.
+
 Rows are editable in place — no dialogs. Drag to reorder. Type directly into the task name and
 estimated-hours fields; estimated cost and visual days update as you type. Every task has a
 delete button.

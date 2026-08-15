@@ -7,9 +7,17 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-15 (Phase 6.2: one product name, in three places)
+**Last updated:** 2026-08-15 (Onboarding: Add Task above Assumptions & Exclusions)
 
 ---
+
+### Onboarding — Add Task moved above Assumptions & Exclusions
+
+The timeline card in the Onboarding module stacked, top to bottom: chart, `Assumptions &
+Exclusions` box, then the bottom toolbar with the **Add Task** button. The two were swapped so
+the **Add Task** button sits directly below the chart and the `Assumptions & Exclusions` box is
+at the bottom of the card, out of the way of the planning controls. No ids, `data-testid`s or
+handlers changed; the Onboarding smoke tests and the containment guard pass.
 
 ### Phase 6.2 — one product name, in three places, that stops drifting
 
