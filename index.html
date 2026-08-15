@@ -1803,6 +1803,17 @@ th:hover .gap-col-filter {
         </div>
       </section>
 
+      <section class="help-section" id="gap-times">
+        <h3><i class="fas fa-clock text-emerald-400"></i> Time Handling</h3>
+        <p>Every time shown or plotted is <strong>UTC</strong>. Two people opening the same file in different countries see identical times, no matter where they are.</p>
+        <ul>
+          <li><strong>A timestamp that already states UTC</strong> is shown exactly as the file wrote it &mdash; the source text, unchanged, with no tooltip.</li>
+          <li><strong>A timestamp carrying a different timezone, or a raw epoch number</strong> is converted to UTC, and the original appears on hover so the conversion is checkable rather than something to trust.</li>
+          <li><strong>A timestamp with no timezone</strong> is read as UTC, because that is what these exports are.</li>
+          <li><strong>A timestamp that cannot be read</strong> keeps its raw text with a warning marker, sorts to the bottom of the table, and is left out of the time charts.</li>
+        </ul>
+      </section>
+
       <section class="help-section" id="gap-metrics">
         <h3><i class="fas fa-tachometer-alt text-blue-400"></i> Dashboard Metrics</h3>
         <p>After analysis the top row of cards summarises your dataset:</p>
@@ -1819,7 +1830,12 @@ th:hover .gap-col-filter {
       <section class="help-section" id="gap-table">
         <h3><i class="fas fa-table text-amber-400"></i> Data Table</h3>
         <p>The paginated table shows individual call records with a <strong>Pair</strong> column indicating match status. Columns are sortable by clicking the header. Use the filter bar to narrow results by service, status, service provider, destination, processing time range, or pair status.</p>
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-filter text-violet-400"></i> Filters are folded after an upload</div>
+          The filter panel is collapsed by default once data has loaded. Click the <strong>Filters</strong> header to open it. The count beside it (e.g. "3 active") shows how many filters are currently in use, so you always know when a narrowed view is in effect.
+        </div>
         <ul>
+          <li><strong>Status</strong> &mdash; the column holds the response code returned by the service provider for that call. The codes come from the service provider; this tool does not interpret what an individual code means.</li>
           <li><strong>Pair ID</strong> &mdash; paired pills display their pair ID (e.g. <code>P3 · Paired</code>); orphan pills show status text only.</li>
           <li><strong>Hover highlight</strong> &mdash; hovering a paired row highlights its partner (violet ring) and dims other rows. If the partner is on another page, the pill tooltip notes <em>(partner on page N)</em>.</li>
           <li><strong>Group by pair</strong> &mdash; a sliding switch next to "Rows per page" groups rows by pair. Paired rows render contiguously with a subtle alternating band; orphans render as single-row bands. Groups are paginated (the indicator shows <em>A–B of G groups (R rows)</em>) and sorted by the signing row's column value. The page-size label switches to "Groups per page" while grouped.</li>
