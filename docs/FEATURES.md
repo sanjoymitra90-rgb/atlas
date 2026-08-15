@@ -17,7 +17,7 @@ the same fact.
 
 ## The suite
 
-ATLAS covers three points in a customer's lifecycle:
+**Infrastructure Strategy & Operations Suite.** ATLAS covers three points in a customer's lifecycle:
 
 1. **Plan the infrastructure** — where to put AWS cells so latency SLAs are met (Optimizer)
 2. **Scope and price the onboarding** — how many engineering hours, over what timeline, at what

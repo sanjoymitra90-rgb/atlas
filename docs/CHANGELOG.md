@@ -7,9 +7,30 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-15 (Phase 6.1: toast test able to fail, help drawer's missing subjects, Call Auditor TOC)
+**Last updated:** 2026-08-15 (Phase 6.2: one product name, in three places)
 
 ---
+
+### Phase 6.2 — one product name, in three places, that stops drifting
+
+Spec: `2026-08-13-phase-6.2-spec.md`.
+
+The Gateway tagline named two modules and silently omitted the Call Auditor. The same name lived
+in three places that all disagreed. All three now read as one product:
+
+- **Gateway tagline** — "Infrastructure Strategy & Operations Suite"
+- **`<title>`** — "ATLAS | Infrastructure Strategy & Operations"
+- **`<meta name="description">`** — "ATLAS — Infrastructure Strategy & Operations Suite. Plan AWS
+  cell placement, scope and price customer onboarding, and verify production call data quality."
+
+The `<title>` is shorter than the tagline because titles truncate in a browser tab. Real em dash
+and real ampersand verified in the built file. Module and card names — including "Cell Placement
+Optimizer" — are untouched; the Optimizer e2e tests that click by card text still pass.
+
+`e2e/gap/gap-product-name.spec.cjs` asserts each element exists before asserting content, that the
+tagline renders the agreed string exactly, and that all three carry the shared phrase
+"Infrastructure Strategy & Operations". Proven: changing the `<title>` turned the test red; the
+containment guard passes.
 
 ### Phase 6.1 — make one test able to fail, and finish the help drawer
 
