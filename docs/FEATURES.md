@@ -36,7 +36,8 @@ header with a home button and module-specific actions. Context-aware help: a flo
 on the Gateway opens the help drawer (in the other three modules the header's "User Guide" button
 does the same job), each tab with a table of contents.
 Toast notifications for actions that complete or fail and for anything that needs your attention,
-appearing bottom-left so they never cover the header controls. Routine clean successes stay silent —
+appearing top-right. They never block the header controls beneath them, and clicks pass straight
+through. Routine clean successes stay silent —
 a Call Auditor import shows a toast only when rows are invalid, skipped, or have unreadable
 timestamps. Dark theme throughout, with a
 colour per module — green for the Optimizer, blue for Onboarding, violet for the Call Auditor.

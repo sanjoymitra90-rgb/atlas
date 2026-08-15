@@ -499,12 +499,13 @@ Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`.
 
 ## 8. Global components
 
-- **Help drawer** — three tabs, TOC chips, `scrollToSection(id)` requiring TOC links to match
+- **Help drawer** — three tabs, each with TOC chips whose `scrollToSection(id)` targets must match
   section ids. Keep them in sync when editing help content. Opened per module via `openHelp()`;
-  the FAB opens the current module's tab.
+  the FAB opens the current module's tab. `scrollToSection()` warns to the console when a target
+  id is absent, so a stray chip is loud rather than silent.
 - **Toast** — single `#toast-msg`, 3 s auto-hide, `_toastTimer` cleared before each new timer.
-  Positioned bottom-left (`bottom: 24px; left: 24px`, slides in from the left) so it never covers
-  the header's Export/Upload controls.
+  Positioned top-right (`top: 24px; right: 24px`, slides in from the right) with `pointer-events:
+  none` so it can sit over the header's Export/Upload controls without making them dead.
 - **Help FAB** — `.help-fab` is visible only on the Gateway module (`showModule()` hides it in the
   other three); it is the Gateway's only entry point to the help drawer. Each module's header keeps
   a "User Guide" button.

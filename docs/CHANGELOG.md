@@ -7,9 +7,33 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-14 (Phase 6: tokens, dead code, changelog repair, Endpoint→Service Provider, toast repositioning)
+**Last updated:** 2026-08-15 (Phase 6.1: toast test able to fail, help drawer's missing subjects, Call Auditor TOC)
 
 ---
+
+### Phase 6.1 — make one test able to fail, and finish the help drawer
+
+Spec: `2026-08-13-phase-6.1-spec.md`.
+
+**Task A — the toast test can now fail.** `e2e/gap/gap-toast.spec.cjs` probed immediately after
+analyze, while the toast's 0.3s slide-in was still running and the toast was still off the right
+edge of the viewport — so the pointer-events assertion passed whether or not the property existed.
+The test now waits on the real condition (the finished transform) and asserts the toast genuinely
+overlaps the Export button at probe time. Proven: removing `pointer-events: none` turns it red.
+
+**Task B — help drawer's three missing subjects.** Added a Time Handling section to the Call
+Auditor tab (all times UTC; already-UTC timestamps render verbatim with no tooltip; other timezones
+and epochs convert with the original on hover; offset-less reads as UTC; unreadable timestamps keep
+their raw text, a warning marker, sort to the bottom, and stay out of the time charts). The Data
+Table section gained a callout on the filter panel being collapsed after an upload with the
+active-filter count beside the header, and a Status column bullet stating it holds the service
+provider's response code with no individual meaning asserted.
+
+**Task C — the Call Auditor tab got a table of contents.** Eight TOC chips matching the other two
+tabs' markup, including the new Time Handling section. `e2e/gap/gap-help-toc.spec.cjs` is now fully
+DOM-derived (no hardcoded section list) and asserts a non-zero chip count per tab so an empty
+DOM-derived list fails rather than passing vacuously. Proven: a broken chip id fails the test and
+fires the `scrollToSection()` console warning.
 
 ### Phase 6 — tokens, dead code, changelog repair, Endpoint→Service Provider, toast repositioning, help drawer
 
@@ -33,7 +57,9 @@ confirming nothing reads or writes `data-theme` outside them.
 **Task E — changelog two colliding eras separated.** Original-era headings prefixed with "Legacy";
 current-era entries unchanged.
 
-**Task F — help drawer brought up to date.** (To be completed.)
+**Task F — help drawer brought up to date.** Gap Visualizations section corrected from "four
+charts" to seven; `scrollToSection()` warns on a missing id; `e2e/gap/gap-help-toc.spec.cjs`
+added.
 
 **Task G — three one-line leftovers.** E2e timezone pinned to UTC; bucketing test gains year
 boundary; zero-count trap in gap-layout.spec.cjs guarded.
