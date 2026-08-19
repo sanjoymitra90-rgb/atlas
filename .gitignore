@@ -14,3 +14,10 @@ _p3.mjs
 # Kept locally for testing; synthetic equivalents live in fixtures/.
 jwt.csv
 *.local.csv
+
+# Planning documents — phase specs, implementation prompts, and the working
+# memory file. Kept locally; never published. The repo publishes the app,
+# docs/, and the test suite. See DEPLOY.md.
+2026-*-phase-*.md
+*-prompt.md
+claude_memory.md
