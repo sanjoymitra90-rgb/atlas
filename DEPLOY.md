@@ -56,7 +56,7 @@ Every test command now rebuilds the app automatically before running. If somethi
 
 ## 6. Where the app is hosted
 
-The live app is at: **https://sanjoymitra90-rgb.github.io/qwen-test-atlas/**
+The live app is at: **https://sanjoymitra90-rgb.github.io/atlas/**
 
 ---
 
