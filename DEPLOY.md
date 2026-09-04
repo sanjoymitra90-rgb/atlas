@@ -63,3 +63,15 @@ The live app is at: **https://sanjoymitra90-rgb.github.io/atlas/**
 ## One-time setup (already done)
 
 **Settings → Pages → Build and deployment** is set to **GitHub Actions** (not "Deploy from a branch"). This tells GitHub to use the workflow file instead of deploying from a branch directly. This was set up as part of Phase 2 Task A.
+
+## Local development
+
+The maps require a CARTO API key. In CI, this is injected from the `CARTO_KEY` GitHub Actions secret. For local builds, create a `.env.local` file at the repository root:
+
+```
+VITE_CARTO_KEY=your_carto_key_here
+```
+
+Without this file, the maps still load but show CARTO watermarks on every tile. The build does not fail — it logs a console error naming the missing variable.
+
+Do not commit `.env.local`. It is gitignored. The key must never enter the repository or its history.

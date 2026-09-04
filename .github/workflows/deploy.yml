@@ -28,7 +28,11 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:unit:dhaka
       - run: npm run build
+        env:
+          VITE_CARTO_KEY: ${{ secrets.CARTO_KEY }}
       - run: npm run test:e2e
+        env:
+          VITE_CARTO_KEY: ${{ secrets.CARTO_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

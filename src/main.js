@@ -16,6 +16,7 @@ import * as time from './auditor/time.js';
 import * as geo from './optimizer/geo.js';
 import * as download from './core/download.js';
 import * as financials from './onboarding/financials.js';
+import * as map from './map.js';
 
 Object.assign(window, format);
 Object.assign(window, validate);
@@ -25,3 +26,4 @@ Object.assign(window, time);
 Object.assign(window, geo);
 Object.assign(window, download);
 Object.assign(window, financials);
+Object.assign(window, map);

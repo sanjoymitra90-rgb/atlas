@@ -7,9 +7,33 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-08-15 (Onboarding: Add Task above Assumptions & Exclusions)
+**Last updated:** 2026-09-04 (CARTO API key injection)
 
 ---
+
+### CARTO API key injection — maps no longer watermarked
+
+CARTO changed their raster basemap terms: tiles now require an API key or show
+watermarks. The tile URL (`https://{s}.basemaps.cartocdn.com/dark_all/...`) was
+unchanged since the first commit. CARTO now watermarks every tile without a key.
+
+Three identical `L.tileLayer(...)` calls in `index.html` (footprint, customer,
+dashboard maps) are collapsed into a single shared module (`src/map.js`) that
+builds the URL from `import.meta.env.VITE_CARTO_KEY`. The URL is exposed on
+`window.tileUrl` through the existing bridge in `src/main.js`.
+
+When the key is missing (local build without `.env.local`), the module logs a
+loud console error naming `VITE_CARTO_KEY` and its consequence. The URL still
+works — tiles load with watermarks — but the developer sees the message.
+
+CI injects the key from the `CARTO_KEY` GitHub Actions secret via the
+`VITE_CARTO_KEY` env var on both the `build` and `test:e2e` steps (the e2e
+script rebuilds internally). A new Playwright test (`e2e/gap/carto-key.spec.cjs`)
+asserts the built file contains `?key=` and does not contain `key=undefined`,
+empty `key=`, or the literal string `VITE_CARTO_KEY`.
+
+The `.gitignore` now excludes `.env`, `.env.local`, and `.env.*.local`. `DEPLOY.md`
+documents the local `.env.local` requirement.
 
 ### Onboarding — Add Task moved above Assumptions & Exclusions
 

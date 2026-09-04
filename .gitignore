@@ -21,3 +21,8 @@ jwt.csv
 2026-*-phase-*.md
 *-prompt.md
 claude_memory.md
+
+# Vite env files — may contain secrets; never commit.
+.env
+.env.local
+.env.*.local
