@@ -7,9 +7,27 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-09-04 (CARTO API key injection)
+**Last updated:** 2026-09-04 (Optimizer: capital cities + region grouping)
 
 ---
+
+### Optimizer — capital cities and region grouping
+
+The Cell Placement Optimizer's `worldCities` dataset was expanded from 140 to 243
+entries by adding capital cities for 103 countries that had no representation. The
+missing capitals were identified by cross-referencing against a Microsoft rollout
+plan CSV listing 181 countries. Countries were assigned to one of 6 regions (North
+America, Latin America, Europe, Middle East & Africa, South & Central Asia, East &
+Southeast Asia & Pacific) based on geography and infrastructure development.
+
+A new "By Region" tab was added to the Service Provider Locations panel (Step 2).
+The tab groups cities by region with a header, city count, and an **+ Add All**
+button per region. A global **+ Add All Regions** button at the bottom adds all
+cities at once. Both use `tryAddEndpoint()` for deduplication — already-added
+cities are silently skipped.
+
+Tier assignments follow the existing T1–T4 system (5/20/40/60 ms infra tax) based
+on GDP per capita and infrastructure quality.
 
 ### CARTO API key injection — maps no longer watermarked
 
