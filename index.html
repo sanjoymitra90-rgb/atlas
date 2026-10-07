@@ -1147,19 +1147,19 @@ th:hover .gap-col-filter {
             <div class="text-xs text-slate-400 mt-1">Unpairable</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
-            <div class="text-lg font-bold text-white" id="gap-pair-ttv" data-testid="gap-pair-ttv" title="Milliseconds between each signing and its matched verification. Mean, median, and P95. TTV chart shows median+P95 only. Use this to calibrate the pairing window in Settings.">-</div>
-            <div class="text-xs text-slate-400 mt-1">Time to verify <i class="fas fa-info-circle text-[10px] text-violet-400" title="Time to verify = delay between a signing request and its matched verification (the signing → verification hand-off). We show the mean, median (typical hand-off) and P95 (the slow 5%). A large P95-vs-median gap means sporadic slow hand-offs."></i></div>
-            <div class="text-[10px] text-slate-500 mt-0.5">signing &rarr; verification handoff</div>
+            <div class="text-lg font-bold text-white" id="gap-pair-ttv" data-testid="gap-pair-ttv" title="Handoff = time from signing response to verification request arrival (verification timestamp minus its processing time, minus signing timestamp). Mean, median, and P95. TTV chart shows median+P95 only. Use this to calibrate the pairing window in Settings.">-</div>
+            <div class="text-xs text-slate-400 mt-1">Time to verify <i class="fas fa-info-circle text-[10px] text-violet-400" title="Handoff = time from signing response to verification request arrival. EDR timestamps record when the response was sent; to find when the verification request arrived, its processing time is subtracted from its response timestamp. We show the mean, median (typical hand-off) and P95 (the slow 5%). A large P95-vs-median gap means sporadic slow hand-offs."></i></div>
+            <div class="text-[10px] text-slate-500 mt-0.5">signing &rarr; verification request arrival</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
             <div class="text-lg font-bold text-white" id="gap-pair-proc" data-testid="gap-pair-proc">-</div>
             <div class="text-xs text-slate-400 mt-1">Pair processing (S+V)</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">signing + verification proc</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">signing proc + verification proc</div>
           </div>
           <div class="bg-slate-800/50 rounded-xl p-3 text-center">
-            <div class="text-lg font-bold text-white" id="gap-pair-endtoend" data-testid="gap-pair-endtoend" title="Total platform time attributable to the call — signing processing + handoff + verification processing, summed as if sequential. Not a strict wall-clock measurement.">-</div>
+            <div class="text-lg font-bold text-white" id="gap-pair-endtoend" data-testid="gap-pair-endtoend" title="Total platform time attributable to the call — signing processing + handoff + verification processing. Handoff is measured from signing response to verification request arrival. Not a strict wall-clock measurement.">-</div>
             <div class="text-xs text-slate-400 mt-1">End-to-end (S+H+V)</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">signing + handoff + verification</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">signing proc + handoff + verification proc</div>
           </div>
         </div>
         <div class="text-xs text-slate-500 bg-slate-800/30 rounded-lg px-3 py-2" id="gap-pair-correlation" data-testid="gap-pair-correlation"></div>
@@ -1852,6 +1852,33 @@ th:hover .gap-col-filter {
           <li><strong>Match rate</strong> = paired outcomes / (paired + unverified + unsigned). The time-to-verify median and P95 help calibrate the window.</li>
           <li><strong>Global panel</strong> &mdash; the pairing panel shows whole-dataset stats and does not change with table filters.</li>
         </ul>
+
+        <h4>Understanding the Three Time Metrics</h4>
+        <p>Each paired row carries three timing measurements. Understanding the difference between them is critical for interpreting the Call Pairing panel:</p>
+
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-stopwatch text-cyan-400"></i> Handoff (Time to Verify)</div>
+          <p><strong>Formula:</strong> <code>(verify.timestamp - verify.processingTime) - sign.timestamp</code></p>
+          <p>The time between when we <strong>responded with the signing request</strong> and when the <strong>verification request arrived</strong>.</p>
+          <p>EDR timestamps record when the response was sent, not when the request arrived. To find when the verification request arrived, we subtract the verification processing time from its response timestamp.</p>
+          <p><strong>Example:</strong> If the signing response was sent at 10:00:00.000 and the verification response was sent at 10:00:00.400 with a processing time of 55ms, the verification request arrived at 10:00:00.345. The handoff is 345ms (not 400ms).</p>
+        </div>
+
+        <div class="help-callout">
+          <div class="callout-title"><i class="fas fa-cogs text-purple-400"></i> Pair Processing (S+V)</div>
+          <p><strong>Formula:</strong> <code>sign.processingTime + verify.processingTime</code></p>
+          <p>The combined processing time of both the signing and verification events, <strong>excluding</strong> the handoff. This measures how long the platform spent actually processing each request.</p>
+          <p><strong>Example:</strong> If signing took 40ms and verification took 55ms, pair processing is 95ms regardless of how long the handoff was.</p>
+        </div>
+
+        <div class="help-callout success">
+          <div class="callout-title"><i class="fas fa-hourglass-half text-emerald-400"></i> End-to-End (S+H+V)</div>
+          <p><strong>Formula:</strong> <code>sign.processingTime + handoff + verify.processingTime</code></p>
+          <p>The total platform time attributable to the call: signing processing + handoff + verification processing. This is <strong>not</strong> a strict wall-clock measurement &mdash; it sums the three components as if they were sequential.</p>
+          <p><strong>Example:</strong> If signing processing was 40ms, handoff was 345ms, and verification processing was 55ms, end-to-end is 440ms.</p>
+        </div>
+
+        <p><strong>Why the distinction matters:</strong> A high handoff time indicates network latency or queuing between signing and verification. High processing time indicates the platform itself is slow. High end-to-end could be caused by either. The three metrics help you pinpoint where time is being spent.</p>
       </section>
 
       <section class="help-section" id="gap-charts">
@@ -1862,9 +1889,9 @@ th:hover .gap-col-filter {
           <li><strong>Invalid Numbers Over Time</strong> &mdash; line chart of invalid destination counts per time bucket.</li>
           <li><strong>Signing vs Verification Volume</strong> &mdash; stacked bar chart. Each service type has its own bar, internally stacked: valid requests (blue/green) on the bottom, invalid destinations (orange) on top.</li>
           <li><strong>Processing Time Distribution</strong> &mdash; line chart of average processing latency per time bucket. The Y-axis scales dynamically to the data range.</li>
-          <li><strong>Time to Verify Over Time</strong> &mdash; dual-line chart showing median TTV (cyan) and P95 TTV (pink dashed) per time bucket, computed from paired signing/verification calls.</li>
+          <li><strong>Time to Verify Over Time</strong> &mdash; dual-line chart showing median TTV (cyan) and P95 TTV (pink dashed) per time bucket. TTV is measured from signing response to verification request arrival.</li>
           <li><strong>Pair Processing Over Time</strong> &mdash; line chart of average pair processing time (signing + verification processing) per time bucket.</li>
-          <li><strong>End-to-End Over Time</strong> &mdash; line chart of average end-to-end time (signing + handoff + verification) per time bucket.</li>
+          <li><strong>End-to-End Over Time</strong> &mdash; line chart of average end-to-end time (signing processing + handoff + verification processing) per time bucket.</li>
         </ul>
         <p>Each chart has its own <strong>Time Bucket</strong> dropdown (Auto / 1 Min / 5 Min / 1 Hour / 1 Day) in its card header for independent bucketing.</p>
       </section>
@@ -5466,12 +5493,13 @@ function pairGapCalls() {
         const first = queue.shift();
         pairCount++;
         const pid = 'P' + pairCount;
+        const verifyArrival = row.timestamp - (row.processingTime || 0);
         first.pairStatus = 'paired';
         first.pairId = pid;
-        first.timeToVerify = row.timestamp - first.timestamp;
+        first.timeToVerify = verifyArrival - first.timestamp;
         row.pairStatus = 'paired';
         row.pairId = pid;
-        row.timeToVerify = row.timestamp - first.timestamp;
+        row.timeToVerify = verifyArrival - first.timestamp;
         return;
       }
       row.pairStatus = 'unsigned';
@@ -5745,7 +5773,7 @@ function renderGapTable() {
       if (isAlt) trClasses += ' gap-group-alt';
       if (needsSeam) trClasses += ' gap-group-seam';
       // Partner page note for paired pills
-      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
+      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verification request arrived ' + row.timeToVerify + 'ms after signing response' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
       if (row.pairStatus === 'paired') {
         const partnerRows = sorted.filter(r => r.pairId === row.pairId && r._gapIdx !== row._gapIdx);
         if (partnerRows.length > 0) {
@@ -5765,7 +5793,7 @@ function renderGapTable() {
           const handoff = signRow.timeToVerify || 0;
           const proc = signRow.pairProc || 0;
           const e2e = signRow.pairEndToEnd || 0;
-          summaryRow = `<tr class="gap-pair-summary" data-pair-summary="${row.pairId}"><td colspan="${10 + gapAdditionalColumns.length}" class="py-1 px-4 text-xs text-slate-500 bg-slate-900/80">${row.pairId} \u00b7 handoff ${handoff}ms \u00b7 proc ${proc}ms \u00b7 end-to-end ${e2e}ms</td></tr>`;
+          summaryRow = `<tr class="gap-pair-summary" data-pair-summary="${row.pairId}"><td colspan="${10 + gapAdditionalColumns.length}" class="py-1 px-4 text-xs text-slate-500 bg-slate-900/80">${row.pairId} \u00b7 handoff ${handoff}ms \u00b7 proc ${proc}ms \u00b7 end-to-end ${e2e}ms \u00b7 <span title="Handoff = signing response to verification request arrival">sign resp &rarr; verify req arrival</span></td></tr>`;
         }
       }
       const tc = formatGapTimeCell(row);
@@ -5819,7 +5847,7 @@ function renderGapTable() {
     const totalPages = Math.ceil(gapFilteredData.length / gapRowsPerPage);
 
     tableBody.innerHTML = pageData.map(row => {
-      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verified ' + row.timeToVerify + 'ms after signing' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
+      let pillTitle = row.pairStatus === 'paired' ? row.pairId + ' \u00b7 verification request arrived ' + row.timeToVerify + 'ms after signing response' : row.pairStatus === 'unverified' ? 'No verification within ' + gapPairWindow + 'ms' : row.pairStatus === 'unsigned' ? 'No preceding signing within ' + gapPairWindow + 'ms' : row.pairStatus === 'duplicate' ? 'Superseded signing within ' + gapPairWindow + 'ms' : 'Missing or invalid timestamp';
       if (row.pairStatus === 'paired') {
         if (row.pairProc != null) pillTitle += ' \u00b7 proc ' + row.pairProc + 'ms';
         if (row.pairEndToEnd != null) pillTitle += ' \u00b7 end-to-end ' + row.pairEndToEnd + 'ms';
@@ -6171,7 +6199,7 @@ function renderGapCharts() {
     const ttvDatasets = [];
     const sf = gapSeriesFilters.ttv;
     if (sf === 'both' || sf === 'median') {
-      ttvDatasets.push({ label: 'Median TTV (ms)', data: chartData.ttv.ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+      ttvDatasets.push({ label: 'Median TTV (ms)', data: chartData.ttv.ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false, tooltip: { callbacks: { title: (items) => items[0].label + ' (signing response → verification request arrival)' } } });
     }
     if (sf === 'both' || sf === 'p95') {
       ttvDatasets.push({ label: 'P95 TTV (ms)', data: chartData.ttv.ttvP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
@@ -6225,7 +6253,7 @@ function renderGapCharts() {
     const e2eDatasets = [];
     const sf = gapSeriesFilters.e2e;
     if (sf === 'both' || sf === 'median') {
-      e2eDatasets.push({ label: 'Median E2E (ms)', data: chartData.ttv.e2eMedian, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+      e2eDatasets.push({ label: 'Median E2E (ms)', data: chartData.ttv.e2eMedian, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: false, tension: 0.4, spanGaps: false, tooltip: { callbacks: { title: (items) => items[0].label + ' (signing proc + handoff + verification proc)' } } });
     }
     if (sf === 'both' || sf === 'p95') {
       e2eDatasets.push({ label: 'P95 E2E (ms)', data: chartData.ttv.e2eP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
@@ -6391,7 +6419,7 @@ function renderSingleChart(chartType) {
     const ttvDatasets = [];
     const sf = gapSeriesFilters.ttv;
     if (sf === 'both' || sf === 'median') {
-      ttvDatasets.push({ label: 'Median TTV (ms)', data: ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+      ttvDatasets.push({ label: 'Median TTV (ms)', data: ttvMedian, borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: false, tension: 0.4, spanGaps: false, tooltip: { callbacks: { title: (items) => items[0].label + ' (signing response → verification request arrival)' } } });
     }
     if (sf === 'both' || sf === 'p95') {
       ttvDatasets.push({ label: 'P95 TTV (ms)', data: ttvP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });
@@ -6431,7 +6459,7 @@ function renderSingleChart(chartType) {
     const e2eDatasets = [];
     const sf = gapSeriesFilters.e2e;
     if (sf === 'both' || sf === 'median') {
-      e2eDatasets.push({ label: 'Median E2E (ms)', data: e2eMedian, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: false, tension: 0.4, spanGaps: false });
+      e2eDatasets.push({ label: 'Median E2E (ms)', data: e2eMedian, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: false, tension: 0.4, spanGaps: false, tooltip: { callbacks: { title: (items) => items[0].label + ' (signing proc + handoff + verification proc)' } } });
     }
     if (sf === 'both' || sf === 'p95') {
       e2eDatasets.push({ label: 'P95 E2E (ms)', data: e2eP95, borderColor: '#f472b6', backgroundColor: 'rgba(244, 114, 182, 0.1)', fill: false, tension: 0.4, borderDash: [5, 3], spanGaps: false });

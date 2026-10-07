@@ -7,7 +7,34 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-09-04 (Optimizer: capital cities + region grouping)
+**Last updated:** 2026-09-09 (Handoff formula corrected: signing response → verification request arrival)
+
+---
+
+### Handoff formula corrected
+
+**What changed:** The handoff time (Time to Verify) calculation was corrected to measure from the
+signing response to the verification **request arrival**, not the verification response.
+
+**Why:** EDR timestamps record when the response was sent, not when the request arrived. The true
+handoff ends when the verification request arrived, which is estimated by subtracting the
+verification processing time from its response timestamp.
+
+**New formula:** `(verify.timestamp - verify.processingTime) - sign.timestamp`
+
+**Old formula:** `verify.timestamp - sign.timestamp`
+
+**Impact:** Handoff values are now shorter by exactly the verification processing time. End-to-end
+values are also shorter (since `pairEndToEnd = signProc + handoff + verifyProc`). Pairing window
+matching is unaffected — pairs are still identified the same way.
+
+**Files changed:**
+- `index.html` — corrected `pairGapCalls()` formula, updated tooltips, chart labels, pair pill
+  tooltips, and help guide
+- `e2e/gap/gap-pairing-fifo.spec.cjs` — updated expected TTV values (600→542, 800→740)
+- `docs/SPEC.md` — documented the three pair-level metrics with corrected formulas
+- `docs/FEATURES.md` — documented handoff, processing, and end-to-end with corrected formulas
+- Help guide — added new "Understanding the Three Time Metrics" section with examples
 
 ---
 

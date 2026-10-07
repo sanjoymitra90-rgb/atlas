@@ -14,7 +14,7 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     await expect(page.getByTestId('gap-pair-unsigned')).toHaveText('2');
     await expect(page.getByTestId('gap-pair-duplicates')).toHaveText('1');
     await expect(page.getByTestId('gap-pair-unpairable')).toHaveText('1');
-    await expect(page.getByTestId('gap-pair-ttv')).toContainText('600');
+    await expect(page.getByTestId('gap-pair-ttv')).toContainText('542');
   });
 
   test('correlation line crosses pairing with UK validity', async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('Gap Analyzer — Phase 3 (event pairing)', () => {
     await expect(page.getByTestId('gap-pair-matchrate')).toContainText('57.1');
     await expect(page.getByTestId('gap-pair-unverified')).toHaveText('1');
     await expect(page.getByTestId('gap-pair-unsigned')).toHaveText('1');
-    await expect(page.getByTestId('gap-pair-ttv')).toContainText('800');
+    await expect(page.getByTestId('gap-pair-ttv')).toContainText('740');
   });
 
   test('clicking signed-but-not-verified filters the table to those 2 rows', async ({ page }) => {

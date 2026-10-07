@@ -402,9 +402,17 @@ of outcomes, 500 ms only 49.1%. The 500 ms misses are a timestamp-resolution art
 logged at whole-second granularity, so cross-tick pairs show an apparent 1000 ms gap. Sub-second
 latency is not observable from this data. 1000 ms is therefore the minimum usable window.
 
-**Pair-level metrics:** After pairing, `pairGapCalls()` computes `pairProc` (signing + verification
-processing time) and `pairEndToEnd` (signing + handoff + verification) on each paired row.
+**Pair-level metrics:** After pairing, `pairGapCalls()` computes three metrics on each paired row.
 Both rows of a pair carry the same values.
+
+- **Handoff** (`timeToVerify`) = `(verify.timestamp - verify.processingTime) - sign.timestamp`.
+  EDR timestamps record when the *response* was sent, not when the request arrived. The true
+  handoff ends when the verification request arrived, which is estimated by subtracting the
+  verification processing time from its response timestamp.
+- **Pair processing** (`pairProc`) = `sign.processingTime + verify.processingTime`. Combined
+  processing time of both events, excluding handoff.
+- **End-to-end** (`pairEndToEnd`) = `sign.processingTime + handoff + verify.processingTime`.
+  Full platform time: signing processing + handoff + verification processing.
 
 **Median convention:** `timeToVerifyMedian` takes the upper-middle value for even samples
 (`[400,500,600,1500]` → `600`), not the statistical mean of the two middle values. Chosen because

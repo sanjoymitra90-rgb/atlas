@@ -259,8 +259,19 @@ pairing window. A signing that ages out of the window without a match is reporte
 Five outcomes: **Paired**, **Signed · not verified**, **Verified · not signed**, **Duplicate**
 (a superseded retry), and **Unpairable** (no usable timestamp).
 
+Each paired row carries three time metrics:
+
+- **Handoff** (`timeToVerify`) — the time between when we responded with the signing request
+  and when the verification request arrived. EDR timestamps record when the response was sent;
+  to find when the verification request arrived, its processing time is subtracted from its
+  response timestamp: `(verify.timestamp - verify.processingTime) - sign.timestamp`.
+- **Pair processing** (`pairProc`) — combined processing time of signing and verification,
+  excluding handoff: `sign.processingTime + verify.processingTime`.
+- **End-to-end** (`pairEndToEnd`) — full platform time: signing processing + handoff +
+  verification processing.
+
 The Call Pairing panel shows match rate, unverified and unsigned counts, duplicates, unpairable
-records, and the median and 95th-percentile time to verify. An info icon on the Time-to-Verify
+records, and the mean, median and 95th-percentile handoff time. An info icon on the Time-to-Verify
 tile explains that median is the typical hand-off, P95 is the slow 5%, and a large P95-vs-median
 gap means sporadic slow hand-offs. Each block is clickable and filters
 the table. A correlation line relates unverified signings to invalid destinations — the question
@@ -307,9 +318,9 @@ Seven charts, all clickable to filter the table to the time bucket you click:
    light blue for signing invalid, green for verification valid, light green for verification invalid.
    Hue carries service, treatment carries validity. Count axes use whole numbers.
 4. **Processing Time Distribution** — split into signing-avg and verification-avg
-5. **Time to Verify** — median and 95th percentile handoff time
+5. **Time to Verify** — median and 95th percentile handoff time (signing response → verification request arrival)
 6. **Pair Processing** — median and 95th percentile of signing + verification processing time
-7. **End-to-End** — median and 95th percentile of signing + handoff + verification time
+7. **End-to-End** — median and 95th percentile of signing processing + handoff + verification processing time
 
 Charts 5–7 are timing charts computed from paired rows only. When no pairs exist, they show
 "No paired calls in the current view." instead of an empty axis.
@@ -339,9 +350,9 @@ Reset All clears both. The Time and Processing Time columns have custom range in
 The Call Pairing panel shows pair-level metrics in a four-column grid (two clean rows at the
 large breakpoint):
 
-- **Time to verify** — mean, median, and P95 handoff time between signing and verification
+- **Time to verify** — mean, median, and P95 handoff time (signing response → verification request arrival)
 - **Pair processing (S+V)** — mean, median, and P95 of signing + verification processing time
-- **End-to-end (S+H+V)** — mean, median, and P95 of signing + handoff + verification
+- **End-to-end (S+H+V)** — mean, median, and P95 of signing processing + handoff + verification processing
 
 The TTV chart shows median + P95 only (no mean line); mean lives in the panel.
 
@@ -378,7 +389,8 @@ Three export scopes:
 1. **Filtered Results** — export only currently filtered and visible rows
 2. **All Results** — export complete dataset without any filters applied
 3. **Pair Summary** — one row per paired pair with timing metrics (pairId, from, to, signTime,
-   verifyTime, handoffMs, signProcMs, verifyProcMs, pairProcessingMs, endToEndMs)
+   verifyTime, handoffMs, signProcMs, verifyProcMs, pairProcessingMs, endToEndMs). Handoff is
+   measured from signing response to verification request arrival.
 
 The CSV opens with a summary block — totals, invalid-reason breakdown, pairing summary — followed
 by the full rows including pair status, pair ID, time to verify, and any custom columns.
