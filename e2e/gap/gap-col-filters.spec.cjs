@@ -107,6 +107,7 @@ test.describe('Gap Analyzer — Column Header Filters', () => {
     const initialCount = await page.locator('#gap-table-body tr').count();
     await page.locator('.gap-col-filter[data-col="processingTime"]').click();
     await page.locator('#col-filter-proc-min').fill('100');
+    await page.locator('#col-dd-processingTime .gap-dd-btn-apply').click();
     const filteredCount = await page.locator('#gap-table-body tr').count();
     expect(filteredCount).toBeLessThan(initialCount);
     expect(filteredCount).toBeGreaterThan(0);
@@ -116,6 +117,7 @@ test.describe('Gap Analyzer — Column Header Filters', () => {
     const initialCount = await page.locator('#gap-table-body tr').count();
     await page.locator('.gap-col-filter[data-col="processingTime"]').click();
     await page.locator('#col-filter-proc-max').fill('50');
+    await page.locator('#col-dd-processingTime .gap-dd-btn-apply').click();
     const filteredCount = await page.locator('#gap-table-body tr').count();
     expect(filteredCount).toBeLessThan(initialCount);
     expect(filteredCount).toBeGreaterThan(0);
@@ -150,6 +152,90 @@ test.describe('Gap Analyzer — Column Header Filters', () => {
     const filteredCount = await page.locator('#gap-table-body tr').count();
     expect(filteredCount).toBeLessThan(initialCount);
     expect(filteredCount).toBeGreaterThan(0);
+  });
+
+  test('Time filter: Apply button commits the range', async ({ page }) => {
+    const initialCount = await page.locator('#gap-table-body tr').count();
+    await page.locator('.gap-col-filter[data-col="time"]').click();
+    await page.evaluate(() => {
+      document.getElementById('col-filter-time-from').value = '2026-08-01T10:00';
+      document.getElementById('col-filter-time-to').value = '2026-08-01T11:00';
+    });
+    await page.locator('#col-dd-time .gap-dd-btn-apply').click();
+    await expect(page.locator('#col-dd-time')).toBeHidden();
+    const filteredCount = await page.locator('#gap-table-body tr').count();
+    expect(filteredCount).toBeLessThan(initialCount);
+    expect(filteredCount).toBeGreaterThan(0);
+    await expect(page.locator('.gap-col-filter[data-col="time"]')).toHaveClass(/active/);
+    const fromVal = await page.locator('#col-filter-time-from').inputValue();
+    const toVal = await page.locator('#col-filter-time-to').inputValue();
+    expect(fromVal).toBe('2026-08-01T10:00');
+    expect(toVal).toBe('2026-08-01T11:00');
+  });
+
+  test('Time filter: clicking outside cancels pending edits', async ({ page }) => {
+    const initialCount = await page.locator('#gap-table-body tr').count();
+    await page.locator('.gap-col-filter[data-col="time"]').click();
+    await page.evaluate(() => {
+      document.getElementById('col-filter-time-from').value = '2026-08-01T10:00';
+    });
+    await page.click('body', { position: { x: 10, y: 10 } });
+    await expect(page.locator('#col-dd-time')).toBeHidden();
+    const fromVal = await page.locator('#col-filter-time-from').inputValue();
+    expect(fromVal).toBe('');
+    const filteredCount = await page.locator('#gap-table-body tr').count();
+    expect(filteredCount).toBe(initialCount);
+    await expect(page.locator('.gap-col-filter[data-col="time"]')).not.toHaveClass(/active/);
+  });
+
+  test('Time filter: Cancel button reverts pending edits', async ({ page }) => {
+    const initialCount = await page.locator('#gap-table-body tr').count();
+    await page.locator('.gap-col-filter[data-col="time"]').click();
+    await page.evaluate(() => {
+      document.getElementById('col-filter-time-to').value = '2026-08-01T11:00';
+    });
+    await page.locator('#col-dd-time .gap-dd-btn:not(.gap-dd-btn-apply)').click();
+    await expect(page.locator('#col-dd-time')).toBeHidden();
+    const toVal = await page.locator('#col-filter-time-to').inputValue();
+    expect(toVal).toBe('');
+    const filteredCount = await page.locator('#gap-table-body tr').count();
+    expect(filteredCount).toBe(initialCount);
+  });
+
+  test('Time filter: Escape reverts pending edits without filtering', async ({ page }) => {
+    const initialCount = await page.locator('#gap-table-body tr').count();
+    await page.locator('.gap-col-filter[data-col="time"]').click();
+    await page.evaluate(() => {
+      document.getElementById('col-filter-time-from').value = '2026-08-01T10:00';
+    });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#col-dd-time')).toBeHidden();
+    const fromVal = await page.locator('#col-filter-time-from').inputValue();
+    expect(fromVal).toBe('');
+    const filteredCount = await page.locator('#gap-table-body tr').count();
+    expect(filteredCount).toBe(initialCount);
+  });
+
+  test('Proc Time filter: Apply syncs to filter bar and icon turns active', async ({ page }) => {
+    await page.locator('.gap-col-filter[data-col="processingTime"]').click();
+    await page.locator('#col-filter-proc-min').fill('100');
+    await page.locator('#col-dd-processingTime .gap-dd-btn-apply').click();
+    await expect(page.locator('#col-dd-processingTime')).toBeHidden();
+    expect(await page.locator('#gap-filter-proc-min').inputValue()).toBe('100');
+    expect(await page.locator('#col-filter-proc-min').inputValue()).toBe('100');
+    await expect(page.locator('.gap-col-filter[data-col="processingTime"]')).toHaveClass(/active/);
+  });
+
+  test('Proc Time filter: clicking outside cancels pending edits', async ({ page }) => {
+    const initialCount = await page.locator('#gap-table-body tr').count();
+    await page.locator('.gap-col-filter[data-col="processingTime"]').click();
+    await page.locator('#col-filter-proc-min').fill('100');
+    await page.click('body', { position: { x: 10, y: 10 } });
+    await expect(page.locator('#col-dd-processingTime')).toBeHidden();
+    expect(await page.locator('#col-filter-proc-min').inputValue()).toBe('');
+    expect(await page.locator('#gap-filter-proc-min').inputValue()).toBe('');
+    const filteredCount = await page.locator('#gap-table-body tr').count();
+    expect(filteredCount).toBe(initialCount);
   });
 
   test('Reset All clears all column filters', async ({ page }) => {

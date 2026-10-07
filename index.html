@@ -473,6 +473,31 @@ th:hover .gap-col-filter {
   flex: 1;
   min-width: 0;
 }
+.gap-col-dropdown .gap-dd-btn-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.gap-col-dropdown .gap-dd-btn {
+  flex: 1;
+  font-size: 11px;
+  padding: 4px 0;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #f8fafc;
+  cursor: pointer;
+}
+.gap-col-dropdown .gap-dd-btn:hover {
+  border-color: #7c3aed;
+}
+.gap-col-dropdown .gap-dd-btn-apply {
+  background: rgba(124,58,237,0.35);
+  border-color: #7c3aed;
+}
+.gap-col-dropdown .gap-dd-btn-apply:hover {
+  background: rgba(124,58,237,0.55);
+}
 </style>
 
 <!-- ARIA Live Region for Screen Reader Announcements -->
@@ -1341,8 +1366,12 @@ th:hover .gap-col-filter {
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:140px" onclick="handleGapSort('time')">Time (UTC) <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('time')" data-col="time"><i class="fas fa-filter text-xs"></i></span>
                   <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-time">
                     <label>Time Range</label>
-                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-from" onchange="syncFromColFilter('time')" style="margin-bottom:4px;width:100%;accent-color:var(--atlas-accent)"></div>
-                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-to" onchange="syncFromColFilter('time')" style="width:100%;accent-color:var(--atlas-accent)"></div>
+                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-from" style="margin-bottom:4px;width:100%;accent-color:var(--atlas-accent)"></div>
+                    <div style="overflow:hidden"><input type="datetime-local" id="col-filter-time-to" style="width:100%;accent-color:var(--atlas-accent)"></div>
+                    <div class="gap-dd-btn-row">
+                      <button type="button" class="gap-dd-btn gap-dd-btn-apply" onclick="syncFromColFilter('time')">Apply</button>
+                      <button type="button" class="gap-dd-btn" onclick="closeAllColDropdowns()">Cancel</button>
+                    </div>
                   </div>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white relative" style="min-width:80px" onclick="handleGapSort('service')">Service <i class="fas fa-sort text-xs ml-1"></i><span class="gap-col-filter" onclick="event.stopPropagation(); toggleColFilter('service')" data-col="service"><i class="fas fa-filter text-xs"></i></span>
@@ -1393,8 +1422,12 @@ th:hover .gap-col-filter {
                   <div class="gap-col-dropdown hidden" onclick="event.stopPropagation()" id="col-dd-processingTime">
                     <label>Processing Time (ms)</label>
                     <div class="gap-dd-row">
-                      <input type="number" id="col-filter-proc-min" placeholder="Min" oninput="syncFromColFilter('processingTime')">
-                      <input type="number" id="col-filter-proc-max" placeholder="Max" oninput="syncFromColFilter('processingTime')">
+                      <input type="number" id="col-filter-proc-min" placeholder="Min">
+                      <input type="number" id="col-filter-proc-max" placeholder="Max">
+                    </div>
+                    <div class="gap-dd-btn-row">
+                      <button type="button" class="gap-dd-btn gap-dd-btn-apply" onclick="syncFromColFilter('processingTime')">Apply</button>
+                      <button type="button" class="gap-dd-btn" onclick="closeAllColDropdowns()">Cancel</button>
                     </div>
                   </div>
                 </th>
@@ -5218,6 +5251,7 @@ function toggleColFilter(col) {
 }
 
 function closeAllColDropdowns() {
+  if (typeof syncToColDropdowns === 'function') syncToColDropdowns();
   document.querySelectorAll('.gap-col-dropdown').forEach(d => d.classList.add('hidden'));
   updateColFilterActiveStates();
 }
@@ -5237,9 +5271,7 @@ function isColFilterActive(col) {
     return (minV && minV.value !== '') || (maxV && maxV.value !== '');
   }
   if (col === 'time') {
-    const fromV = document.getElementById('col-filter-time-from');
-    const toV = document.getElementById('col-filter-time-to');
-    return (fromV && fromV.value !== '') || (toV && toV.value !== '');
+    return !!(gapTimeFrom || gapTimeTo);
   }
   const mapping = gapColFilterMap[col];
   if (!mapping || !mapping.barId) return false;
@@ -5274,6 +5306,13 @@ function syncFromColFilter(col) {
   applyGapFilters();
 }
 
+function formatTimeColInput(ms) {
+  if (!ms || !isFinite(ms)) return '';
+  const d = new Date(ms);
+  const pad = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
 function syncToColDropdowns() {
   Object.keys(gapColFilterMap).forEach(col => {
     if (col === 'time') return;
@@ -5291,8 +5330,8 @@ function syncToColDropdowns() {
   if (barMax && colMax) colMax.value = barMax.value;
   const colTimeFrom = document.getElementById('col-filter-time-from');
   const colTimeTo = document.getElementById('col-filter-time-to');
-  if (colTimeFrom) colTimeFrom.value = '';
-  if (colTimeTo) colTimeTo.value = '';
+  if (colTimeFrom) colTimeFrom.value = formatTimeColInput(gapTimeFrom);
+  if (colTimeTo) colTimeTo.value = formatTimeColInput(gapTimeTo);
   updateColFilterActiveStates();
 }
 
@@ -6079,6 +6118,7 @@ function renderGapCharts() {
     const filteredLabels = invalidIndices.map(i => chartData.invalid.displayLabels[i]);
     const filteredSigning = invalidIndices.map(i => chartData.invalid.signingInvalid[i]);
     const filteredVerify = invalidIndices.map(i => chartData.invalid.verifyInvalid[i]);
+    gapChartBucketOrders['invalid'] = invalidIndices.map(i => chartData.invalid.labels[i]);
 
     if (sf === 'both' || sf === 'signing') {
       invalidDatasets.push({ label: 'Signing Invalid', data: filteredSigning, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.7)', borderWidth: 1, barPercentage: 0.3, categoryPercentage: 0.8 });
@@ -6341,6 +6381,7 @@ function renderSingleChart(chartType) {
     const filteredLabels = invalidIndices.map(i => displayLabels[i]);
     const filteredSigning = invalidIndices.map(i => timeBuckets[labels[i]].signingInvalid);
     const filteredVerify = invalidIndices.map(i => timeBuckets[labels[i]].verifyInvalid);
+    gapChartBucketOrders['invalid'] = invalidIndices.map(i => labels[i]);
 
     if (sf === 'both' || sf === 'signing') {
       invalidDatasets.push({ label: 'Signing Invalid', data: filteredSigning, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.7)', borderWidth: 1, barPercentage: 0.3, categoryPercentage: 0.8 });

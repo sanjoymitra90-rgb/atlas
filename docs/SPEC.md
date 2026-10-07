@@ -8,7 +8,8 @@ a bug — fix it in the same commit.
 - History → `CHANGELOG.md`
 - Feature behaviour in user language → `FEATURES.md`
 
-**Last verified against `index.html`:** 2026-08-13 (Phase 4.9 — 6,616 lines).
+**Last verified against `index.html`:** 2026-10-07 (6,763 lines — column range filters gained
+Apply/Cancel with revert-on-close; Invalid Numbers drill-through stores the sparse bucket order).
 
 > **No line numbers anywhere in this file.** They were regenerated once and went stale again
 > within a phase. Anchor on function names, element IDs, and `data-testid` values — those
@@ -454,7 +455,11 @@ Pairing panel alongside median and P95.
 **Smart auto-bucketing** via `getAutoBucketInterval(min, max)`: ≤1 h → 1 min, ≤6 h → 5 min,
 ≤3 d → 1 hour, >3 d → 1 day. `gapBucketIntervals` holds per-chart overrides;
 `renderSingleChart(type)` re-renders one chart. `gapChartBucketOrders` stores per-chart bucket key
-order for drill-through, resolved through `gapBucketFilterSource`. Axis labels are capped at 15
+order for drill-through, resolved through `gapBucketFilterSource`. For the Invalid Numbers chart the
+stored order is the **sparse** list actually plotted — `gapChartBucketOrders['invalid']` is
+overwritten with `invalidIndices.map(i => labels[i])` in both `renderGapCharts()` and
+`renderSingleChart()` — so a clicked bar index resolves to that bar's own bucket instead of the
+full bucket list (which would silently shift the filter backward in time). Axis labels are capped at 15
 via `maxTicksLimit`. Auto bucket label shows the actual interval (e.g., "Auto (5 Min)") after data
 is loaded. Single-bucket and empty-filter states show a message instead of an empty axis.
 
@@ -500,9 +505,20 @@ not followed by a digit are guarded by `csvCell()` to prevent formula injection.
 Every column header has a filter icon that opens a dropdown with the same filter controls as the
 filter bar. Both UIs read/write the same `gap*` filter globals and call `applyGapFilters()`.
 `syncFromColFilter(col)` copies column header → filter bar then calls `applyGapFilters()`.
-`syncToColDropdowns()` copies filter bar → column headers, called at the end of `applyGapFilters()`.
+`syncToColDropdowns()` copies committed state → column header inputs; called at the end of
+`applyGapFilters()` and from `closeAllColDropdowns()` so every close path (outside click, Escape,
+scroll, opening another dropdown, the Cancel button) reverts un-applied edits.
 `clearGapFilterInputs()` clears all filter inputs (both bar and column header) and globals.
 Used in `resetGapFilters()`, `drillDownPair()`, and `drillDownGap()`.
+
+The Time and Processing Time dropdowns are range-style: their inputs carry no `onchange`/`oninput`
+handler, so edits stay pending until the dropdown's **Apply** button invokes `syncFromColFilter()`.
+Apply closes the dropdown, filters, keeps the entered values visible, and activates the header's
+filter icon; **Cancel** (or any close path above) restores the inputs to the last committed state —
+`formatTimeColInput(gapTimeFrom/gapTimeTo)` for time, bar → header for processing time. Text and
+select filters still apply live on input/change. The time filter's active state
+(`isColFilterActive('time')`) reads the `gapTimeFrom`/`gapTimeTo` globals, not the DOM, so an
+un-committed edit never shows as active.
 
 ---
 

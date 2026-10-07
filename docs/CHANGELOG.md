@@ -7,7 +7,61 @@ For current behaviour see `SPEC.md` (engineering) and `FEATURES.md` (product).
 If a statement here contradicts `SPEC.md`, `SPEC.md` wins — this file is not maintained
 to stay true, only to stay complete.
 
-**Last updated:** 2026-09-09 (Handoff formula corrected: signing response → verification request arrival)
+**Last updated:** 2026-10-07 (Column range filters gain Apply/Cancel; Invalid Numbers drill-through date fixed)
+
+---
+
+### Column range filters — explicit Apply/Cancel, outside click cancels
+
+**What changed:** The Time (UTC) and Proc. Time column-header dropdowns no longer filter as you type
+or on blur. Each now has **Apply** and **Cancel** buttons beneath its inputs. Edits stay pending
+until Apply is clicked; clicking outside the dropdown, pressing Escape, scrolling, or clicking
+Cancel discards the pending edit and restores the inputs to the last applied state.
+
+**Why:** The Time filter committed on the input's `change` event, which does not fire for an
+incomplete `datetime-local` value — so picking a From time and clicking outside silently did
+nothing, with no Apply button to fall back on. Worse, a *successfully* applied range had its inputs
+wiped to empty by `syncToColDropdowns()` while the filter globals stayed active, so the filter icon
+never turned violet and the entered range disappeared even though the table was filtered.
+
+**Behavior after the change:**
+- Range inputs carry no `onchange`/`oninput` handler; **Apply** calls `syncFromColFilter()` (closes,
+  filters, keeps values visible, activates the header icon).
+- **Cancel** / outside click / Escape / scroll route through `closeAllColDropdowns()`, which now
+  reverts pending edits via `syncToColDropdowns()` first.
+- The time branch of `syncToColDropdowns()` restores inputs from `gapTimeFrom`/`gapTimeTo` through
+  the new `formatTimeColInput()` instead of clearing them.
+- `isColFilterActive('time')` reads the globals, not the DOM, so a pending edit never shows as
+  active and an applied range always does.
+- Text searches and select filters are unchanged — they still apply live.
+
+**Files changed:**
+- `index.html` — Apply/Cancel buttons + `.gap-dd-btn` styles in `col-dd-time` / `col-dd-processingTime`;
+  auto-apply handlers removed from the four range inputs; `closeAllColDropdowns()`,
+  `syncToColDropdowns()`, `formatTimeColInput()`, `isColFilterActive()`
+- `e2e/gap/gap-col-filters.spec.cjs` — 2 Proc tests updated to click Apply; 7 new tests covering
+  Apply, Cancel, outside-click, and Escape for both range dropdowns
+
+### Invalid Numbers chart — clicking a bar filtered the wrong date
+
+**What changed:** Clicking a bar on the Invalid Numbers Over Time chart now filters the table to the
+bucket shown on that bar (e.g., clicking "Sep 22" filters to Sep 22, not Sep 19).
+
+**Why:** The chart intentionally plots only buckets containing invalid numbers (lollipop effect),
+but `makeChartClickHandler()` resolved the clicked chart index against the **full** bucket order
+stored in `gapChartBucketOrders`. With data spanning Sep 19–22 where only Sep 22 has invalids, the
+single "Sep 22" bar sat at chart index 0 and resolved to full-array index 0 — Sep 19. The shift was
+always backward and by a variable number of buckets. All other charts plot the full label array, so
+only this one was misaligned.
+
+**Files changed:**
+- `index.html` — `gapChartBucketOrders['invalid']` is now overwritten with
+  `invalidIndices.map(...)` in both render paths (`renderGapCharts()` and `renderSingleChart()`)
+- `fixtures/gap-invalid-drill.csv` — new fixture: Sep 19–22 with invalids only on Sep 22 (auto →
+  1-day buckets, reproduces the reported Sep 22 → Sep 19 shift)
+- `e2e/gap/gap-invalid-drill.spec.cjs` — new spec asserting both render paths map the click to Sep 22
+- `docs/SPEC.md` §7.5/§7.7, `docs/FEATURES.md` — documented sparse drill-through order and the
+  range-filter Apply/Cancel behavior
 
 ---
 

@@ -11,7 +11,7 @@ the same fact.
 - How it is built → `SPEC.md`
 - What changed and when → `CHANGELOG.md`
 
-**Last verified against the app:** 2026-08-13 (Phase 4.9: grouped-sort invariant, TZ-provable bucketing, blind tests, doc corrections).
+**Last verified against the app:** 2026-10-07 (Column range filters gain Apply/Cancel; Invalid Numbers drill-through clicks resolve to the bar's own bucket).
 
 ---
 
@@ -313,7 +313,9 @@ Seven charts, all clickable to filter the table to the time bucket you click:
 1. **Requests Over Time** — signing and verification request counts as two lines, with the area
    between them shaded so divergence is immediately visible. Count axes use whole numbers.
 2. **Invalid Numbers Over Time** — discrete lollipop bars at only the buckets where invalid events
-   exist (empty buckets are not shown); rare events read correctly as events rather than a flat line
+   exist (empty buckets are not shown); rare events read correctly as events rather than a flat line.
+   Clicking a bar filters the table to exactly the bucket that bar represents — even though empty
+   buckets are hidden, the click maps to the bar's own date/time, not an earlier one
 3. **Signing vs Verification Volume** — stacked bar with four colours: blue for signing valid,
    light blue for signing invalid, green for verification valid, light green for verification invalid.
    Hue carries service, treatment carries validity. Count axes use whole numbers.
@@ -343,7 +345,15 @@ filters reduce a chart to zero rows, a message is shown instead of an empty axis
 
 Every column header has a filter icon that opens a dropdown with the same filter controls as the
 filter bar. Changing a header filter updates the matching filter bar control and vice versa.
-Reset All clears both. The Time and Processing Time columns have custom range inputs.
+Reset All clears both.
+
+The Time and Processing Time dropdowns are **range-style**: they have **Apply** and **Cancel**
+buttons beneath their inputs. Typing a value does not filter on its own — the edit stays pending
+until you click Apply, which closes the dropdown, filters the table, keeps your values visible, and
+lights up the filter icon. Cancel — or clicking anywhere outside the dropdown, pressing Escape, or
+scrolling — discards the pending edit and restores the inputs to the last applied range, so a
+half-entered range can never silently filter or stay stuck. Text searches (From, To, Source IP) and
+the dropdown lists still apply instantly as before.
 
 ### Call Pairing panel
 
